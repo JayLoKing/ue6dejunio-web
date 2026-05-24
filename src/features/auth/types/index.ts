@@ -1,6 +1,6 @@
 import type { CredentialResponse } from "../models/response/credential-response"
 
-export type UserRole = "DIRECTOR" | "SECRETARIO" | "DOCENTE"
+export type UserRole = "DIRECTOR" | "SECRETARY" | "TEACHER"
 
 export interface AuthState {
   userId: string | null

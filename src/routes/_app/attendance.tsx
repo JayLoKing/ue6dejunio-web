@@ -6,7 +6,7 @@ import { isRole } from "@/features/auth/types"
 export const Route = createFileRoute("/_app/attendance")({
   beforeLoad: () => {
     const role = useAuthStore.getState().role
-    if (!isRole(role, "DOCENTE")) {
+    if (!isRole(role, "TEACHER")) {
       throw redirect({ to: "/dashboard" })
     }
   },

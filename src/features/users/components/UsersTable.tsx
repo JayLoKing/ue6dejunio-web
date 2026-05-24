@@ -22,7 +22,7 @@ function roleVariant(role: string): "default" | "secondary" | "outline" {
   switch (role.toUpperCase()) {
     case "DIRECTOR":
       return "default"
-    case "SECRETARIO":
+    case "SECRETARY":
       return "secondary"
     default:
       return "outline"

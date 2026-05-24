@@ -6,6 +6,7 @@ import {
   GraduationCapIcon,
   LayoutDashboardIcon,
   LogOutIcon,
+  UserSquare2Icon,
   UsersIcon,
 } from "lucide-react"
 import { Link, useRouterState } from "@tanstack/react-router"
@@ -30,6 +31,7 @@ type NavTo =
   | "/dashboard"
   | "/users"
   | "/courses"
+  | "/students"
   | "/attendance"
   | "/scores"
   | "/reports"
@@ -46,27 +48,33 @@ const NAV_ITEMS: NavItem[] = [
     title: "Dashboard",
     to: "/dashboard",
     icon: LayoutDashboardIcon,
-    roles: ["DIRECTOR", "SECRETARIO", "DOCENTE"],
+    roles: ["DIRECTOR", "SECRETARY", "TEACHER"],
   },
   { title: "Usuarios", to: "/users", icon: UsersIcon, roles: ["DIRECTOR"] },
   { title: "Cursos", to: "/courses", icon: BookOpenIcon, roles: ["DIRECTOR"] },
   {
+    title: "Estudiantes",
+    to: "/students",
+    icon: UserSquare2Icon,
+    roles: ["TEACHER"],
+  },
+  {
     title: "Asistencias",
     to: "/attendance",
     icon: CalendarCheckIcon,
-    roles: ["DOCENTE"],
+    roles: ["TEACHER"],
   },
   {
-    title: "Notas",
+    title: "Notas / Areas",
     to: "/scores",
     icon: ClipboardListIcon,
-    roles: ["DOCENTE"],
+    roles: ["TEACHER"],
   },
   {
     title: "Reportes",
     to: "/reports",
     icon: FileBarChartIcon,
-    roles: ["DOCENTE"],
+    roles: ["TEACHER"],
   },
 ]
 

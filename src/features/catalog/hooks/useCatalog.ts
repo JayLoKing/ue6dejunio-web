@@ -22,3 +22,17 @@ export const useParallels = () =>
     queryFn: CatalogService.parallels,
     staleTime: 5 * 60_000,
   })
+
+export const useSubjects = () =>
+  useQuery({
+    queryKey: catalogKeys.subjects,
+    queryFn: CatalogService.subjects,
+    staleTime: 5 * 60_000,
+  })
+
+export const useTeachers = () =>
+  useQuery({
+    queryKey: catalogKeys.teachers,
+    queryFn: CatalogService.teachers,
+    staleTime: 5 * 60_000,
+  })

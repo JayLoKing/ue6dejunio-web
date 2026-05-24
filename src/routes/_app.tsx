@@ -13,6 +13,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { ChangePasswordDialog } from "@/features/auth/components/ChangePasswordDialog"
 import { useAuthStore } from "@/features/auth/store/authStore"
 
 export const Route = createFileRoute("/_app")({
@@ -27,6 +28,8 @@ export const Route = createFileRoute("/_app")({
 
 const SECTION_TITLES: Record<string, string> = {
   "/dashboard": "Dashboard",
+  "/users": "Usuarios",
+  "/courses": "Cursos",
   "/attendance": "Asistencias",
   "/scores": "Notas",
   "/reports": "Reportes",
@@ -34,6 +37,8 @@ const SECTION_TITLES: Record<string, string> = {
 
 function AppLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const mustChangePassword = useAuthStore((s) => s.mustChangePassword)
+
   const title =
     Object.entries(SECTION_TITLES).find(([key]) =>
       pathname.startsWith(key),
@@ -55,6 +60,7 @@ function AppLayout() {
           <Outlet />
         </main>
       </SidebarInset>
+      <ChangePasswordDialog open={mustChangePassword} />
     </SidebarProvider>
   )
 }

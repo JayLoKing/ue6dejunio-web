@@ -1,10 +1,12 @@
 import {
+  BookOpenIcon,
   CalendarCheckIcon,
   ClipboardListIcon,
   FileBarChartIcon,
   GraduationCapIcon,
   LayoutDashboardIcon,
   LogOutIcon,
+  UsersIcon,
 } from "lucide-react"
 import { Link, useRouterState } from "@tanstack/react-router"
 
@@ -22,18 +24,50 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { useAuthStore } from "@/features/auth/store/authStore"
+import { isRole, type UserRole } from "@/features/auth/types"
 
-type NavItem = {
+type NavTo =
+  | "/dashboard"
+  | "/users"
+  | "/courses"
+  | "/attendance"
+  | "/scores"
+  | "/reports"
+
+interface NavItem {
   title: string
-  to: "/dashboard" | "/attendance" | "/scores" | "/reports"
+  to: NavTo
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
+  roles: UserRole[]
 }
 
-const navItems: NavItem[] = [
-  { title: "Dashboard", to: "/dashboard", icon: LayoutDashboardIcon },
-  { title: "Asistencias", to: "/attendance", icon: CalendarCheckIcon },
-  { title: "Notas", to: "/scores", icon: ClipboardListIcon },
-  { title: "Reportes", to: "/reports", icon: FileBarChartIcon },
+const NAV_ITEMS: NavItem[] = [
+  {
+    title: "Dashboard",
+    to: "/dashboard",
+    icon: LayoutDashboardIcon,
+    roles: ["DIRECTOR", "SECRETARIO", "DOCENTE"],
+  },
+  { title: "Usuarios", to: "/users", icon: UsersIcon, roles: ["DIRECTOR"] },
+  { title: "Cursos", to: "/courses", icon: BookOpenIcon, roles: ["DIRECTOR"] },
+  {
+    title: "Asistencias",
+    to: "/attendance",
+    icon: CalendarCheckIcon,
+    roles: ["DOCENTE"],
+  },
+  {
+    title: "Notas",
+    to: "/scores",
+    icon: ClipboardListIcon,
+    roles: ["DOCENTE"],
+  },
+  {
+    title: "Reportes",
+    to: "/reports",
+    icon: FileBarChartIcon,
+    roles: ["DOCENTE"],
+  },
 ]
 
 export function AppSidebar() {
@@ -41,6 +75,10 @@ export function AppSidebar() {
   const role = useAuthStore((s) => s.role)
   const logout = useAuthStore((s) => s.logout)
   const pathname = useRouterState({ select: (s) => s.location.pathname })
+
+  const visible = NAV_ITEMS.filter((i) =>
+    i.roles.some((r) => isRole(role, r)),
+  )
 
   const handleLogout = () => {
     logout()
@@ -74,7 +112,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Plataforma</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => {
+              {visible.map((item) => {
                 const Icon = item.icon
                 const isActive = pathname.startsWith(item.to)
                 return (

@@ -1,6 +1,6 @@
 import type { CredentialResponse } from "../models/response/credential-response"
 
-export type UserRole = "Director" | "Secretario" | "Docente"
+export type UserRole = "DIRECTOR" | "SECRETARIO" | "DOCENTE"
 
 export interface AuthState {
   userId: string | null
@@ -16,3 +16,6 @@ export interface AuthState {
   setSession: (data: CredentialResponse) => void
   logout: () => void
 }
+
+export const isRole = (raw: string | null, target: UserRole): boolean =>
+  (raw ?? "").toUpperCase() === target

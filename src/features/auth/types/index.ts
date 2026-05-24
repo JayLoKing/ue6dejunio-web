@@ -1,0 +1,18 @@
+import type { CredentialResponse } from "../models/response/credential-response"
+
+export type UserRole = "Director" | "Secretario" | "Docente"
+
+export interface AuthState {
+  userId: string | null
+  email: string | null
+  fullName: string | null
+  role: string | null
+  accessToken: string | null
+  tokenType: string | null
+  expiresAt: string | null
+  mustChangePassword: boolean
+  gradeName: string | null
+  parallelName: string | null
+  setSession: (data: CredentialResponse) => void
+  logout: () => void
+}

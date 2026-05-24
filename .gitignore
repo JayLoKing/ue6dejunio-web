@@ -6,19 +6,59 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+bun-debug.log*
 
+# Dependencies
 node_modules
+.pnp
+.pnp.js
+
+# Build output
 dist
 dist-ssr
+build
+out
 *.local
+
+# Vite cache
+.vite
+vite.config.*.timestamp-*
+
+# TanStack Router generated tree
+src/routeTree.gen.ts
+
+# Tooling caches
+.cache
+.turbo
+.eslintcache
+.stylelintcache
+*.tsbuildinfo
+
+# Coverage / tests
+coverage
+.nyc_output
+*.lcov
+
+# Agent / Claude / Cursor
+.agents/*
+.claude/*
+.cursor/*
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea
+.fleet
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# Env files
+.env
+.env.local
+.env.*.local
+!.env.example

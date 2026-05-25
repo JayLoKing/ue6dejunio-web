@@ -1,60 +1,49 @@
+import { useMemo } from "react"
 import { createLazyFileRoute } from "@tanstack/react-router"
+import { Loader2Icon } from "lucide-react"
 
 import { NotebookManager } from "@/features/notebook/components/NotebookManager"
 import type {
   StudentScoreRow,
   SubjectArea,
 } from "@/features/notebook/types"
+import { useAuthStore } from "@/features/auth/store/authStore"
+import { useTeacherStudents } from "@/features/students/hooks/useTeacherStudents"
 
 export const Route = createLazyFileRoute("/_app/scores")({
   component: ScoresPage,
 })
 
-const MOCK_SUBJECTS: SubjectArea[] = [
-  { id: "math", name: "Matematicas", shortName: "MAT" },
-  { id: "lang", name: "Lenguaje", shortName: "LEN" },
-  { id: "cn", name: "Ciencias Naturales", shortName: "CN" },
-  { id: "cs", name: "Ciencias Sociales", shortName: "CS" },
-  { id: "ef", name: "Educacion Fisica", shortName: "EF" },
-  { id: "rel", name: "Religion, Etica y Moral", shortName: "REL" },
-  { id: "art", name: "Artes Plasticas", shortName: "ART" },
-  { id: "mus", name: "Musica", shortName: "MUS" },
-]
-
-const MOCK_STUDENTS: StudentScoreRow[] = [
-  {
-    enrollmentId: "11111111-1111-1111-1111-111111111111",
-    studentId: "s1",
-    fullName: "Alejandro Mamani Quispe",
-    rudeCode: "1009-2025-0001",
-  },
-  {
-    enrollmentId: "22222222-2222-2222-2222-222222222222",
-    studentId: "s2",
-    fullName: "Camila Flores Choque",
-    rudeCode: "1009-2025-0002",
-  },
-  {
-    enrollmentId: "33333333-3333-3333-3333-333333333333",
-    studentId: "s3",
-    fullName: "Diego Rojas Vargas",
-    rudeCode: "1009-2025-0003",
-  },
-  {
-    enrollmentId: "44444444-4444-4444-4444-444444444444",
-    studentId: "s4",
-    fullName: "Elena Mendoza Aruquipa",
-    rudeCode: "1009-2025-0004",
-  },
-  {
-    enrollmentId: "55555555-5555-5555-5555-555555555555",
-    studentId: "s5",
-    fullName: "Fabricio Salazar Condori",
-    rudeCode: "1009-2025-0005",
-  },
-]
-
 function ScoresPage() {
+  const userId = useAuthStore((s) => s.userId)
+  const studentsQuery = useTeacherStudents(userId)
+
+  // Derive subjects from teacher's student enrollments
+  const subjects = useMemo<SubjectArea[]>(() => {
+    const map = new Map<string, string>()
+    for (const s of studentsQuery.data ?? []) {
+      for (const e of s.enrollments) {
+        if (!map.has(e.subjectId)) map.set(e.subjectId, e.subjectName)
+      }
+    }
+    return Array.from(map.entries()).map(([id, name]) => ({
+      id,
+      name,
+      shortName: name.slice(0, 3).toUpperCase(),
+    }))
+  }, [studentsQuery.data])
+
+  const rows = useMemo<StudentScoreRow[]>(() => {
+    return (studentsQuery.data ?? []).map((s) => ({
+      studentId: s.id,
+      fullName: `${s.lastNames} ${s.names}`.trim(),
+      rudeCode: s.rudeCode,
+      enrollmentsBySubject: Object.fromEntries(
+        s.enrollments.map((e) => [e.subjectId, e.enrollmentId]),
+      ),
+    }))
+  }, [studentsQuery.data])
+
   return (
     <div className="flex min-w-0 flex-col gap-6">
       <div className="flex flex-col gap-1">
@@ -63,7 +52,19 @@ function ScoresPage() {
           Ponderacion RM 0001/2026 — alerta semaforo ML.
         </p>
       </div>
-      <NotebookManager subjects={MOCK_SUBJECTS} students={MOCK_STUDENTS} />
+
+      {studentsQuery.isLoading ? (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2Icon className="size-4 animate-spin" />
+          Cargando datos...
+        </div>
+      ) : studentsQuery.isError ? (
+        <div className="rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+          Error al cargar estudiantes.
+        </div>
+      ) : (
+        <NotebookManager subjects={subjects} students={rows} />
+      )}
     </div>
   )
 }

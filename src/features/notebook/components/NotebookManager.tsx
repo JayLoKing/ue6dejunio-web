@@ -86,14 +86,24 @@ export function NotebookManager({
   const subjectKey = `${activeSubject}::T${trimester}`
   const subjectDrafts: Drafts = drafts[subjectKey] ?? {}
 
+  // students enrolled in active subject
+  const enrolledStudents = useMemo(
+    () =>
+      students.filter((s) =>
+        Boolean(s.enrollmentsBySubject[activeSubject]),
+      ),
+    [students, activeSubject],
+  )
+
   const totals = useMemo(() => {
     const map = new Map<string, number>()
-    students.forEach((s) => {
-      const d = subjectDrafts[s.enrollmentId] ?? DEFAULT_DRAFT
-      map.set(s.enrollmentId, totalFromDraft(d))
+    enrolledStudents.forEach((s) => {
+      const enrollmentId = s.enrollmentsBySubject[activeSubject]
+      const d = subjectDrafts[enrollmentId] ?? DEFAULT_DRAFT
+      map.set(enrollmentId, totalFromDraft(d))
     })
     return map
-  }, [students, subjectDrafts])
+  }, [enrolledStudents, activeSubject, subjectDrafts])
 
   const updateCell = (
     enrollmentId: string,
@@ -116,9 +126,11 @@ export function NotebookManager({
   }
 
   const handleSave = (row: StudentScoreRow) => {
-    const d = subjectDrafts[row.enrollmentId] ?? DEFAULT_DRAFT
+    const enrollmentId = row.enrollmentsBySubject[activeSubject]
+    if (!enrollmentId) return
+    const d = subjectDrafts[enrollmentId] ?? DEFAULT_DRAFT
     register.mutate({
-      id_enrollment: row.enrollmentId,
+      id_enrollment: enrollmentId,
       trimester,
       scoreBeing: d.ser,
       scoreKnowing: d.saber,
@@ -213,7 +225,7 @@ export function NotebookManager({
                 </tr>
               </thead>
               <tbody>
-                {students.length === 0 ? (
+                {enrolledStudents.length === 0 ? (
                   <tr>
                     <td
                       colSpan={DIMENSIONS.length + 4}
@@ -223,15 +235,16 @@ export function NotebookManager({
                     </td>
                   </tr>
                 ) : (
-                  students.map((s, idx) => {
+                  enrolledStudents.map((s, idx) => {
+                    const enrollmentId = s.enrollmentsBySubject[activeSubject]
                     const draft =
-                      subjectDrafts[s.enrollmentId] ?? DEFAULT_DRAFT
-                    const total = totals.get(s.enrollmentId) ?? 0
+                      subjectDrafts[enrollmentId] ?? DEFAULT_DRAFT
+                    const total = totals.get(enrollmentId) ?? 0
                     const risk = classifyRisk(total)
                     const meta = RISK_META[risk]
                     const rowBg = idx % 2 === 0 ? "bg-card" : "bg-muted"
                     return (
-                      <tr key={s.enrollmentId} className="border-t">
+                      <tr key={s.studentId} className="border-t">
                         <td
                           className={cn(
                             "sticky left-0 z-10 min-w-[18rem] border-r px-3 py-2 shadow-[2px_0_0_0_var(--border)]",
@@ -258,7 +271,7 @@ export function NotebookManager({
                               step={0.5}
                               value={draft[d.key]}
                               onChange={(e) =>
-                                updateCell(s.enrollmentId, d.key, e.target.value)
+                                updateCell(enrollmentId, d.key, e.target.value)
                               }
                               className="h-9 w-20 text-center"
                             />

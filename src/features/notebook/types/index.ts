@@ -52,10 +52,11 @@ export interface SubjectArea {
 }
 
 export interface StudentScoreRow {
-  enrollmentId: string
   studentId: string
   fullName: string
   rudeCode: string
+  /** Map subjectId → enrollmentId. Student appears only on subjects they are enrolled in. */
+  enrollmentsBySubject: Record<string, string>
 }
 
 export interface ScoreDraft {

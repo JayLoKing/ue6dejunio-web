@@ -1,4 +1,6 @@
+import { useMemo } from "react"
 import { createFileRoute, redirect } from "@tanstack/react-router"
+import { Loader2Icon } from "lucide-react"
 
 import { useAuthStore } from "@/features/auth/store/authStore"
 import { isRole } from "@/features/auth/types"
@@ -7,6 +9,8 @@ import {
   StudentsTable,
   type StudentRow,
 } from "@/features/students/components/StudentsTable"
+import { useTeacherStudents } from "@/features/students/hooks/useTeacherStudents"
+import type { Gender } from "@/features/students/types"
 
 export const Route = createFileRoute("/_app/students")({
   beforeLoad: () => {
@@ -18,54 +22,23 @@ export const Route = createFileRoute("/_app/students")({
   component: StudentsPage,
 })
 
-const MOCK_STUDENTS: StudentRow[] = [
-  {
-    id: "1",
-    rudeCode: "808900362026523",
-    identityCard: "16541781",
-    lastNames: "Alvarez Nicolas",
-    names: "Eydan",
-    birthDate: "2020-11-09",
-    gender: "M",
-    gradeName: "Segundo",
-    parallelName: "A",
-  },
-  {
-    id: "2",
-    rudeCode: "808900362026172",
-    identityCard: "16584166",
-    lastNames: "Balderrama Castro",
-    names: "Dayton Ander",
-    birthDate: "2020-12-04",
-    gender: "M",
-    gradeName: "Segundo",
-    parallelName: "A",
-  },
-  {
-    id: "3",
-    rudeCode: "808900362026231A",
-    identityCard: "16547706",
-    lastNames: "Condori Jesus",
-    names: "Valentina",
-    birthDate: "2020-11-12",
-    gender: "F",
-    gradeName: "Segundo",
-    parallelName: "A",
-  },
-  {
-    id: "4",
-    rudeCode: "808900362026121",
-    identityCard: "16617701",
-    lastNames: "Fernandez Toledo",
-    names: "Emily Rashel",
-    birthDate: "2021-01-04",
-    gender: "F",
-    gradeName: "Segundo",
-    parallelName: "A",
-  },
-]
-
 function StudentsPage() {
+  const userId = useAuthStore((s) => s.userId)
+  const studentsQuery = useTeacherStudents(userId)
+
+  const rows = useMemo<StudentRow[]>(() => {
+    return (studentsQuery.data ?? []).map((s) => ({
+      id: s.id,
+      rudeCode: s.rudeCode,
+      identityCard: s.identityCard,
+      lastNames: s.lastNames,
+      names: s.names,
+      birthDate: s.birthDate,
+      gender: s.gender as Gender,
+      subjects: s.enrollments.map((e) => e.subjectName),
+    }))
+  }, [studentsQuery.data])
+
   return (
     <div className="flex min-w-0 flex-col gap-6">
       <div className="flex items-end justify-between gap-4">
@@ -77,7 +50,19 @@ function StudentsPage() {
         </div>
         <EnrollStudentDialog />
       </div>
-      <StudentsTable data={MOCK_STUDENTS} />
+
+      {studentsQuery.isLoading ? (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2Icon className="size-4 animate-spin" />
+          Cargando estudiantes...
+        </div>
+      ) : studentsQuery.isError ? (
+        <div className="rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+          Error al cargar estudiantes.
+        </div>
+      ) : (
+        <StudentsTable data={rows} pageSize={10} />
+      )}
     </div>
   )
 }

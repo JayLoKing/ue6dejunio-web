@@ -1,8 +1,11 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { createLazyFileRoute } from "@tanstack/react-router"
+import { Loader2Icon } from "lucide-react"
 
 import { AttendanceMatrix } from "@/features/attendance/components/AttendanceMatrix"
 import type { StudentEnrollmentRow } from "@/features/attendance/types"
+import { useAuthStore } from "@/features/auth/store/authStore"
+import { useTeacherStudents } from "@/features/students/hooks/useTeacherStudents"
 import {
   Select,
   SelectContent,
@@ -14,39 +17,6 @@ import {
 export const Route = createLazyFileRoute("/_app/attendance")({
   component: AttendancePage,
 })
-
-const MOCK_STUDENTS: StudentEnrollmentRow[] = [
-  {
-    enrollmentId: "11111111-1111-1111-1111-111111111111",
-    studentId: "s1",
-    fullName: "Alejandro Mamani Quispe",
-    rudeCode: "1009-2025-0001",
-  },
-  {
-    enrollmentId: "22222222-2222-2222-2222-222222222222",
-    studentId: "s2",
-    fullName: "Camila Flores Choque",
-    rudeCode: "1009-2025-0002",
-  },
-  {
-    enrollmentId: "33333333-3333-3333-3333-333333333333",
-    studentId: "s3",
-    fullName: "Diego Rojas Vargas",
-    rudeCode: "1009-2025-0003",
-  },
-  {
-    enrollmentId: "44444444-4444-4444-4444-444444444444",
-    studentId: "s4",
-    fullName: "Elena Mendoza Aruquipa",
-    rudeCode: "1009-2025-0004",
-  },
-  {
-    enrollmentId: "55555555-5555-5555-5555-555555555555",
-    studentId: "s5",
-    fullName: "Fabricio Salazar Condori",
-    rudeCode: "1009-2025-0005",
-  },
-]
 
 const MONTHS = [
   "Enero",
@@ -64,9 +34,40 @@ const MONTHS = [
 ]
 
 function AttendancePage() {
+  const userId = useAuthStore((s) => s.userId)
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth() + 1)
+
+  const studentsQuery = useTeacherStudents(userId)
+
+  // Derive subjects from enrollments
+  const subjects = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const s of studentsQuery.data ?? []) {
+      for (const e of s.enrollments) {
+        if (!map.has(e.subjectId)) map.set(e.subjectId, e.subjectName)
+      }
+    }
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }))
+  }, [studentsQuery.data])
+
+  const [activeSubject, setActiveSubject] = useState<string>("")
+
+  // Auto-select first subject when data loads
+  const effectiveSubject =
+    activeSubject || subjects[0]?.id || ""
+
+  const rows = useMemo<StudentEnrollmentRow[]>(() => {
+    return (studentsQuery.data ?? []).map((s) => ({
+      studentId: s.id,
+      fullName: `${s.lastNames} ${s.names}`.trim(),
+      rudeCode: s.rudeCode,
+      enrollmentsBySubject: Object.fromEntries(
+        s.enrollments.map((e) => [e.subjectId, e.enrollmentId]),
+      ),
+    }))
+  }, [studentsQuery.data])
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -74,10 +75,26 @@ function AttendancePage() {
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl font-semibold">Cuaderno de asistencias</h1>
           <p className="text-sm text-muted-foreground">
-            Control diario por curso. Click ciclico P → A → L.
+            Control diario por materia. Click ciclico P → A → L.
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Select
+            value={effectiveSubject}
+            onValueChange={setActiveSubject}
+            disabled={subjects.length === 0}
+          >
+            <SelectTrigger className="w-56">
+              <SelectValue placeholder="Materia" />
+            </SelectTrigger>
+            <SelectContent>
+              {subjects.map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Select
             value={String(month)}
             onValueChange={(v) => setMonth(Number(v))}
@@ -110,11 +127,24 @@ function AttendancePage() {
           </Select>
         </div>
       </div>
-      <AttendanceMatrix
-        students={MOCK_STUDENTS}
-        year={year}
-        month={month}
-      />
+
+      {studentsQuery.isLoading ? (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2Icon className="size-4 animate-spin" />
+          Cargando estudiantes...
+        </div>
+      ) : studentsQuery.isError ? (
+        <div className="rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+          Error al cargar estudiantes.
+        </div>
+      ) : (
+        <AttendanceMatrix
+          students={rows}
+          subjectId={effectiveSubject}
+          year={year}
+          month={month}
+        />
+      )}
     </div>
   )
 }

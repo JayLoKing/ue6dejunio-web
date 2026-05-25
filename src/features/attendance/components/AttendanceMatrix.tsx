@@ -15,11 +15,13 @@ import { useRegisterAttendance } from "../hooks/useRegisterAttendance"
 
 export interface AttendanceMatrixProps {
   students: StudentEnrollmentRow[]
+  subjectId: string
   year: number
   month: number
   initialData?: Record<string, Record<number, AttendanceCellStatus>>
 }
 
+// matrix keyed by enrollmentId (per subject)
 type MatrixState = Record<string, Record<number, AttendanceCellStatus>>
 
 const STATUS_STYLE: Record<
@@ -48,6 +50,7 @@ const formatDate = (year: number, month: number, day: number): string =>
 
 export function AttendanceMatrix({
   students,
+  subjectId,
   year,
   month,
   initialData,
@@ -61,7 +64,8 @@ export function AttendanceMatrix({
 
   const register = useRegisterAttendance()
 
-  const handleCellClick = (enrollmentId: string, day: number) => {
+  const handleCellClick = (enrollmentId: string | undefined, day: number) => {
+    if (!enrollmentId) return
     const current = matrix[enrollmentId]?.[day] ?? null
     const next = nextStatus(current)
 
@@ -120,8 +124,10 @@ export function AttendanceMatrix({
               ) : (
                 students.map((s, idx) => {
                   const rowBg = idx % 2 === 0 ? "bg-card" : "bg-muted"
+                  const enrollmentId = s.enrollmentsBySubject[subjectId]
+                  const disabledRow = !enrollmentId
                   return (
-                    <tr key={s.enrollmentId} className="border-t">
+                    <tr key={s.studentId} className="border-t">
                       <td
                         className={cn(
                           "sticky left-0 z-10 min-w-[18rem] border-r px-3 py-2 shadow-[2px_0_0_0_var(--border)]",
@@ -132,11 +138,14 @@ export function AttendanceMatrix({
                           <span className="font-medium">{s.fullName}</span>
                           <span className="font-mono text-xs text-muted-foreground">
                             RUDE {s.rudeCode}
+                            {disabledRow ? " — no inscrito en materia" : ""}
                           </span>
                         </div>
                       </td>
                       {days.map((d) => {
-                        const status = matrix[s.enrollmentId]?.[d] ?? null
+                        const status = enrollmentId
+                          ? matrix[enrollmentId]?.[d] ?? null
+                          : null
                         const style = status ? STATUS_STYLE[status] : null
                         return (
                           <td
@@ -148,12 +157,17 @@ export function AttendanceMatrix({
                           >
                             <button
                               type="button"
+                              disabled={disabledRow}
                               onClick={() =>
-                                handleCellClick(s.enrollmentId, d)
+                                handleCellClick(enrollmentId, d)
                               }
-                              title={style?.label ?? "Sin registrar"}
+                              title={
+                                disabledRow
+                                  ? "Estudiante sin inscripcion en esta materia"
+                                  : (style?.label ?? "Sin registrar")
+                              }
                               className={cn(
-                                "size-8 rounded-md text-xs font-semibold transition-colors hover:ring-2 hover:ring-univalle/40",
+                                "size-8 rounded-md text-xs font-semibold transition-colors hover:ring-2 hover:ring-univalle/40 disabled:cursor-not-allowed disabled:opacity-40",
                                 style?.cls ??
                                   "bg-muted/60 text-muted-foreground hover:bg-muted",
                               )}

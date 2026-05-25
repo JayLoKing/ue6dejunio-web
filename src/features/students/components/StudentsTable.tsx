@@ -2,6 +2,7 @@ import { useMemo, useState } from "react"
 import { SearchIcon, UsersIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import {
@@ -30,19 +31,20 @@ export interface StudentRow {
   names: string
   birthDate: string
   gender: Gender
-  gradeName: string
-  parallelName: string
+  subjects: string[]
 }
 
 export interface StudentsTableProps {
   data: StudentRow[]
+  pageSize?: number
 }
 
 type GenderFilter = "ALL" | Gender
 
-export function StudentsTable({ data }: StudentsTableProps) {
+export function StudentsTable({ data, pageSize = 10 }: StudentsTableProps) {
   const [search, setSearch] = useState("")
   const [genderFilter, setGenderFilter] = useState<GenderFilter>("ALL")
+  const [page, setPage] = useState(0)
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -57,6 +59,13 @@ export function StudentsTable({ data }: StudentsTableProps) {
       )
     })
   }, [data, search, genderFilter])
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
+  const currentPage = Math.min(page, totalPages - 1)
+  const pageData = filtered.slice(
+    currentPage * pageSize,
+    currentPage * pageSize + pageSize,
+  )
 
   const maleCount = data.filter((s) => s.gender === "M").length
   const femaleCount = data.length - maleCount
@@ -107,14 +116,20 @@ export function StudentsTable({ data }: StudentsTableProps) {
           <Input
             placeholder="Buscar por RUDE, carnet, nombre..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              setPage(0)
+            }}
             className="pl-8"
           />
         </div>
 
         <Select
           value={genderFilter}
-          onValueChange={(v) => setGenderFilter(v as GenderFilter)}
+          onValueChange={(v) => {
+            setGenderFilter(v as GenderFilter)
+            setPage(0)
+          }}
         >
           <SelectTrigger className="w-40">
             <SelectValue />
@@ -141,11 +156,11 @@ export function StudentsTable({ data }: StudentsTableProps) {
               <TableHead>Nombres</TableHead>
               <TableHead>Nacimiento</TableHead>
               <TableHead>Genero</TableHead>
-              <TableHead>Curso</TableHead>
+              <TableHead>Materias</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.length === 0 ? (
+            {pageData.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={7}
@@ -155,7 +170,7 @@ export function StudentsTable({ data }: StudentsTableProps) {
                 </TableCell>
               </TableRow>
             ) : (
-              filtered.map((s) => (
+              pageData.map((s) => (
                 <TableRow key={s.id}>
                   <TableCell className="font-mono text-xs">
                     {s.rudeCode}
@@ -171,14 +186,40 @@ export function StudentsTable({ data }: StudentsTableProps) {
                       {s.gender}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {s.gradeName} — {s.parallelName}
+                  <TableCell className="text-xs text-muted-foreground">
+                    {s.subjects.length > 0
+                      ? `${s.subjects.length} materia(s)`
+                      : "—"}
                   </TableCell>
                 </TableRow>
               ))
             )}
           </TableBody>
         </Table>
+      </div>
+
+      <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <span>
+          Pagina {currentPage + 1} de {totalPages}
+        </span>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={currentPage === 0}
+            onClick={() => setPage((p) => Math.max(p - 1, 0))}
+          >
+            Anterior
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={currentPage + 1 >= totalPages}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Siguiente
+          </Button>
+        </div>
       </div>
     </div>
   )

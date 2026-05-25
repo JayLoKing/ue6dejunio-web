@@ -31,8 +31,9 @@ export const nextStatus = (
 }
 
 export interface StudentEnrollmentRow {
-  enrollmentId: string
   studentId: string
   fullName: string
   rudeCode: string
+  /** Map subjectId → enrollmentId. */
+  enrollmentsBySubject: Record<string, string>
 }

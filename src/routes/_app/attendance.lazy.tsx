@@ -39,12 +39,16 @@ function AttendancePage() {
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth() + 1)
 
-  const studentsQuery = useTeacherStudents(userId)
+  const studentsQuery = useTeacherStudents(userId, {
+    offset: 1,
+    limit: 200,
+    sort: "asc",
+  })
 
   // Derive subjects from enrollments
   const subjects = useMemo(() => {
     const map = new Map<string, string>()
-    for (const s of studentsQuery.data ?? []) {
+    for (const s of studentsQuery.data?.content ?? []) {
       for (const e of s.enrollments) {
         if (!map.has(e.subjectId)) map.set(e.subjectId, e.subjectName)
       }
@@ -59,7 +63,7 @@ function AttendancePage() {
     activeSubject || subjects[0]?.id || ""
 
   const rows = useMemo<StudentEnrollmentRow[]>(() => {
-    return (studentsQuery.data ?? []).map((s) => ({
+    return (studentsQuery.data?.content ?? []).map((s) => ({
       studentId: s.id,
       fullName: `${s.lastNames} ${s.names}`.trim(),
       rudeCode: s.rudeCode,

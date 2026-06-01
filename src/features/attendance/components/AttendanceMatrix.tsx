@@ -18,35 +18,49 @@ export interface AttendanceMatrixProps {
   subjectId: string
   year: number
   month: number
-  initialData?: Record<string, Record<number, AttendanceCellStatus>>
+  initialData?: Record<string, Record<string, AttendanceCellStatus>>
 }
 
-// matrix keyed by enrollmentId (per subject)
-type MatrixState = Record<string, Record<number, AttendanceCellStatus>>
+// matrix keyed by enrollmentId → { isoDate: status }
+type MatrixState = Record<string, Record<string, AttendanceCellStatus>>
 
 const STATUS_STYLE: Record<
   Exclude<AttendanceCellStatus, null>,
   { label: string; cls: string }
 > = {
-  P: {
-    label: "Presente",
-    cls: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
-  },
-  A: {
-    label: "Ausente",
-    cls: "bg-destructive/15 text-destructive",
-  },
-  L: {
-    label: "Licencia",
-    cls: "bg-univalle/15 text-univalle",
-  },
+  P: { label: "Presente", cls: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" },
+  A: { label: "Ausente", cls: "bg-destructive/15 text-destructive" },
+  L: { label: "Licencia", cls: "bg-univalle/15 text-univalle" },
 }
 
-const daysInMonth = (year: number, month: number): number =>
-  new Date(year, month, 0).getDate()
+const WEEKDAY_LETTER = ["D", "L", "M", "M", "J", "V", "S"]
 
-const formatDate = (year: number, month: number, day: number): string =>
-  `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+interface DayCol {
+  iso: string
+  day: number
+  letter: string
+}
+
+const pad = (n: number) => String(n).padStart(2, "0")
+const isoOf = (y: number, m: number, d: number) => `${y}-${pad(m)}-${pad(d)}`
+
+/** Weekdays (Mon–Fri) of the month as real dates. */
+const weekdaysOfMonth = (year: number, month: number): DayCol[] => {
+  const total = new Date(year, month, 0).getDate()
+  const cols: DayCol[] = []
+  for (let d = 1; d <= total; d++) {
+    const dow = new Date(year, month - 1, d).getDay()
+    if (dow >= 1 && dow <= 5) {
+      cols.push({ iso: isoOf(year, month, d), day: d, letter: WEEKDAY_LETTER[dow] })
+    }
+  }
+  return cols
+}
+
+const todayIso = (): string => {
+  const n = new Date()
+  return isoOf(n.getFullYear(), n.getMonth() + 1, n.getDate())
+}
 
 export function AttendanceMatrix({
   students,
@@ -56,27 +70,23 @@ export function AttendanceMatrix({
   initialData,
 }: AttendanceMatrixProps) {
   const [matrix, setMatrix] = useState<MatrixState>(initialData ?? {})
-  const totalDays = useMemo(() => daysInMonth(year, month), [year, month])
-  const days = useMemo(
-    () => Array.from({ length: totalDays }, (_, i) => i + 1),
-    [totalDays],
-  )
+  const cols = useMemo(() => weekdaysOfMonth(year, month), [year, month])
+  const today = todayIso()
 
   const register = useRegisterAttendance()
 
-  const handleCellClick = (enrollmentId: string | undefined, day: number) => {
+  const handleCellClick = (enrollmentId: string | undefined, iso: string) => {
     if (!enrollmentId) return
-    const current = matrix[enrollmentId]?.[day] ?? null
+    if (iso !== today) return // edit only current day
+    const current = matrix[enrollmentId]?.[iso] ?? null
     const next = nextStatus(current)
-
     setMatrix((prev) => ({
       ...prev,
-      [enrollmentId]: { ...(prev[enrollmentId] ?? {}), [day]: next },
+      [enrollmentId]: { ...(prev[enrollmentId] ?? {}), [iso]: next },
     }))
-
     register.mutate({
       id_enrollment: enrollmentId,
-      date: formatDate(year, month, day),
+      date: iso,
       status: CELL_TO_API[next],
     })
   }
@@ -86,7 +96,7 @@ export function AttendanceMatrix({
       <div className="flex items-center gap-3 text-sm text-muted-foreground">
         <CalendarDaysIcon className="size-4" />
         <span>
-          Click ciclico:{" "}
+          Lun–Vie. Solo el dia actual ({today}) es editable. Click ciclico:{" "}
           <span className="font-semibold text-emerald-600">P</span> →{" "}
           <span className="font-semibold text-destructive">A</span> →{" "}
           <span className="font-semibold text-univalle">L</span>
@@ -101,21 +111,32 @@ export function AttendanceMatrix({
                 <th className="sticky left-0 z-20 min-w-[18rem] border-r border-b bg-muted px-3 py-2 text-left font-medium shadow-[2px_0_0_0_var(--border)]">
                   Estudiante
                 </th>
-                {days.map((d) => (
-                  <th
-                    key={d}
-                    className="min-w-10 border-r border-b bg-muted/50 px-2 py-2 text-center font-medium last:border-r-0"
-                  >
-                    {d}
-                  </th>
-                ))}
+                {cols.map((c) => {
+                  const isToday = c.iso === today
+                  return (
+                    <th
+                      key={c.iso}
+                      className={cn(
+                        "min-w-11 border-r border-b px-2 py-1.5 text-center font-medium last:border-r-0",
+                        isToday ? "bg-univalle/15 text-univalle" : "bg-muted/50",
+                      )}
+                    >
+                      <div className="flex flex-col leading-tight">
+                        <span className="text-[10px] font-normal text-muted-foreground">
+                          {c.letter}
+                        </span>
+                        <span>{c.day}</span>
+                      </div>
+                    </th>
+                  )
+                })}
               </tr>
             </thead>
             <tbody>
               {students.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={totalDays + 1}
+                    colSpan={cols.length + 1}
                     className="px-3 py-6 text-center text-muted-foreground"
                   >
                     Sin estudiantes inscritos.
@@ -138,18 +159,19 @@ export function AttendanceMatrix({
                           <span className="font-medium">{s.fullName}</span>
                           <span className="font-mono text-xs text-muted-foreground">
                             RUDE {s.rudeCode}
-                            {disabledRow ? " — no inscrito en materia" : ""}
+                            {disabledRow ? " — no inscrito" : ""}
                           </span>
                         </div>
                       </td>
-                      {days.map((d) => {
+                      {cols.map((c) => {
                         const status = enrollmentId
-                          ? matrix[enrollmentId]?.[d] ?? null
+                          ? matrix[enrollmentId]?.[c.iso] ?? null
                           : null
                         const style = status ? STATUS_STYLE[status] : null
+                        const editable = !disabledRow && c.iso === today
                         return (
                           <td
-                            key={d}
+                            key={c.iso}
                             className={cn(
                               "border-r px-1 py-1 text-center last:border-r-0",
                               rowBg,
@@ -157,19 +179,21 @@ export function AttendanceMatrix({
                           >
                             <button
                               type="button"
-                              disabled={disabledRow}
-                              onClick={() =>
-                                handleCellClick(enrollmentId, d)
-                              }
+                              disabled={!editable}
+                              onClick={() => handleCellClick(enrollmentId, c.iso)}
                               title={
                                 disabledRow
-                                  ? "Estudiante sin inscripcion en esta materia"
-                                  : (style?.label ?? "Sin registrar")
+                                  ? "Sin inscripcion"
+                                  : c.iso === today
+                                    ? (style?.label ?? "Registrar")
+                                    : "Solo lectura (no es el dia actual)"
                               }
                               className={cn(
-                                "size-8 rounded-md text-xs font-semibold transition-colors hover:ring-2 hover:ring-univalle/40 disabled:cursor-not-allowed disabled:opacity-40",
+                                "size-8 rounded-md text-xs font-semibold transition-colors",
+                                editable && "hover:ring-2 hover:ring-univalle/40",
+                                !editable && "cursor-default",
                                 style?.cls ??
-                                  "bg-muted/60 text-muted-foreground hover:bg-muted",
+                                  "bg-muted/60 text-muted-foreground",
                               )}
                             >
                               {status ?? "·"}

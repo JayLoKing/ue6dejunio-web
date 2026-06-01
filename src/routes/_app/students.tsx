@@ -24,10 +24,14 @@ export const Route = createFileRoute("/_app/students")({
 
 function StudentsPage() {
   const userId = useAuthStore((s) => s.userId)
-  const studentsQuery = useTeacherStudents(userId)
+  const studentsQuery = useTeacherStudents(userId, {
+    offset: 1,
+    limit: 200,
+    sort: "asc",
+  })
 
   const rows = useMemo<StudentRow[]>(() => {
-    return (studentsQuery.data ?? []).map((s) => ({
+    return (studentsQuery.data?.content ?? []).map((s) => ({
       id: s.id,
       rudeCode: s.rudeCode,
       identityCard: s.identityCard,

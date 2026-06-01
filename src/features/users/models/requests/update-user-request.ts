@@ -1,3 +1,5 @@
+import type { SortDir } from "@/lib/types/pagination"
+
 export interface UpdateUserRequest {
   names?: string
   lastNames?: string
@@ -7,8 +9,8 @@ export interface UpdateUserRequest {
 }
 
 export interface ListUsersQuery {
-  page?: number
-  size?: number
+  offset?: number
+  limit?: number
   search?: string
-  sort?: string
+  sort?: SortDir
 }

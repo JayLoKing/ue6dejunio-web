@@ -14,6 +14,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { ChangePasswordDialog } from "@/features/auth/components/ChangePasswordDialog"
+import { NotificationBell } from "@/features/notifications/components/NotificationBell"
 import { useAuthStore } from "@/features/auth/store/authStore"
 
 export const Route = createFileRoute("/_app")({
@@ -29,10 +30,16 @@ export const Route = createFileRoute("/_app")({
 const SECTION_TITLES: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/users": "Usuarios",
-  "/courses": "Cursos",
+  "/courses": "Asignar materias",
+  "/cursos": "Cursos",
+  "/levels": "Niveles",
+  "/grades": "Grados",
+  "/parallels": "Paralelos",
+  "/subjects": "Materias",
   "/students": "Estudiantes",
   "/attendance": "Asistencias",
   "/scores": "Notas / Areas",
+  "/pdc": "PDC",
   "/reports": "Reportes",
 }
 
@@ -53,7 +60,8 @@ function AppLayout() {
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
           <h1 className="text-sm font-medium">{title}</h1>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
+            <NotificationBell />
             <ModeToggle />
           </div>
         </header>

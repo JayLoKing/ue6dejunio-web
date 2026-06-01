@@ -2,7 +2,6 @@ import { useMemo, useState } from "react"
 import { SearchIcon, UsersIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import {
@@ -20,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { DataTablePagination } from "@/components/shared/DataTablePagination"
 
 import type { Gender } from "../types"
 
@@ -45,6 +45,7 @@ export function StudentsTable({ data, pageSize = 10 }: StudentsTableProps) {
   const [search, setSearch] = useState("")
   const [genderFilter, setGenderFilter] = useState<GenderFilter>("ALL")
   const [page, setPage] = useState(0)
+  const [size, setSize] = useState(pageSize)
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -60,11 +61,11 @@ export function StudentsTable({ data, pageSize = 10 }: StudentsTableProps) {
     })
   }, [data, search, genderFilter])
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
+  const totalPages = Math.max(1, Math.ceil(filtered.length / size))
   const currentPage = Math.min(page, totalPages - 1)
   const pageData = filtered.slice(
-    currentPage * pageSize,
-    currentPage * pageSize + pageSize,
+    currentPage * size,
+    currentPage * size + size,
   )
 
   const maleCount = data.filter((s) => s.gender === "M").length
@@ -198,29 +199,17 @@ export function StudentsTable({ data, pageSize = 10 }: StudentsTableProps) {
         </Table>
       </div>
 
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span>
-          Pagina {currentPage + 1} de {totalPages}
-        </span>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={currentPage === 0}
-            onClick={() => setPage((p) => Math.max(p - 1, 0))}
-          >
-            Anterior
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={currentPage + 1 >= totalPages}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Siguiente
-          </Button>
-        </div>
-      </div>
+      <DataTablePagination
+        page={currentPage + 1}
+        pageSize={size}
+        total={filtered.length}
+        totalPages={totalPages}
+        onPageChange={(p) => setPage(p - 1)}
+        onPageSizeChange={(s) => {
+          setSize(s)
+          setPage(0)
+        }}
+      />
     </div>
   )
 }

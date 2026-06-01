@@ -13,12 +13,12 @@ import {
 } from "@/components/ui/dialog"
 import {
   Field,
-  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { PasswordRequirements } from "@/components/shared/PasswordRequirements"
 
 import {
   changePasswordSchema,
@@ -34,9 +34,11 @@ export function ChangePasswordDialog({ open }: ChangePasswordDialogProps) {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<ChangePasswordFormValues>({
     resolver: zodResolver(changePasswordSchema),
+    mode: "onChange",
     defaultValues: {
       currentPassword: "",
       newPassword: "",
@@ -106,9 +108,10 @@ export function ChangePasswordDialog({ open }: ChangePasswordDialogProps) {
               />
               {errors.newPassword ? (
                 <FieldError>{errors.newPassword.message}</FieldError>
-              ) : (
-                <FieldDescription>Minimo 8 caracteres.</FieldDescription>
-              )}
+              ) : null}
+              <div className="pt-1">
+                <PasswordRequirements value={watch("newPassword") ?? ""} />
+              </div>
             </Field>
 
             <Field data-invalid={Boolean(errors.confirmPassword) || undefined}>

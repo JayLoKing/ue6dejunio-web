@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { SearchIcon, UserMinusIcon } from "lucide-react"
+import { useMemo, useState } from "react"
+import { PencilIcon, SearchIcon, UserMinusIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -12,11 +12,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
+import { DataTablePagination } from "@/components/shared/DataTablePagination"
+import type { SortDir } from "@/lib/types/pagination"
+import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue"
 
 import { useUsers } from "../hooks/useUsers"
 import { useDeactivateUser } from "../hooks/useDeactivateUser"
-
-const PAGE_SIZE = 20
+import { EditUserDialog } from "./EditUserDialog"
+import type { UsersListItem } from "../models/response/user-response"
 
 function roleVariant(role: string): "default" | "secondary" | "outline" {
   switch (role.toUpperCase()) {
@@ -31,18 +35,35 @@ function roleVariant(role: string): "default" | "secondary" | "outline" {
 
 export function UsersTable() {
   const [search, setSearch] = useState("")
-  const [page, setPage] = useState(0)
-  const { data, isLoading, isFetching } = useUsers({
-    page,
-    size: PAGE_SIZE,
-    search: search || undefined,
-  })
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(10)
+  const [sort] = useState<SortDir>("asc")
+  const [editing, setEditing] = useState<UsersListItem | null>(null)
+  const [deleting, setDeleting] = useState<UsersListItem | null>(null)
+
+  const debouncedSearch = useDebouncedValue(search, 350)
+
+  const query = useMemo(
+    () => ({
+      offset: page,
+      limit,
+      sort,
+      search: debouncedSearch || undefined,
+    }),
+    [page, limit, sort, debouncedSearch],
+  )
+
+  const { data, isLoading, isFetching } = useUsers(query)
   const deactivate = useDeactivateUser()
 
-  const handleDeactivate = (id: string, name: string) => {
-    if (!confirm(`Dar de baja a ${name}?`)) return
-    deactivate.mutate(id)
+  const confirmDelete = () => {
+    if (!deleting) return
+    deactivate.mutate(deleting.id, {
+      onSuccess: () => setDeleting(null),
+    })
   }
+
+  const rows = data?.content ?? []
 
   return (
     <div className="flex flex-col gap-4">
@@ -53,7 +74,7 @@ export function UsersTable() {
           value={search}
           onChange={(e) => {
             setSearch(e.target.value)
-            setPage(0)
+            setPage(1)
           }}
           className="pl-8"
         />
@@ -79,18 +100,18 @@ export function UsersTable() {
                   Cargando...
                 </TableCell>
               </TableRow>
-            ) : !data || data.content.length === 0 ? (
+            ) : rows.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center text-muted-foreground">
                   Sin usuarios registrados.
                 </TableCell>
               </TableRow>
             ) : (
-              data.content.map((u) => (
+              rows.map((u) => (
                 <TableRow key={u.id}>
                   <TableCell className="font-mono text-xs">{u.ci}</TableCell>
                   <TableCell>
-                    {u.names} {u.lastNames}
+                    {u.lastNames} {u.names}
                   </TableCell>
                   <TableCell>{u.email}</TableCell>
                   <TableCell>{u.phone ?? "—"}</TableCell>
@@ -103,17 +124,27 @@ export function UsersTable() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      disabled={!u.active || deactivate.isPending}
-                      onClick={() =>
-                        handleDeactivate(u.id, `${u.names} ${u.lastNames}`)
-                      }
-                    >
-                      <UserMinusIcon data-icon="inline-start" />
-                      Baja
-                    </Button>
+                    <div className="flex justify-end gap-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-8"
+                        title="Editar"
+                        onClick={() => setEditing(u)}
+                      >
+                        <PencilIcon className="size-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-8 text-destructive"
+                        title="Dar de baja"
+                        disabled={!u.active}
+                        onClick={() => setDeleting(u)}
+                      >
+                        <UserMinusIcon className="size-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -122,32 +153,35 @@ export function UsersTable() {
         </Table>
       </div>
 
-      {data ? (
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span>
-            Pagina {data.page + 1} de {Math.max(data.totalPages, 1)} —{" "}
-            {data.total} usuario(s){isFetching ? " (actualizando)" : ""}
-          </span>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page === 0}
-              onClick={() => setPage((p) => Math.max(p - 1, 0))}
-            >
-              Anterior
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page + 1 >= data.totalPages}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              Siguiente
-            </Button>
-          </div>
-        </div>
-      ) : null}
+      <DataTablePagination
+        page={data?.page != null ? data.page + 1 : page}
+        pageSize={limit}
+        total={data?.total ?? 0}
+        totalPages={data?.totalPages ?? 1}
+        isFetching={isFetching}
+        onPageChange={setPage}
+        onPageSizeChange={(s) => {
+          setLimit(s)
+          setPage(1)
+        }}
+      />
+
+      <EditUserDialog user={editing} onClose={() => setEditing(null)} />
+
+      <ConfirmDialog
+        open={Boolean(deleting)}
+        title="Dar de baja usuario"
+        description={
+          deleting
+            ? `${deleting.names} ${deleting.lastNames} sera desactivado.`
+            : undefined
+        }
+        confirmLabel="Dar de baja"
+        destructive
+        loading={deactivate.isPending}
+        onConfirm={confirmDelete}
+        onOpenChange={(o) => !o && setDeleting(null)}
+      />
     </div>
   )
 }

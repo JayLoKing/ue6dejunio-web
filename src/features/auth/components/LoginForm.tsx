@@ -52,7 +52,7 @@ export function LoginForm() {
     <Card className="w-full max-w-md border-univalle/20 shadow-lg">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">Unidad Educativa 6 de Junio</CardTitle>
-        <CardDescription>Ingresa tus credenciales institucionales</CardDescription>
+        <CardDescription>Ingresa tus credenciales</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={onSubmit} noValidate>
@@ -63,19 +63,19 @@ export function LoginForm() {
                 id="email"
                 type="email"
                 autoComplete="email"
-                placeholder="docente@ue6dejunio.edu.bo"
+                placeholder="director@ue6.bo"
                 aria-invalid={Boolean(errors.email) || undefined}
                 {...register("email")}
               />
               {errors.email ? (
                 <FieldError>{errors.email.message}</FieldError>
               ) : (
-                <FieldDescription>Tu correo institucional.</FieldDescription>
+                <FieldDescription>Tu correo</FieldDescription>
               )}
             </Field>
 
             <Field data-invalid={Boolean(errors.password) || undefined}>
-              <FieldLabel htmlFor="password">Contrasena</FieldLabel>
+              <FieldLabel htmlFor="password">Contraseña</FieldLabel>
               <Input
                 id="password"
                 type="password"

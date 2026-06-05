@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { CalendarDaysIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -72,6 +72,11 @@ export function AttendanceMatrix({
   const [matrix, setMatrix] = useState<MatrixState>(initialData ?? {})
   const cols = useMemo(() => weekdaysOfMonth(year, month), [year, month])
   const today = todayIso()
+
+  // Re-seed from server data when subject/month (initialData) changes.
+  useEffect(() => {
+    setMatrix(initialData ?? {})
+  }, [initialData])
 
   const register = useRegisterAttendance()
 

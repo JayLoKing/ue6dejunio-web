@@ -64,7 +64,7 @@ function SubjectsPage() {
     () => ({ offset: page, limit, sort: "asc" }),
     [page, limit],
   )
-  const { data, isLoading, isFetching } = useSubjectsAdmin(query)
+  const { data, isLoading, isFetching, refetch } = useSubjectsAdmin(query)
   const create = useCreateSubject()
   const update = useUpdateSubject()
   const remove = useDeleteSubject()
@@ -187,6 +187,7 @@ function SubjectsPage() {
         total={data?.total ?? 0}
         totalPages={data?.totalPages ?? 1}
         isFetching={isFetching}
+        onRefresh={() => void refetch()}
         onPageChange={setPage}
         onPageSizeChange={(s) => {
           setLimit(s)

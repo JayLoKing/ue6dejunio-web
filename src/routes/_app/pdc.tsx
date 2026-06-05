@@ -63,7 +63,7 @@ function PdcPage() {
   const [observation, setObservation] = useState("")
 
   const subjectsQuery = useTeacherSubjects(isTeacher ? userId : null)
-  const { data, isLoading, isFetching } = usePdcList({ offset: page, limit })
+  const { data, isLoading, isFetching, refetch } = usePdcList({ offset: page, limit })
   const { publish, approve, observe, remove } = usePdcAction()
   const sendNotification = useSendNotification()
 
@@ -241,6 +241,7 @@ function PdcPage() {
         total={data?.total ?? 0}
         totalPages={data?.totalPages ?? 1}
         isFetching={isFetching}
+        onRefresh={() => void refetch()}
         onPageChange={setPage}
         onPageSizeChange={(s) => {
           setLimit(s)

@@ -53,7 +53,7 @@ export function UsersTable() {
     [page, limit, sort, debouncedSearch],
   )
 
-  const { data, isLoading, isFetching } = useUsers(query)
+  const { data, isLoading, isFetching, refetch } = useUsers(query)
   const deactivate = useDeactivateUser()
 
   const confirmDelete = () => {
@@ -159,6 +159,7 @@ export function UsersTable() {
         total={data?.total ?? 0}
         totalPages={data?.totalPages ?? 1}
         isFetching={isFetching}
+        onRefresh={() => void refetch()}
         onPageChange={setPage}
         onPageSizeChange={(s) => {
           setLimit(s)

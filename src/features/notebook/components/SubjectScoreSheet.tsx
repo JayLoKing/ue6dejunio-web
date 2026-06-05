@@ -73,7 +73,7 @@ export function SubjectScoreSheet({
     () => ({ classGroupId, trimester, offset: page, limit, sort: "asc" as const }),
     [classGroupId, trimester, page, limit],
   )
-  const { data, isLoading, isFetching } = useCourseScores(query)
+  const { data, isLoading, isFetching, refetch } = useCourseScores(query)
   const register = useRegisterScore()
 
   const rows = useMemo(() => data?.content ?? [], [data])
@@ -241,6 +241,7 @@ export function SubjectScoreSheet({
         total={data?.total ?? 0}
         totalPages={data?.totalPages ?? 1}
         isFetching={isFetching}
+        onRefresh={() => void refetch()}
         onPageChange={setPage}
         onPageSizeChange={(s) => {
           setLimit(s)

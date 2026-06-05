@@ -4,6 +4,7 @@ import { Loader2Icon } from "lucide-react"
 
 import { AttendanceMatrix } from "@/features/attendance/components/AttendanceMatrix"
 import type { StudentEnrollmentRow } from "@/features/attendance/types"
+import { useAttendanceMatrix } from "@/features/attendance/hooks/useAttendanceMatrix"
 import { useAuthStore } from "@/features/auth/store/authStore"
 import { useTeacherStudents } from "@/features/students/hooks/useTeacherStudents"
 import {
@@ -72,6 +73,20 @@ function AttendancePage() {
       ),
     }))
   }, [studentsQuery.data])
+
+  // Enrollment ids for the active subject → hydrate saved attendance.
+  const enrollmentIds = useMemo(() => {
+    if (!effectiveSubject) return []
+    return rows
+      .map((r) => r.enrollmentsBySubject[effectiveSubject])
+      .filter((id): id is string => Boolean(id))
+  }, [rows, effectiveSubject])
+
+  const { data: initialData } = useAttendanceMatrix(
+    enrollmentIds,
+    year,
+    month,
+  )
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -147,6 +162,7 @@ function AttendancePage() {
           subjectId={effectiveSubject}
           year={year}
           month={month}
+          initialData={initialData}
         />
       )}
     </div>

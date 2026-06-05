@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { LogInIcon } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/animate-ui/components/buttons/button"
 import {
   Card,
   CardContent,
@@ -55,7 +55,7 @@ export function LoginForm() {
         <CardDescription>Ingresa tus credenciales</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={onSubmit} noValidate>
+        <form id="login-form" onSubmit={onSubmit} noValidate>
           <FieldGroup>
             <Field data-invalid={Boolean(errors.email) || undefined}>
               <FieldLabel htmlFor="email">Correo</FieldLabel>
@@ -93,9 +93,9 @@ export function LoginForm() {
       <CardFooter className="flex flex-col gap-2">
         <Button
           type="submit"
+          form="login-form"
           className="w-full bg-univalle text-univalle-foreground hover:bg-univalle/90"
           disabled={loading}
-          onClick={onSubmit}
         >
           <LogInIcon data-icon="inline-start" />
           {loading ? "Ingresando..." : "Ingresar"}

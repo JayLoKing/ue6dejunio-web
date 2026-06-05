@@ -48,6 +48,7 @@ export interface NameCrudPageProps<T extends NameEntity> {
     data?: PagedResponse<T>
     isLoading: boolean
     isFetching: boolean
+    refetch: () => unknown
   }
   mutations: NameMutations
   maxLen?: number
@@ -77,7 +78,7 @@ export function NameCrudPage<T extends NameEntity>({
     () => ({ offset: page, limit, sort: "asc" }),
     [page, limit],
   )
-  const { data, isLoading, isFetching } = useList(query)
+  const { data, isLoading, isFetching, refetch } = useList(query)
   const rows = data?.content ?? []
 
   const createForm = useForm<FormValues>({
@@ -213,6 +214,7 @@ export function NameCrudPage<T extends NameEntity>({
         total={data?.total ?? 0}
         totalPages={data?.totalPages ?? 1}
         isFetching={isFetching}
+        onRefresh={() => void refetch()}
         onPageChange={setPage}
         onPageSizeChange={(s) => {
           setLimit(s)

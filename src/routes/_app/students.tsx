@@ -65,7 +65,12 @@ function StudentsPage() {
           Error al cargar estudiantes.
         </div>
       ) : (
-        <StudentsTable data={rows} pageSize={10} />
+        <StudentsTable
+          data={rows}
+          pageSize={10}
+          isFetching={studentsQuery.isFetching}
+          onRefresh={() => void studentsQuery.refetch()}
+        />
       )}
     </div>
   )

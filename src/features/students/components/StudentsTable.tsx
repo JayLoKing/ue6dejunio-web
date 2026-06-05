@@ -37,11 +37,18 @@ export interface StudentRow {
 export interface StudentsTableProps {
   data: StudentRow[]
   pageSize?: number
+  isFetching?: boolean
+  onRefresh?: () => void
 }
 
 type GenderFilter = "ALL" | Gender
 
-export function StudentsTable({ data, pageSize = 10 }: StudentsTableProps) {
+export function StudentsTable({
+  data,
+  pageSize = 10,
+  isFetching,
+  onRefresh,
+}: StudentsTableProps) {
   const [search, setSearch] = useState("")
   const [genderFilter, setGenderFilter] = useState<GenderFilter>("ALL")
   const [page, setPage] = useState(0)
@@ -204,6 +211,8 @@ export function StudentsTable({ data, pageSize = 10 }: StudentsTableProps) {
         pageSize={size}
         total={filtered.length}
         totalPages={totalPages}
+        isFetching={isFetching}
+        onRefresh={onRefresh}
         onPageChange={(p) => setPage(p - 1)}
         onPageSizeChange={(s) => {
           setSize(s)

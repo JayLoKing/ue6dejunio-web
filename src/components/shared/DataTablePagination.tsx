@@ -3,8 +3,10 @@ import {
   ChevronRightIcon,
   ChevronsLeftIcon,
   ChevronsRightIcon,
+  RefreshCwIcon,
 } from "lucide-react"
 
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -24,6 +26,8 @@ export interface DataTablePaginationProps {
   onPageChange: (page: number) => void
   onPageSizeChange: (size: number) => void
   isFetching?: boolean
+  /** Optional refresh handler — shows a refresh button when provided. */
+  onRefresh?: () => void
 }
 
 export function DataTablePagination({
@@ -34,6 +38,7 @@ export function DataTablePagination({
   onPageChange,
   onPageSizeChange,
   isFetching,
+  onRefresh,
 }: DataTablePaginationProps) {
   const safeTotalPages = Math.max(1, totalPages)
   const canPrev = page > 1
@@ -64,6 +69,20 @@ export function DataTablePagination({
       </div>
 
       <div className="flex items-center gap-2">
+        {onRefresh ? (
+          <Button
+            variant="outline"
+            size="icon"
+            className="size-8"
+            title="Refrescar"
+            disabled={isFetching}
+            onClick={onRefresh}
+          >
+            <RefreshCwIcon
+              className={cn("size-4", isFetching && "animate-spin")}
+            />
+          </Button>
+        ) : null}
         <span className="text-muted-foreground">
           Pagina {page} de {safeTotalPages}
         </span>

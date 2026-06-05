@@ -1,28 +1,19 @@
-import { httpClient } from "@/lib/axios"
+import CatalogServiceHelper from "../helpers/catalogServiceHelper"
+import type { GradeItem, ParallelItem, SubjectItem, TeacherItem } from "../types"
 
-import { CatalogUrl } from "../helpers/catalogServicePath"
-import type {
-  GradeItem,
-  ParallelItem,
-  SubjectItem,
-  TeacherItem,
-} from "../types"
+const helper = new CatalogServiceHelper()
 
 export class CatalogService {
   static async grades(): Promise<GradeItem[]> {
-    const { data } = await httpClient.get<GradeItem[]>(CatalogUrl.Grades)
-    return data
+    return (await helper.gradesAsync().call).data
   }
   static async parallels(): Promise<ParallelItem[]> {
-    const { data } = await httpClient.get<ParallelItem[]>(CatalogUrl.Parallels)
-    return data
+    return (await helper.parallelsAsync().call).data
   }
   static async subjects(): Promise<SubjectItem[]> {
-    const { data } = await httpClient.get<SubjectItem[]>(CatalogUrl.Subjects)
-    return data
+    return (await helper.subjectsAsync().call).data
   }
   static async teachers(): Promise<TeacherItem[]> {
-    const { data } = await httpClient.get<TeacherItem[]>(CatalogUrl.Teachers)
-    return data
+    return (await helper.teachersAsync().call).data
   }
 }

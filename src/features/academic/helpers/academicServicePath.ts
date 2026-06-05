@@ -1,0 +1,19 @@
+export const LevelUrl = {
+  Base: "/levels",
+  ById: (id: number) => `/levels/${id}`,
+} as const
+
+export const GradeUrl = {
+  Base: "/grades",
+  ById: (id: number) => `/grades/${id}`,
+} as const
+
+export const ParallelUrl = {
+  Base: "/parallels",
+  ById: (id: number) => `/parallels/${id}`,
+} as const
+
+export const SubjectUrl = {
+  Base: "/subjects",
+  ById: (id: string) => `/subjects/${id}`,
+} as const

@@ -1,105 +1,104 @@
-import { httpClient } from "@/lib/axios"
 import type { PagedResponse, PageQuery } from "@/lib/types/pagination"
-import { toPageParams } from "@/lib/types/pagination"
 
+import LevelServiceHelper, {
+  GradeServiceHelper,
+  ParallelServiceHelper,
+  SubjectServiceHelper,
+} from "../helpers/academicServiceHelper"
 import type { Grade, Level, Parallel, Subject } from "../types"
+
+const levelHelper = new LevelServiceHelper()
+const gradeHelper = new GradeServiceHelper()
+const parallelHelper = new ParallelServiceHelper()
+const subjectHelper = new SubjectServiceHelper()
 
 // ---- Levels ----
 export class LevelService {
   static async list(q: PageQuery): Promise<PagedResponse<Level>> {
-    const { data } = await httpClient.get<PagedResponse<Level>>("/levels", {
-      params: toPageParams(q),
-    })
-    return data
+    const { call } = levelHelper.listAsync(q)
+    return (await call).data
   }
   static async create(payload: { name: string }): Promise<Level> {
-    const { data } = await httpClient.post<Level>("/levels", payload)
-    return data
+    const { call } = levelHelper.createAsync(payload)
+    return (await call).data
   }
   static async update(id: number, payload: { name: string }): Promise<Level> {
-    const { data } = await httpClient.put<Level>(`/levels/${id}`, payload)
-    return data
+    const { call } = levelHelper.updateAsync(id, payload)
+    return (await call).data
   }
   static async remove(id: number): Promise<void> {
-    await httpClient.delete(`/levels/${id}`)
+    await levelHelper.removeAsync(id).call
   }
 }
 
 // ---- Grades ----
 export class GradeAdminService {
   static async list(q: PageQuery): Promise<PagedResponse<Grade>> {
-    const { data } = await httpClient.get<PagedResponse<Grade>>("/grades", {
-      params: toPageParams(q),
-    })
-    return data
+    const { call } = gradeHelper.listAsync(q)
+    return (await call).data
   }
   static async create(payload: {
     name: string
     id_level: number
   }): Promise<Grade> {
-    const { data } = await httpClient.post<Grade>("/grades", payload)
-    return data
+    const { call } = gradeHelper.createAsync(payload)
+    return (await call).data
   }
   static async update(
     id: number,
     payload: { name: string; id_level: number },
   ): Promise<Grade> {
-    const { data } = await httpClient.put<Grade>(`/grades/${id}`, payload)
-    return data
+    const { call } = gradeHelper.updateAsync(id, payload)
+    return (await call).data
   }
   static async remove(id: number): Promise<void> {
-    await httpClient.delete(`/grades/${id}`)
+    await gradeHelper.removeAsync(id).call
   }
 }
 
 // ---- Parallels ----
 export class ParallelService {
   static async list(q: PageQuery): Promise<PagedResponse<Parallel>> {
-    const { data } = await httpClient.get<PagedResponse<Parallel>>(
-      "/parallels",
-      { params: toPageParams(q) },
-    )
-    return data
+    const { call } = parallelHelper.listAsync(q)
+    return (await call).data
   }
   static async create(payload: { name: string }): Promise<Parallel> {
-    const { data } = await httpClient.post<Parallel>("/parallels", payload)
-    return data
+    const { call } = parallelHelper.createAsync(payload)
+    return (await call).data
   }
   static async update(
     id: number,
     payload: { name: string },
   ): Promise<Parallel> {
-    const { data } = await httpClient.put<Parallel>(`/parallels/${id}`, payload)
-    return data
+    const { call } = parallelHelper.updateAsync(id, payload)
+    return (await call).data
   }
   static async remove(id: number): Promise<void> {
-    await httpClient.delete(`/parallels/${id}`)
+    await parallelHelper.removeAsync(id).call
   }
 }
 
 // ---- Subjects ----
 export class SubjectAdminService {
   static async list(q: PageQuery): Promise<PagedResponse<Subject>> {
-    const { data } = await httpClient.get<PagedResponse<Subject>>("/subjects", {
-      params: toPageParams(q),
-    })
-    return data
+    const { call } = subjectHelper.listAsync(q)
+    return (await call).data
   }
   static async create(payload: {
     name: string
     area: string
   }): Promise<Subject> {
-    const { data } = await httpClient.post<Subject>("/subjects", payload)
-    return data
+    const { call } = subjectHelper.createAsync(payload)
+    return (await call).data
   }
   static async update(
     id: string,
     payload: { name?: string; area?: string; active?: boolean },
   ): Promise<Subject> {
-    const { data } = await httpClient.put<Subject>(`/subjects/${id}`, payload)
-    return data
+    const { call } = subjectHelper.updateAsync(id, payload)
+    return (await call).data
   }
   static async remove(id: string): Promise<void> {
-    await httpClient.delete(`/subjects/${id}`)
+    await subjectHelper.removeAsync(id).call
   }
 }

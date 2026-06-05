@@ -14,7 +14,7 @@ export interface CredentialResponse {
 export interface MeResponse {
   userId: string
   email: string
-  fullName: string
+  name: string
   role: string
   mustChangePassword: boolean
   gradeName: string | null

@@ -9,7 +9,6 @@ import {
   LayersIcon,
   LayoutDashboardIcon,
   LayoutGridIcon,
-  LogOutIcon,
   type LucideIcon,
   SchoolIcon,
   UserSquare2Icon,
@@ -38,6 +37,7 @@ import {
   SidebarMenuSubItem,
   SidebarRail,
 } from "@/components/animate-ui/components/radix/sidebar"
+import { NavUser } from "@/components/shared/NavUser"
 import { useAuthStore } from "@/features/auth/store/authStore"
 import { isRole, type UserRole } from "@/features/auth/types"
 import { useTeacherSubjects } from "@/features/students/hooks/useTeacherStudents"
@@ -92,10 +92,8 @@ const ADMIN_LINKS: NavLink[] = [
 ]
 
 export function AppSidebar() {
-  const fullName = useAuthStore((s) => s.fullName)
   const role = useAuthStore((s) => s.role)
   const userId = useAuthStore((s) => s.userId)
-  const logout = useAuthStore((s) => s.logout)
   const pathname = useRouterState({ select: (s) => s.location.pathname })
 
   const teacher = isRole(role, "TEACHER")
@@ -103,11 +101,6 @@ export function AppSidebar() {
 
   const subjectsQuery = useTeacherSubjects(teacher ? userId : null)
   const parallelsQuery = useParallels()
-
-  const handleLogout = () => {
-    logout()
-    window.location.href = "/auth/login"
-  }
 
   const visibleTop = TOP_LINKS.filter((l) => l.roles.some((r) => isRole(role, r)))
 
@@ -296,27 +289,7 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" className="cursor-default">
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-accent text-sidebar-accent-foreground">
-                {(fullName ?? "U").slice(0, 1).toUpperCase()}
-              </div>
-              <div className="flex flex-col gap-0.5 leading-none">
-                <span className="text-sm font-medium">{fullName ?? "Usuario"}</span>
-                <span className="text-xs text-muted-foreground">
-                  {role ?? "Sin rol"}
-                </span>
-              </div>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={handleLogout} tooltip="Cerrar sesion">
-              <LogOutIcon />
-              <span>Cerrar sesion</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <NavUser />
       </SidebarFooter>
 
       <SidebarRail />

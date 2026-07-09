@@ -1,6 +1,6 @@
-const baseModuleUrl = "/enrollments"
+const baseModuleUrl = "/course-enrollments"
 
 export const EnrollmentUrl = {
   Single: baseModuleUrl,
-  Batch: `${baseModuleUrl}/batch`,
+  Sync: `${baseModuleUrl}/sync`,
 } as const

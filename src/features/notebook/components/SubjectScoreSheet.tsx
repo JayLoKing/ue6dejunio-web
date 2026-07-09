@@ -1,9 +1,7 @@
-import { useEffect, useMemo, useState } from "react"
-import { Loader2Icon, SaveIcon, SparklesIcon } from "lucide-react"
+import { Fragment, useEffect, useMemo, useState } from "react"
+import { AlertTriangleIcon, Loader2Icon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import {
@@ -13,113 +11,108 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { DataTablePagination } from "@/components/shared/DataTablePagination"
-import { useCourseScores } from "@/features/gradebook/hooks/useGradebook"
-import type { CourseScoreRow } from "@/features/gradebook/types"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useCourseStudents } from "@/features/courses/hooks/useCourses"
+import type { ClassGroupItem } from "@/features/courses/types/course"
+import { isTechnicalSubject } from "@/features/courses/types/course"
 
 import {
-  DIMENSION_WEIGHTS,
-  RISK_META,
-  classifyRisk,
-  totalFromDraft,
-  type ScoreDraft,
-  type Trimester,
-} from "../types"
-import { useRegisterScore } from "../hooks/useRegisterScore"
+  DIMENSIONS,
+  type AssessmentEvent,
+  type Criterion,
+} from "@/features/assessment/types"
+import {
+  useCriteria,
+  useCriteriaEvents,
+  useEventScores,
+  useSetScore,
+} from "@/features/assessment/hooks/useAssessment"
+import { CriteriaManager } from "@/features/assessment/components/CriteriaManager"
 
 export interface SubjectScoreSheetProps {
-  subjectName: string
-  classGroupId: string
+  classGroup: ClassGroupItem
 }
 
-const DEFAULT_DRAFT: ScoreDraft = { ser: 0, saber: 0, hacer: 0, auto: 0 }
+type Trimester = 1 | 2 | 3
 
-const DIMENSIONS: Array<{ key: keyof ScoreDraft; label: string; max: number }> =
-  [
-    { key: "ser", label: "SER", max: DIMENSION_WEIGHTS.SER },
-    { key: "saber", label: "SABER", max: DIMENSION_WEIGHTS.SABER },
-    { key: "hacer", label: "HACER", max: DIMENSION_WEIGHTS.HACER },
-    { key: "auto", label: "DECIDIR / AUTO", max: DIMENSION_WEIGHTS.AUTO },
-  ]
-
-const clampNumeric = (raw: string, max: number): number => {
-  if (raw === "") return 0
-  const n = Number(raw)
-  if (!Number.isFinite(n) || n < 0) return 0
-  return n > max ? max : Number(n.toFixed(2))
-}
-
-const draftFromRow = (row: CourseScoreRow, trimester: number): ScoreDraft => {
-  const found = row.scores.find((s) => s.trimester === trimester)
-  if (!found) return { ...DEFAULT_DRAFT }
-  return {
-    ser: Number(found.scoreBeing),
-    saber: Number(found.scoreKnowing),
-    hacer: Number(found.scoreDoing),
-    auto: Number(found.scoreDeciding),
-  }
-}
-
-export function SubjectScoreSheet({
-  subjectName,
-  classGroupId,
-}: SubjectScoreSheetProps) {
+export function SubjectScoreSheet({ classGroup }: SubjectScoreSheetProps) {
   const [trimester, setTrimester] = useState<Trimester>(1)
-  const [page, setPage] = useState(1)
-  const [limit, setLimit] = useState(10)
-  const [drafts, setDrafts] = useState<Record<string, ScoreDraft>>({})
+  const [draft, setDraft] = useState<Record<string, number>>({})
 
-  const query = useMemo(
-    () => ({ classGroupId, trimester, offset: page, limit, sort: "asc" as const }),
-    [classGroupId, trimester, page, limit],
+  const { data: criteria = [], isLoading: critLoading } = useCriteria(
+    classGroup.id,
+    trimester,
   )
-  const { data, isLoading, isFetching, refetch } = useCourseScores(query)
-  const register = useRegisterScore()
+  const { byCriterion, isLoading: evLoading } = useCriteriaEvents(criteria)
 
-  const rows = useMemo(() => data?.content ?? [], [data])
+  const studentsQuery = useCourseStudents(classGroup.courseId, {
+    offset: 1,
+    limit: 200,
+    sort: "asc",
+  })
+  const students = useMemo(
+    () => studentsQuery.data?.content ?? [],
+    [studentsQuery.data],
+  )
 
-  // Hydrate drafts from server rows whenever data/trimester changes.
+  // flat events (in dimension→criterion order) for columns
+  const columns = useMemo(() => {
+    const cols: { dimKey: string; criterion: Criterion; event: AssessmentEvent }[] = []
+    for (const dim of DIMENSIONS) {
+      for (const c of criteria.filter((x) => x.dimension === dim.key)) {
+        for (const e of byCriterion[c.id] ?? []) {
+          cols.push({ dimKey: dim.key, criterion: c, event: e })
+        }
+      }
+    }
+    return cols
+  }, [criteria, byCriterion])
+
+  const eventIds = useMemo(() => columns.map((c) => c.event.id), [columns])
+  const { matrix } = useEventScores(eventIds)
+  const setScore = useSetScore()
+
   useEffect(() => {
-    const next: Record<string, ScoreDraft> = {}
-    for (const r of rows) next[r.enrollmentId] = draftFromRow(r, trimester)
-    setDrafts(next)
-  }, [rows, trimester])
+    const next: Record<string, number> = {}
+    for (const s of students) {
+      for (const col of columns) {
+        const cell = matrix[col.event.id]?.[s.courseEnrollmentId]
+        if (cell) next[`${s.courseEnrollmentId}:${col.event.id}`] = cell.score
+      }
+    }
+    setDraft(next)
+  }, [students, columns, matrix])
 
-  const updateCell = (
-    enrollmentId: string,
-    key: keyof ScoreDraft,
-    raw: string,
-  ) => {
-    const dim = DIMENSIONS.find((d) => d.key === key)!
-    const value = clampNumeric(raw, dim.max)
-    setDrafts((prev) => ({
-      ...prev,
-      [enrollmentId]: { ...(prev[enrollmentId] ?? DEFAULT_DRAFT), [key]: value },
-    }))
-  }
-
-  const handleSave = (enrollmentId: string) => {
-    const d = drafts[enrollmentId] ?? DEFAULT_DRAFT
-    register.mutate({
-      id_enrollment: enrollmentId,
-      trimester,
-      scoreBeing: d.ser,
-      scoreKnowing: d.saber,
-      scoreDoing: d.hacer,
-      scoreDeciding: d.auto,
+  const commit = (ce: string, ev: AssessmentEvent, raw: string) => {
+    let val = Number(raw)
+    if (!Number.isFinite(val) || val < 0) val = 0
+    if (val > ev.maxScore) val = ev.maxScore
+    const prev = matrix[ev.id]?.[ce]?.score ?? null
+    if (prev === val) return
+    setScore.mutate({
+      id_course_enrollment: ce,
+      id_assessment_event: ev.id,
+      score: val,
     })
   }
 
+  const hasCriteria = criteria.length > 0
+  const technical = isTechnicalSubject(classGroup.subjectName)
+
   return (
     <div className="flex min-w-0 flex-col gap-4">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold">{subjectName}</h2>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="flex items-center gap-2 text-lg font-semibold">
+          {classGroup.subjectName}
+          {technical ? (
+            <span className="rounded bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-300">
+              Técnica
+            </span>
+          ) : null}
+        </h2>
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Trimestre</span>
-          <Select
-            value={String(trimester)}
-            onValueChange={(v) => setTrimester(Number(v) as Trimester)}
-          >
+          <Select value={String(trimester)} onValueChange={(v) => setTrimester(Number(v) as Trimester)}>
             <SelectTrigger className="w-32">
               <SelectValue />
             </SelectTrigger>
@@ -132,130 +125,119 @@ export function SubjectScoreSheet({
         </div>
       </div>
 
-      <div className="min-w-0 overflow-hidden rounded-md border bg-card">
-        <ScrollArea className="w-full whitespace-nowrap">
-          <table className="w-max border-collapse text-sm">
-            <thead>
-              <tr>
-                <th className="sticky left-0 z-20 min-w-[16rem] border-r border-b bg-muted px-3 py-2 text-left font-medium shadow-[2px_0_0_0_var(--border)]">
-                  Estudiante
-                </th>
-                {DIMENSIONS.map((d) => (
-                  <th
-                    key={d.key}
-                    className="min-w-28 border-r border-b bg-muted/50 px-3 py-2 text-center font-medium"
-                  >
-                    <div className="flex flex-col leading-tight">
-                      <span>{d.label}</span>
-                      <span className="text-xs font-normal text-muted-foreground">
-                        /{d.max}
-                      </span>
-                    </div>
-                  </th>
-                ))}
-                <th className="min-w-24 border-r border-b bg-univalle/10 px-3 py-2 text-center font-semibold text-univalle">
-                  TOTAL
-                </th>
-                <th className="min-w-44 border-r border-b bg-muted/50 px-3 py-2 text-center font-medium">
-                  <div className="flex items-center justify-center gap-1.5">
-                    <SparklesIcon className="size-3.5" />
-                    Alerta ML
-                  </div>
-                </th>
-                <th className="min-w-24 border-b bg-muted/50 px-3 py-2 text-center font-medium">
-                  Accion
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan={DIMENSIONS.length + 4} className="px-3 py-6 text-center text-muted-foreground">
-                    <Loader2Icon className="mx-auto size-4 animate-spin" />
-                  </td>
-                </tr>
-              ) : rows.length === 0 ? (
-                <tr>
-                  <td colSpan={DIMENSIONS.length + 4} className="px-3 py-6 text-center text-muted-foreground">
-                    Sin estudiantes en esta materia.
-                  </td>
-                </tr>
-              ) : (
-                rows.map((r, idx) => {
-                  const draft = drafts[r.enrollmentId] ?? DEFAULT_DRAFT
-                  const total = totalFromDraft(draft)
-                  const meta = RISK_META[classifyRisk(total)]
-                  const rowBg = idx % 2 === 0 ? "bg-card" : "bg-muted"
-                  return (
-                    <tr key={r.enrollmentId} className="border-t">
-                      <td className={cn("sticky left-0 z-10 min-w-[16rem] border-r px-3 py-2 shadow-[2px_0_0_0_var(--border)]", rowBg)}>
-                        <span className="font-medium">{r.fullName}</span>
-                      </td>
-                      {DIMENSIONS.map((d) => (
-                        <td key={d.key} className={cn("border-r px-2 py-1 text-center", rowBg)}>
-                          <Input
-                            type="number"
-                            inputMode="decimal"
-                            min={0}
-                            max={d.max}
-                            step={0.5}
-                            value={draft[d.key]}
-                            onChange={(e) => updateCell(r.enrollmentId, d.key, e.target.value)}
-                            className="h-9 w-20 text-center"
-                          />
-                        </td>
-                      ))}
-                      <td className="border-r bg-univalle/10 px-3 py-2 text-center font-semibold text-univalle">
-                        {total.toFixed(2)}
-                      </td>
-                      <td className={cn("border-r px-3 py-2 text-center", rowBg)}>
-                        <Badge className={cn("gap-1.5", meta.badgeCls)}>
-                          <span className={cn("size-2 rounded-full", meta.dotCls)} />
-                          {meta.label}
-                        </Badge>
-                      </td>
-                      <td className={cn("px-3 py-2 text-center", rowBg)}>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleSave(r.enrollmentId)}
-                          disabled={register.isPending}
-                        >
-                          <SaveIcon data-icon="inline-start" />
-                          Guardar
-                        </Button>
-                      </td>
+      <Tabs defaultValue="notas">
+        <TabsList>
+          <TabsTrigger value="notas">Notas</TabsTrigger>
+          <TabsTrigger value="criterios">Criterios</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="notas" className="pt-4">
+          {critLoading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2Icon className="size-4 animate-spin" /> Cargando…
+            </div>
+          ) : !hasCriteria ? (
+            <div className="flex flex-col items-center gap-2 rounded-md border border-dashed border-amber-500/40 bg-amber-500/5 p-8 text-center text-sm">
+              <AlertTriangleIcon className="size-6 text-amber-600" />
+              <p className="font-medium">
+                Define criterios antes de cargar notas.
+              </p>
+              <p className="text-muted-foreground">
+                Ve a la pestaña <strong>Criterios</strong> y agrega al menos un
+                criterio con su actividad para este trimestre.
+              </p>
+            </div>
+          ) : (
+            <div className="min-w-0 overflow-hidden rounded-md border bg-card">
+              <ScrollArea className="w-full whitespace-nowrap">
+                <table className="w-max border-collapse text-sm">
+                  <thead>
+                    <tr>
+                      <th rowSpan={2} className="sticky left-0 z-20 min-w-[16rem] border-r border-b bg-muted px-3 py-2 text-left align-bottom font-medium shadow-[2px_0_0_0_var(--border)]">
+                        Estudiante
+                      </th>
+                      {DIMENSIONS.map((dim) => {
+                        const dimCols = columns.filter((c) => c.dimKey === dim.key)
+                        if (dimCols.length === 0) return null
+                        return (
+                          <th key={dim.key} colSpan={dimCols.length} className="border-r border-b bg-muted/60 px-2 py-1.5 text-center font-semibold">
+                            {dim.label} <span className="text-xs font-normal text-muted-foreground">/{dim.weight}</span>
+                          </th>
+                        )
+                      })}
                     </tr>
-                  )
-                })
-              )}
-            </tbody>
-          </table>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
-      </div>
+                    <tr>
+                      {columns.map((col) => (
+                        <th key={col.event.id} title={`${col.criterion.name} · ${col.event.title}`} className="min-w-24 border-r border-b bg-muted/40 px-2 py-1 text-center text-xs font-normal">
+                          <div className="truncate">{col.event.title}</div>
+                          <div className="text-[10px] text-muted-foreground">/{col.event.maxScore}</div>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {studentsQuery.isLoading ? (
+                      <tr>
+                        <td colSpan={columns.length + 1} className="px-3 py-6 text-center text-muted-foreground">
+                          <Loader2Icon className="mx-auto size-4 animate-spin" />
+                        </td>
+                      </tr>
+                    ) : students.length === 0 ? (
+                      <tr>
+                        <td colSpan={columns.length + 1} className="px-3 py-6 text-center text-muted-foreground">
+                          Sin estudiantes en el curso.
+                        </td>
+                      </tr>
+                    ) : (
+                      students.map((s, idx) => {
+                        const rowBg = idx % 2 === 0 ? "bg-card" : "bg-muted"
+                        return (
+                          <tr key={s.courseEnrollmentId} className="border-t">
+                            <td className={cn("sticky left-0 z-10 min-w-[16rem] border-r px-3 py-2 font-medium shadow-[2px_0_0_0_var(--border)]", rowBg)}>
+                              {s.fullName}
+                            </td>
+                            {columns.map((col) => {
+                              const k = `${s.courseEnrollmentId}:${col.event.id}`
+                              return (
+                                <td key={col.event.id} className={cn("border-r px-1 py-1 text-center", rowBg)}>
+                                  <Input
+                                    type="number"
+                                    inputMode="decimal"
+                                    min={0}
+                                    max={col.event.maxScore}
+                                    step={0.5}
+                                    value={draft[k] ?? ""}
+                                    onChange={(e) =>
+                                      setDraft((d) => ({ ...d, [k]: Number(e.target.value) }))
+                                    }
+                                    onBlur={(e) => commit(s.courseEnrollmentId, col.event, e.target.value)}
+                                    className="h-9 w-16 text-center"
+                                  />
+                                </td>
+                              )
+                            })}
+                          </tr>
+                        )
+                      })
+                    )}
+                  </tbody>
+                </table>
+                <ScrollBar orientation="horizontal" />
+              </ScrollArea>
+            </div>
+          )}
+          <p className="pt-2 text-xs text-muted-foreground">
+            La nota por actividad se guarda al salir del campo. Promedios por
+            criterio, dimension y total son de solo lectura (consolidados por el
+            sistema) — ver Reportes.
+          </p>
+          {evLoading ? null : <Fragment />}
+        </TabsContent>
 
-      <DataTablePagination
-        page={data?.page != null ? data.page + 1 : page}
-        pageSize={limit}
-        total={data?.total ?? 0}
-        totalPages={data?.totalPages ?? 1}
-        isFetching={isFetching}
-        onRefresh={() => void refetch()}
-        onPageChange={setPage}
-        onPageSizeChange={(s) => {
-          setLimit(s)
-          setPage(1)
-        }}
-      />
-
-      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-        <span className="font-medium">Ponderacion RM 0001/2026:</span>
-        <span>SER {DIMENSION_WEIGHTS.SER}</span>
-        <span>SABER {DIMENSION_WEIGHTS.SABER}</span>
-        <span>HACER {DIMENSION_WEIGHTS.HACER}</span>
-        <span>AUTO {DIMENSION_WEIGHTS.AUTO}</span>
-      </div>
+        <TabsContent value="criterios" className="pt-4">
+          <CriteriaManager classGroupId={classGroup.id} trimester={trimester} />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

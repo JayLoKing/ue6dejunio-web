@@ -4,7 +4,12 @@ import { httpClient } from "@/lib/axios"
 import type { PagedResponse } from "@/lib/types/pagination"
 
 import { PdcUrl } from "./pdcServicePath"
-import type { Pdc, PdcFormPayload } from "../types"
+import type {
+  AddProgressPayload,
+  Pdc,
+  PdcFormPayload,
+  PdcProgress,
+} from "../types"
 
 export interface PdcListParams {
   classGroupId?: string
@@ -103,6 +108,29 @@ export default class PdcServiceHelper {
     const controller = loadAbort()
     return {
       call: httpClient.delete<void>(PdcUrl.ById(id), {
+        signal: controller.signal,
+      }),
+      controller,
+    }
+  }
+
+  addProgressAsync(
+    id: string,
+    payload: AddProgressPayload,
+  ): UseApiCall<PdcProgress> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.post<PdcProgress>(PdcUrl.Progress(id), payload, {
+        signal: controller.signal,
+      }),
+      controller,
+    }
+  }
+
+  listProgressAsync(id: string): UseApiCall<PdcProgress[]> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.get<PdcProgress[]>(PdcUrl.Progress(id), {
         signal: controller.signal,
       }),
       controller,

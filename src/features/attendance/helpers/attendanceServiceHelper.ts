@@ -4,50 +4,41 @@ import { httpClient } from "@/lib/axios"
 
 import { AttendanceUrl } from "./attendanceServicePath"
 import type {
-  AttendanceBatchRequest,
-  RegisterAttendanceRequest,
-} from "../models/requests/register-attendance-request"
-import type {
-  AttendanceBatchResult,
   AttendanceResponse,
-} from "../models/response/attendance-response"
+  DailyAttendancePayload,
+  SessionAttendancePayload,
+} from "../types"
 
 export default class AttendanceServiceHelper {
-  registerAsync(
-    payload: RegisterAttendanceRequest,
-  ): UseApiCall<AttendanceResponse> {
+  dailyAsync(payload: DailyAttendancePayload): UseApiCall<AttendanceResponse> {
     const controller = loadAbort()
     return {
-      call: httpClient.post<AttendanceResponse>(AttendanceUrl.Base, payload, {
+      call: httpClient.post<AttendanceResponse>(AttendanceUrl.Daily, payload, {
         signal: controller.signal,
       }),
       controller,
     }
   }
-
-  registerBatchAsync(
-    payload: AttendanceBatchRequest,
-  ): UseApiCall<AttendanceBatchResult> {
+  sessionAsync(
+    payload: SessionAttendancePayload,
+  ): UseApiCall<AttendanceResponse> {
     const controller = loadAbort()
     return {
-      call: httpClient.post<AttendanceBatchResult>(
-        AttendanceUrl.Batch,
-        payload,
-        { signal: controller.signal },
-      ),
+      call: httpClient.post<AttendanceResponse>(AttendanceUrl.Session, payload, {
+        signal: controller.signal,
+      }),
       controller,
     }
   }
-
-  byEnrollmentAsync(
-    enrollmentId: string,
+  byCourseEnrollmentAsync(
+    courseEnrollmentId: string,
   ): UseApiCall<AttendanceResponse[]> {
     const controller = loadAbort()
     return {
-      call: httpClient.get<AttendanceResponse[]>(
-        AttendanceUrl.ByEnrollment(enrollmentId),
-        { signal: controller.signal },
-      ),
+      call: httpClient.get<AttendanceResponse[]>(AttendanceUrl.Base, {
+        signal: controller.signal,
+        params: { id_course_enrollment: courseEnrollmentId },
+      }),
       controller,
     }
   }

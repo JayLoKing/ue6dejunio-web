@@ -40,7 +40,8 @@ import {
 import { NavUser } from "@/components/shared/NavUser"
 import { useAuthStore } from "@/features/auth/store/authStore"
 import { isRole, type UserRole } from "@/features/auth/types"
-import { useTeacherSubjects } from "@/features/students/hooks/useTeacherStudents"
+import { useTeacherClassGroups } from "@/features/courses/hooks/useCourses"
+import { isTechnicalSubject } from "@/features/courses/types/course"
 import { useParallels } from "@/features/catalog/hooks/useCatalog"
 
 interface NavLink {
@@ -99,7 +100,7 @@ export function AppSidebar() {
   const teacher = isRole(role, "TEACHER")
   const director = isRole(role, "DIRECTOR")
 
-  const subjectsQuery = useTeacherSubjects(teacher ? userId : null)
+  const subjectsQuery = useTeacherClassGroups(teacher ? userId : null)
   const parallelsQuery = useParallels()
 
   const visibleTop = TOP_LINKS.filter((l) => l.roles.some((r) => isRole(role, r)))
@@ -179,17 +180,22 @@ export function AppSidebar() {
                             </span>
                           </SidebarMenuSubItem>
                         ) : (
-                          (subjectsQuery.data ?? []).map((s) => (
-                            <SidebarMenuSubItem key={s.subjectId}>
+                          (subjectsQuery.data ?? []).map((cg) => (
+                            <SidebarMenuSubItem key={cg.id}>
                               <SidebarMenuSubButton
                                 asChild
-                                isActive={pathname === `/scores/${s.subjectId}`}
+                                isActive={pathname === `/scores/${cg.id}`}
                               >
                                 <Link
-                                  to="/scores/$subjectId"
-                                  params={{ subjectId: s.subjectId }}
+                                  to="/scores/$classGroupId"
+                                  params={{ classGroupId: cg.id }}
                                 >
-                                  <span>{s.subjectName}</span>
+                                  <span className="truncate">{cg.subjectName}</span>
+                                  {isTechnicalSubject(cg.subjectName) ? (
+                                    <span className="ml-auto rounded bg-amber-500/20 px-1 text-[10px] text-amber-700 dark:text-amber-300">
+                                      T
+                                    </span>
+                                  ) : null}
                                 </Link>
                               </SidebarMenuSubButton>
                             </SidebarMenuSubItem>

@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
@@ -21,16 +20,13 @@ import {
 import { studentPayloadSchema } from "../models/schemas/student-schemas"
 import { useEnrollSingle } from "../hooks/useEnroll"
 import type { StudentPayload } from "../types"
-import { GradeParallelPicker } from "./GradeParallelPicker"
 
 export interface ManualEnrollFormProps {
+  courseId: string | null
   onSuccess: () => void
 }
 
-export function ManualEnrollForm({ onSuccess }: ManualEnrollFormProps) {
-  const [gradeId, setGradeId] = useState<number | undefined>()
-  const [parallelId, setParallelId] = useState<number | undefined>()
-
+export function ManualEnrollForm({ courseId, onSuccess }: ManualEnrollFormProps) {
   const {
     register,
     handleSubmit,
@@ -52,13 +48,9 @@ export function ManualEnrollForm({ onSuccess }: ManualEnrollFormProps) {
   const enroll = useEnrollSingle()
 
   const onSubmit = handleSubmit(async (values) => {
-    if (!gradeId || !parallelId) return
+    if (!courseId) return
     try {
-      await enroll.mutateAsync({
-        id_grade: gradeId,
-        id_parallel: parallelId,
-        student: values,
-      })
+      await enroll.mutateAsync({ id_course: courseId, student: values })
       onSuccess()
     } catch {
       /* toast via interceptor */
@@ -67,16 +59,6 @@ export function ManualEnrollForm({ onSuccess }: ManualEnrollFormProps) {
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
-      <GradeParallelPicker
-        gradeId={gradeId}
-        parallelId={parallelId}
-        onChange={(n) => {
-          setGradeId(n.gradeId)
-          setParallelId(n.parallelId)
-        }}
-        disabled={enroll.isPending}
-      />
-
       <FieldGroup>
         <div className="grid grid-cols-2 gap-4">
           <Field data-invalid={Boolean(errors.rudeCode) || undefined}>
@@ -167,7 +149,7 @@ export function ManualEnrollForm({ onSuccess }: ManualEnrollFormProps) {
         <Button
           type="submit"
           className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
-          disabled={enroll.isPending || !gradeId || !parallelId}
+          disabled={enroll.isPending || !courseId}
         >
           {enroll.isPending ? "Inscribiendo..." : "Inscribir estudiante"}
         </Button>

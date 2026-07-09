@@ -20,15 +20,13 @@ import {
 import { parseStudentsPdf } from "../helpers/pdfParser"
 import { useEnrollBatch } from "../hooks/useEnroll"
 import type { ParsedStudentRow } from "../types"
-import { GradeParallelPicker } from "./GradeParallelPicker"
 
 export interface AutomatedEnrollFormProps {
+  courseId: string | null
   onSuccess: () => void
 }
 
-export function AutomatedEnrollForm({ onSuccess }: AutomatedEnrollFormProps) {
-  const [gradeId, setGradeId] = useState<number | undefined>()
-  const [parallelId, setParallelId] = useState<number | undefined>()
+export function AutomatedEnrollForm({ courseId, onSuccess }: AutomatedEnrollFormProps) {
   const [file, setFile] = useState<File | null>(null)
   const [rows, setRows] = useState<ParsedStudentRow[]>([])
   const [parsing, setParsing] = useState(false)
@@ -60,11 +58,10 @@ export function AutomatedEnrollForm({ onSuccess }: AutomatedEnrollFormProps) {
   }
 
   const handleSubmit = async () => {
-    if (!gradeId || !parallelId || rows.length === 0) return
+    if (!courseId || rows.length === 0) return
     try {
       await enroll.mutateAsync({
-        id_grade: gradeId,
-        id_parallel: parallelId,
+        id_course: courseId,
         students: rows.map(
           ({ rudeCode, identityCard, names, lastNames, birthDate, gender }) => ({
             rudeCode,
@@ -87,16 +84,6 @@ export function AutomatedEnrollForm({ onSuccess }: AutomatedEnrollFormProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <GradeParallelPicker
-        gradeId={gradeId}
-        parallelId={parallelId}
-        onChange={(n) => {
-          setGradeId(n.gradeId)
-          setParallelId(n.parallelId)
-        }}
-        disabled={enroll.isPending || parsing}
-      />
-
       <label
         htmlFor="pdf-upload"
         className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed border-univalle/30 bg-univalle/5 p-6 text-sm hover:border-univalle/60"
@@ -187,13 +174,7 @@ export function AutomatedEnrollForm({ onSuccess }: AutomatedEnrollFormProps) {
         <Button
           type="button"
           className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
-          disabled={
-            enroll.isPending ||
-            parsing ||
-            rows.length === 0 ||
-            !gradeId ||
-            !parallelId
-          }
+          disabled={enroll.isPending || parsing || rows.length === 0 || !courseId}
           onClick={handleSubmit}
         >
           {enroll.isPending

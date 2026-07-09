@@ -15,7 +15,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ManualEnrollForm } from "./ManualEnrollForm"
 import { AutomatedEnrollForm } from "./AutomatedEnrollForm"
 
-export function EnrollStudentDialog() {
+export interface EnrollStudentDialogProps {
+  courseId: string | null
+}
+
+export function EnrollStudentDialog({ courseId }: EnrollStudentDialogProps) {
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState<"manual" | "automated">("manual")
 
@@ -24,7 +28,10 @@ export function EnrollStudentDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-univalle text-univalle-foreground hover:bg-univalle/90">
+        <Button
+          className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
+          disabled={!courseId}
+        >
           <PlusIcon data-icon="inline-start" />
           Nuevo estudiante
         </Button>
@@ -43,10 +50,10 @@ export function EnrollStudentDialog() {
             <TabsTrigger value="automated">Automatizado (PDF)</TabsTrigger>
           </TabsList>
           <TabsContent value="manual" className="pt-4">
-            <ManualEnrollForm onSuccess={close} />
+            <ManualEnrollForm courseId={courseId} onSuccess={close} />
           </TabsContent>
           <TabsContent value="automated" className="pt-4">
-            <AutomatedEnrollForm onSuccess={close} />
+            <AutomatedEnrollForm courseId={courseId} onSuccess={close} />
           </TabsContent>
         </Tabs>
       </DialogContent>

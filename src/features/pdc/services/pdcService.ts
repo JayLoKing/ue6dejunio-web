@@ -1,7 +1,12 @@
 import PdcServiceHelper, {
   type PdcListParams,
 } from "../helpers/pdcServiceHelper"
-import type { Pdc, PdcFormPayload } from "../types"
+import type {
+  AddProgressPayload,
+  Pdc,
+  PdcFormPayload,
+  PdcProgress,
+} from "../types"
 import type { PagedResponse } from "@/lib/types/pagination"
 
 export type { PdcListParams }
@@ -42,5 +47,14 @@ export class PdcService {
   }
   static async remove(id: string): Promise<void> {
     await helper.removeAsync(id).call
+  }
+  static async addProgress(
+    id: string,
+    payload: AddProgressPayload,
+  ): Promise<PdcProgress> {
+    return (await helper.addProgressAsync(id, payload).call).data
+  }
+  static async listProgress(id: string): Promise<PdcProgress[]> {
+    return (await helper.listProgressAsync(id).call).data
   }
 }

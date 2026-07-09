@@ -1,27 +1,30 @@
-import type { PagedResponse } from "@/lib/types/pagination"
+import type { PagedResponse, PageQuery } from "@/lib/types/pagination"
 
-import GradebookServiceHelper, {
-  type CourseAttendanceParams,
-  type CourseScoresParams,
-} from "../helpers/gradebookServiceHelper"
-import type { CourseAttendanceRow, CourseScoreRow } from "../types"
-
-export type { CourseAttendanceParams, CourseScoresParams }
+import GradebookServiceHelper from "../helpers/gradebookServiceHelper"
+import type { CourseAttendanceRow, StudentSummary } from "../types"
 
 const helper = new GradebookServiceHelper()
 
 export class GradebookService {
-  static async scores(
-    params: CourseScoresParams,
-  ): Promise<PagedResponse<CourseScoreRow>> {
-    const { call } = helper.scoresAsync(params)
-    return (await call).data
+  static async studentSummary(
+    courseEnrollmentId: string,
+    trimester: number,
+  ): Promise<StudentSummary> {
+    return (await helper.studentSummaryAsync(courseEnrollmentId, trimester).call)
+      .data
   }
-
+  static async centralizer(
+    courseId: string,
+    trimester: number,
+    query: PageQuery,
+  ): Promise<PagedResponse<StudentSummary>> {
+    return (await helper.centralizerAsync(courseId, trimester, query).call).data
+  }
   static async attendance(
-    params: CourseAttendanceParams,
+    courseId: string,
+    query: PageQuery,
+    date?: string,
   ): Promise<PagedResponse<CourseAttendanceRow>> {
-    const { call } = helper.attendanceAsync(params)
-    return (await call).data
+    return (await helper.attendanceAsync(courseId, query, date).call).data
   }
 }

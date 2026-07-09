@@ -55,6 +55,24 @@ export interface PdcFormPayload {
   criteriaDeciding?: string
 }
 
+export interface PdcProgress {
+  id: string
+  planId: string
+  progressDate: string | null
+  advancedContent: string | null
+  percentage: number | null
+  observations: string | null
+  createdBy: string
+  createdAt: string
+}
+
+export interface AddProgressPayload {
+  progressDate?: string
+  advancedContent?: string
+  percentage?: number
+  observations?: string
+}
+
 export const STATUS_BADGE: Record<string, string> = {
   Draft: "bg-muted text-muted-foreground",
   Published: "bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30",

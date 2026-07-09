@@ -1,3 +1,19 @@
+export interface StudentSubjectTotal {
+  classGroupId: string
+  subjectName: string
+  total: number
+  graded: boolean
+}
+
+export interface StudentSummary {
+  courseEnrollmentId: string
+  studentId: string
+  fullName: string
+  trimester: number
+  subjects: StudentSubjectTotal[]
+  generalAverage: number
+}
+
 export interface CourseAttendanceItem {
   id: string
   date: string
@@ -5,25 +21,8 @@ export interface CourseAttendanceItem {
 }
 
 export interface CourseAttendanceRow {
+  courseEnrollmentId: string
   studentId: string
   fullName: string
-  enrollmentId: string
   attendances: CourseAttendanceItem[]
-}
-
-export interface CourseScoreItem {
-  id: string
-  trimester: number
-  scoreBeing: number
-  scoreKnowing: number
-  scoreDoing: number
-  scoreDeciding: number
-  totalScore: number
-}
-
-export interface CourseScoreRow {
-  studentId: string
-  fullName: string
-  enrollmentId: string
-  scores: CourseScoreItem[]
 }

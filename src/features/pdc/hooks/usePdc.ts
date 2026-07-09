@@ -7,7 +7,7 @@ import {
 import { toast } from "sonner"
 
 import { PdcService, type PdcListParams } from "../services/pdcService"
-import type { PdcFormPayload } from "../types"
+import type { AddProgressPayload, PdcFormPayload } from "../types"
 
 const KEY = ["pdc"]
 
@@ -45,6 +45,25 @@ export function useUpdatePdc() {
     onSuccess: () => {
       toast.success("PDC actualizado.")
       invalidate()
+    },
+  })
+}
+
+export function usePdcProgress(id: string | null) {
+  return useQuery({
+    queryKey: ["pdc", "progress", id ?? ""],
+    queryFn: () => PdcService.listProgress(id as string),
+    enabled: Boolean(id),
+  })
+}
+
+export function useAddProgress(id: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (p: AddProgressPayload) => PdcService.addProgress(id, p),
+    onSuccess: () => {
+      toast.success("Avance registrado.")
+      void qc.invalidateQueries({ queryKey: ["pdc", "progress", id] })
     },
   })
 }

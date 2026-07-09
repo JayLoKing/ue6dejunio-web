@@ -11,36 +11,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  cualitativoOf,
-  situacionClass,
-  situacionOf,
-} from "@/lib/grading"
+import { DataTablePagination } from "@/components/shared/DataTablePagination"
+import { cualitativoOf, situacionClass, situacionOf } from "@/lib/grading"
 
-import { useCentralizer } from "../hooks/useCentralizer"
-import type { TeacherSubject } from "@/features/students/services/teacherStudentsService"
-
-export interface CentralizerTableProps {
-  subjects: TeacherSubject[]
-}
+import { useCentralizer } from "../hooks/useGradebook"
+import type { StudentSummary } from "../types"
 
 const SHORT = (name: string) =>
-  name
-    .split(/\s+/)
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 4)
-    .toUpperCase()
+  name.split(/\s+/).map((w) => w[0]).join("").slice(0, 4).toUpperCase()
 
-export function CentralizerTable({ subjects }: CentralizerTableProps) {
+export function CentralizerTable({ courseId }: { courseId: string }) {
   const [trimester, setTrimester] = useState(1)
-  const { subjects: cols, rows, isLoading } = useCentralizer(subjects, trimester)
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(30)
+
+  const query = useMemo(() => ({ offset: page, limit, sort: "asc" as const }), [page, limit])
+  const { data, isLoading, isFetching } = useCentralizer(courseId, trimester, query)
+
+  const rows: StudentSummary[] = data?.content ?? []
+  const subjects = rows[0]?.subjects ?? []
 
   const counters = useMemo(() => {
     let apr = 0
     let rep = 0
     for (const r of rows) {
-      if (situacionOf(r.promedioGeneral) === "APROBADO") apr++
+      if (situacionOf(Number(r.generalAverage)) === "APROBADO") apr++
       else rep++
     }
     return { apr, rep }
@@ -51,7 +46,7 @@ export function CentralizerTable({ subjects }: CentralizerTableProps) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Trimestre</span>
-          <Select value={String(trimester)} onValueChange={(v) => setTrimester(Number(v))}>
+          <Select value={String(trimester)} onValueChange={(v) => { setTrimester(Number(v)); setPage(1) }}>
             <SelectTrigger className="w-32">
               <SelectValue />
             </SelectTrigger>
@@ -64,9 +59,7 @@ export function CentralizerTable({ subjects }: CentralizerTableProps) {
         </div>
         <div className="flex items-center gap-2 text-sm">
           <Badge variant="secondary">{counters.apr} aprobados</Badge>
-          <Badge variant="outline" className="text-destructive">
-            {counters.rep} reprobados
-          </Badge>
+          <Badge variant="outline" className="text-destructive">{counters.rep} reprobados</Badge>
         </div>
       </div>
 
@@ -78,57 +71,41 @@ export function CentralizerTable({ subjects }: CentralizerTableProps) {
                 <th className="sticky left-0 z-20 min-w-[16rem] border-r border-b bg-muted px-3 py-2 text-left font-medium shadow-[2px_0_0_0_var(--border)]">
                   Estudiante
                 </th>
-                {cols.map((c) => (
-                  <th
-                    key={c.subjectId}
-                    title={c.subjectName}
-                    className="min-w-16 border-r border-b bg-muted/50 px-2 py-2 text-center font-medium"
-                  >
-                    {SHORT(c.subjectName)}
+                {subjects.map((s) => (
+                  <th key={s.classGroupId} title={s.subjectName} className="min-w-16 border-r border-b bg-muted/50 px-2 py-2 text-center font-medium">
+                    {SHORT(s.subjectName)}
                   </th>
                 ))}
-                <th className="min-w-24 border-r border-b bg-univalle/10 px-3 py-2 text-center font-semibold text-univalle">
-                  PROM.
-                </th>
-                <th className="min-w-32 border-b bg-muted/50 px-3 py-2 text-center font-medium">
-                  Situacion
-                </th>
+                <th className="min-w-24 border-r border-b bg-univalle/10 px-3 py-2 text-center font-semibold text-univalle">PROM.</th>
+                <th className="min-w-32 border-b bg-muted/50 px-3 py-2 text-center font-medium">Situacion</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
-                <tr>
-                  <td colSpan={cols.length + 3} className="px-3 py-6 text-center text-muted-foreground">
-                    <Loader2Icon className="mx-auto size-4 animate-spin" />
-                  </td>
-                </tr>
+                <tr><td colSpan={subjects.length + 3} className="px-3 py-6 text-center text-muted-foreground"><Loader2Icon className="mx-auto size-4 animate-spin" /></td></tr>
               ) : rows.length === 0 ? (
-                <tr>
-                  <td colSpan={cols.length + 3} className="px-3 py-6 text-center text-muted-foreground">
-                    Sin datos.
-                  </td>
-                </tr>
+                <tr><td colSpan={subjects.length + 3} className="px-3 py-6 text-center text-muted-foreground">Sin datos.</td></tr>
               ) : (
                 rows.map((r, idx) => {
                   const rowBg = idx % 2 === 0 ? "bg-card" : "bg-muted"
-                  const sit = situacionOf(r.promedioGeneral)
-                  const cual = cualitativoOf(r.promedioGeneral)
+                  const avg = Number(r.generalAverage)
+                  const sit = situacionOf(avg)
+                  const cual = cualitativoOf(avg)
+                  const byId = new Map(r.subjects.map((s) => [s.classGroupId, s]))
                   return (
-                    <tr key={r.studentId} className="border-t">
+                    <tr key={r.courseEnrollmentId} className="border-t">
                       <td className={cn("sticky left-0 z-10 min-w-[16rem] border-r px-3 py-2 font-medium shadow-[2px_0_0_0_var(--border)]", rowBg)}>
                         {r.fullName}
                       </td>
-                      {cols.map((c) => {
-                        const v = r.bySubject[c.subjectId]
+                      {subjects.map((s) => {
+                        const cell = byId.get(s.classGroupId)
                         return (
-                          <td key={c.subjectId} className={cn("border-r px-2 py-2 text-center", rowBg)}>
-                            {v == null ? "—" : v.toFixed(1)}
+                          <td key={s.classGroupId} className={cn("border-r px-2 py-2 text-center", rowBg)}>
+                            {cell?.graded ? Number(cell.total).toFixed(1) : "—"}
                           </td>
                         )
                       })}
-                      <td className="border-r bg-univalle/5 px-3 py-2 text-center font-semibold text-univalle">
-                        {r.promedioGeneral.toFixed(2)}
-                      </td>
+                      <td className="border-r bg-univalle/5 px-3 py-2 text-center font-semibold text-univalle">{avg.toFixed(2)}</td>
                       <td className={cn("px-3 py-2 text-center", rowBg)}>
                         <Badge className={cn("gap-1", situacionClass(sit))}>
                           {sit === "APROBADO" ? "Aprobado" : "Reprobado"} · {cual.code}
@@ -144,10 +121,15 @@ export function CentralizerTable({ subjects }: CentralizerTableProps) {
         </ScrollArea>
       </div>
 
-      <p className="text-xs text-muted-foreground">
-        Promedio general = media de las materias con nota registrada. Umbral aprobacion y
-        escala cualitativa por confirmar con el docente.
-      </p>
+      <DataTablePagination
+        page={data?.page != null ? data.page + 1 : page}
+        pageSize={limit}
+        total={data?.total ?? 0}
+        totalPages={data?.totalPages ?? 1}
+        isFetching={isFetching}
+        onPageChange={setPage}
+        onPageSizeChange={(s) => { setLimit(s); setPage(1) }}
+      />
     </div>
   )
 }

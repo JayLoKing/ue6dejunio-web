@@ -23,7 +23,7 @@ export default class StudentServiceHelper {
   enrollBatchAsync(payload: EnrollBatchRequest): UseApiCall<EnrollResponse> {
     const controller = loadAbort()
     return {
-      call: httpClient.post<EnrollResponse>(EnrollmentUrl.Batch, payload, {
+      call: httpClient.post<EnrollResponse>(EnrollmentUrl.Sync, payload, {
         signal: controller.signal,
       }),
       controller,

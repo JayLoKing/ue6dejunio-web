@@ -6,4 +6,5 @@ export const PdcUrl = {
   Publish: (id: string) => `${baseModuleUrl}/${id}/publish`,
   Approve: (id: string) => `${baseModuleUrl}/${id}/approve`,
   Observe: (id: string) => `${baseModuleUrl}/${id}/observe`,
+  Progress: (id: string) => `${baseModuleUrl}/${id}/progress`,
 } as const

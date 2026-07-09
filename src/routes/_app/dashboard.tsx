@@ -1,8 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 
-import { useAuthStore } from "@/features/auth/store/authStore"
-import { isRole } from "@/features/auth/types"
-import { useTeacherSubjects } from "@/features/students/hooks/useTeacherStudents"
+import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
 import { DashboardCharts } from "@/features/gradebook/components/DashboardCharts"
 
 export const Route = createFileRoute("/_app/dashboard")({
@@ -10,10 +8,7 @@ export const Route = createFileRoute("/_app/dashboard")({
 })
 
 function DashboardPage() {
-  const role = useAuthStore((s) => s.role)
-  const userId = useAuthStore((s) => s.userId)
-  const teacher = isRole(role, "TEACHER")
-  const { data: subjects } = useTeacherSubjects(teacher ? userId : null)
+  const { isTeacher, homeroomCourseId } = useCurrentContext()
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -24,11 +19,13 @@ function DashboardPage() {
         </p>
       </div>
 
-      {teacher ? (
-        <DashboardCharts subjects={subjects ?? []} />
+      {isTeacher && homeroomCourseId ? (
+        <DashboardCharts courseId={homeroomCourseId} />
       ) : (
         <div className="rounded-md border border-dashed p-12 text-center text-muted-foreground">
-          Indicadores institucionales — en desarrollo.
+          {isTeacher
+            ? "Docente tecnico: sin curso de aula. Indicadores por materia en desarrollo."
+            : "Indicadores institucionales — en desarrollo."}
         </div>
       )}
     </div>

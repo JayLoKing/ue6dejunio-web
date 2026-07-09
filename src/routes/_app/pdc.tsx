@@ -7,6 +7,7 @@ import {
   PlusIcon,
   SendIcon,
   Trash2Icon,
+  TrendingUpIcon,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -32,9 +33,10 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTablePagination } from "@/components/shared/DataTablePagination"
 import { useAuthStore } from "@/features/auth/store/authStore"
 import { isRole } from "@/features/auth/types"
-import { useTeacherSubjects } from "@/features/students/hooks/useTeacherStudents"
+import { useTeacherClassGroups } from "@/features/courses/hooks/useCourses"
 import { useSendNotification } from "@/features/notifications/hooks/useNotifications"
 import { PdcFormDialog } from "@/features/pdc/components/PdcFormDialog"
+import { PdcProgressDialog } from "@/features/pdc/components/PdcProgressDialog"
 import { usePdcAction, usePdcList } from "@/features/pdc/hooks/usePdc"
 import { STATUS_BADGE, type Pdc } from "@/features/pdc/types"
 
@@ -61,8 +63,9 @@ function PdcPage() {
   const [deleting, setDeleting] = useState<Pdc | null>(null)
   const [observing, setObserving] = useState<Pdc | null>(null)
   const [observation, setObservation] = useState("")
+  const [progress, setProgress] = useState<Pdc | null>(null)
 
-  const subjectsQuery = useTeacherSubjects(isTeacher ? userId : null)
+  const classGroupsQuery = useTeacherClassGroups(isTeacher ? userId : null)
   const { data, isLoading, isFetching, refetch } = usePdcList({ offset: page, limit })
   const { publish, approve, observe, remove } = usePdcAction()
   const sendNotification = useSendNotification()
@@ -79,7 +82,11 @@ function PdcPage() {
     if (isTeacher && userId) return all.filter((p) => p.createdById === userId)
     return all
   }, [data, isTeacher, userId])
-  const subjects = subjectsQuery.data ?? []
+  const subjects = (classGroupsQuery.data ?? []).map((cg) => ({
+    subjectId: cg.subjectId,
+    subjectName: cg.subjectName,
+    classGroupId: cg.id,
+  }))
 
   const openCreate = () => {
     setEditing(null)
@@ -157,6 +164,17 @@ function PdcPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
+                      {isTeacher ? (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-8"
+                          title="Avance"
+                          onClick={() => setProgress(p)}
+                        >
+                          <TrendingUpIcon className="size-4" />
+                        </Button>
+                      ) : null}
                       {isTeacher && canEdit(p.status) ? (
                         <Button
                           size="icon"
@@ -257,6 +275,8 @@ function PdcPage() {
           onClose={() => setFormOpen(false)}
         />
       ) : null}
+
+      <PdcProgressDialog pdc={progress} onClose={() => setProgress(null)} />
 
       <ConfirmDialog
         open={Boolean(deleting)}

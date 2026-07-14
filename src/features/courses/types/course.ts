@@ -20,12 +20,25 @@ export interface CourseStudent {
   status: string
 }
 
+export interface SubjectAssignment {
+  id_subject: string
+  id_teacher: string
+}
+
+/** POST /courses: crea curso + class_groups en 1 transaccion (anio auto). */
 export interface CreateCoursePayload {
   id_grade: number
   id_parallel: number
-  id_academic_year: number
   id_homeroom_teacher?: string
+  assignments: SubjectAssignment[]
 }
+
+/** Respuesta de POST /courses. */
+export interface CourseWithSubjects {
+  course: Course
+  classGroups: ClassGroupItem[]
+}
+
 
 /** ClassGroup = materia dentro de un curso. */
 export interface ClassGroupItem {

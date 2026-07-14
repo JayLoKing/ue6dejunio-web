@@ -6,7 +6,8 @@ export const catalogKeys = {
   grades: ["catalog", "grades"] as const,
   parallels: ["catalog", "parallels"] as const,
   subjects: ["catalog", "subjects"] as const,
-  teachers: ["catalog", "teachers"] as const,
+  teachers: (technical?: boolean) =>
+    ["catalog", "teachers", technical ?? "all"] as const,
 }
 
 export const useGrades = () =>
@@ -30,9 +31,10 @@ export const useSubjects = () =>
     staleTime: 5 * 60_000,
   })
 
-export const useTeachers = () =>
+/** technical: true=tecnicos, false=no tecnicos (aula), undefined=todos. */
+export const useTeachers = (technical?: boolean) =>
   useQuery({
-    queryKey: catalogKeys.teachers,
-    queryFn: CatalogService.teachers,
+    queryKey: catalogKeys.teachers(technical),
+    queryFn: () => CatalogService.teachers(technical),
     staleTime: 5 * 60_000,
   })

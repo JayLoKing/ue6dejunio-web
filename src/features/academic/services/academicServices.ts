@@ -86,14 +86,14 @@ export class SubjectAdminService {
   }
   static async create(payload: {
     name: string
-    area: string
+    technical: boolean
   }): Promise<Subject> {
     const { call } = subjectHelper.createAsync(payload)
     return (await call).data
   }
   static async update(
     id: string,
-    payload: { name?: string; area?: string; active?: boolean },
+    payload: { name?: string; technical?: boolean; active?: boolean },
   ): Promise<Subject> {
     const { call } = subjectHelper.updateAsync(id, payload)
     return (await call).data

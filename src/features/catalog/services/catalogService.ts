@@ -13,7 +13,7 @@ export class CatalogService {
   static async subjects(): Promise<SubjectItem[]> {
     return (await helper.subjectsAsync().call).data
   }
-  static async teachers(): Promise<TeacherItem[]> {
-    return (await helper.teachersAsync().call).data
+  static async teachers(technical?: boolean): Promise<TeacherItem[]> {
+    return (await helper.teachersAsync(technical).call).data
   }
 }

@@ -7,6 +7,7 @@ import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -49,7 +50,7 @@ export const Route = createFileRoute("/_app/subjects")({
 
 const schema = z.object({
   name: trimmedString({ min: 1, max: 100, field: "Nombre" }),
-  area: trimmedString({ min: 1, max: 100, field: "Area" }),
+  technical: z.boolean(),
 })
 type FormValues = z.infer<typeof schema>
 
@@ -71,26 +72,30 @@ function SubjectsPage() {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", area: "" },
+    defaultValues: { name: "", technical: false },
   })
 
   const openCreate = () => {
     setEditing(null)
-    form.reset({ name: "", area: "" })
+    form.reset({ name: "", technical: false })
     setDialogOpen(true)
   }
   const openEdit = (s: Subject) => {
     setEditing(s)
-    form.reset({ name: s.name, area: s.area ?? "" })
+    form.reset({ name: s.name, technical: s.technical })
     setDialogOpen(true)
   }
 
   const onSubmit = form.handleSubmit(async (v) => {
     try {
       if (editing) {
-        await update.mutateAsync({ id: editing.id, name: v.name, area: v.area })
+        await update.mutateAsync({
+          id: editing.id,
+          name: v.name,
+          technical: v.technical,
+        })
       } else {
-        await create.mutateAsync({ name: v.name, area: v.area })
+        await create.mutateAsync({ name: v.name, technical: v.technical })
       }
       setDialogOpen(false)
     } catch {
@@ -124,7 +129,7 @@ function SubjectsPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Materia</TableHead>
-              <TableHead>Area</TableHead>
+              <TableHead>Tipo</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
@@ -146,8 +151,16 @@ function SubjectsPage() {
               rows.map((s) => (
                 <TableRow key={s.id}>
                   <TableCell>{s.name}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {s.area || "—"}
+                  <TableCell>
+                    <Badge
+                      className={
+                        s.technical
+                          ? "bg-amber-500/20 text-amber-700 dark:text-amber-300"
+                          : "bg-muted text-muted-foreground"
+                      }
+                    >
+                      {s.technical ? "Técnica" : "Aula"}
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <Badge variant={s.active ? "secondary" : "outline"}>
@@ -208,12 +221,17 @@ function SubjectsPage() {
                 <FieldError>{form.formState.errors.name.message}</FieldError>
               ) : null}
             </Field>
-            <Field data-invalid={Boolean(form.formState.errors.area) || undefined}>
-              <FieldLabel htmlFor="subject-area">Area</FieldLabel>
-              <Input id="subject-area" {...form.register("area")} />
-              {form.formState.errors.area ? (
-                <FieldError>{form.formState.errors.area.message}</FieldError>
-              ) : null}
+            <Field orientation="horizontal">
+              <Checkbox
+                id="subject-technical"
+                checked={form.watch("technical")}
+                onCheckedChange={(v) =>
+                  form.setValue("technical", Boolean(v))
+                }
+              />
+              <FieldLabel htmlFor="subject-technical" className="font-normal">
+                Materia técnica (Música / Religión — la dicta un docente técnico)
+              </FieldLabel>
             </Field>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>

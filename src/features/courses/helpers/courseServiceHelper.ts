@@ -13,6 +13,7 @@ import type {
   ClassGroupItem,
   Course,
   CourseStudent,
+  CourseWithSubjects,
   CreateCoursePayload,
 } from "../types/course"
 
@@ -39,10 +40,10 @@ export default class CourseServiceHelper {
       controller,
     }
   }
-  createAsync(payload: CreateCoursePayload): UseApiCall<Course> {
+  createAsync(payload: CreateCoursePayload): UseApiCall<CourseWithSubjects> {
     const controller = loadAbort()
     return {
-      call: httpClient.post<Course>(CourseUrl.Base, payload, {
+      call: httpClient.post<CourseWithSubjects>(CourseUrl.Base, payload, {
         signal: controller.signal,
       }),
       controller,

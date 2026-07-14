@@ -13,6 +13,9 @@ export interface AuthState {
   mustChangePassword: boolean
   gradeName: string | null
   parallelName: string | null
+  courseId: string | null
+  /** null para director/secretario; true=tecnico, false=no tecnico. */
+  isTechnical: boolean | null
   setSession: (data: CredentialResponse) => void
   logout: () => void
 }

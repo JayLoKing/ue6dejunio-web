@@ -33,11 +33,12 @@ export default class CatalogServiceHelper {
       controller,
     }
   }
-  teachersAsync(): UseApiCall<TeacherItem[]> {
+  teachersAsync(technical?: boolean): UseApiCall<TeacherItem[]> {
     const controller = loadAbort()
     return {
       call: httpClient.get<TeacherItem[]>(CatalogUrl.Teachers, {
         signal: controller.signal,
+        params: technical === undefined ? undefined : { technical },
       }),
       controller,
     }

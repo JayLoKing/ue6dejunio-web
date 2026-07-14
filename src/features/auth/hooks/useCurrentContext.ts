@@ -2,10 +2,7 @@ import { useMemo } from "react"
 
 import { useAuthStore } from "../store/authStore"
 import { isRole } from "../types"
-import {
-  useAllCourses,
-  useTeacherClassGroups,
-} from "@/features/courses/hooks/useCourses"
+import { useTeacherClassGroups } from "@/features/courses/hooks/useCourses"
 import type { ClassGroupItem } from "@/features/courses/types/course"
 
 export interface CurrentContext {
@@ -14,7 +11,7 @@ export interface CurrentContext {
   isDirector: boolean
   isSecretary: boolean
   isTeacher: boolean
-  /** Docente tecnico = docente sin curso de aula (solo dicta materias). */
+  /** Docente tecnico (flag technical del login). Solo dicta su materia en 18 cursos. */
   isTechnical: boolean
   /** Curso de aula fijo (homeroom) del docente aula. */
   homeroomCourseId: string | null
@@ -27,31 +24,27 @@ export function useCurrentContext(): CurrentContext {
   const userId = useAuthStore((s) => s.userId)
   const role = useAuthStore((s) => s.role)
 
+  const storeTechnical = useAuthStore((s) => s.isTechnical)
+  const storeCourseId = useAuthStore((s) => s.courseId)
+
   const isDirector = isRole(role, "DIRECTOR")
   const isSecretary = isRole(role, "SECRETARY")
   const isTeacher = isRole(role, "TEACHER")
 
   const classGroupsQuery = useTeacherClassGroups(isTeacher ? userId : null)
-  const coursesQuery = useAllCourses(isTeacher)
 
   const classGroups = useMemo(
     () => classGroupsQuery.data ?? [],
     [classGroupsQuery.data],
   )
 
-  const homeroomCourseId = useMemo(() => {
-    if (!isTeacher || !userId) return null
-    const mine = (coursesQuery.data?.content ?? []).find(
-      (c) => c.homeroomTeacherId === userId,
-    )
-    return mine?.id ?? null
-  }, [isTeacher, userId, coursesQuery.data])
+  // Curso de aula fijo: viene del login (claim courseId). Solo aula lo tiene.
+  const homeroomCourseId = isTeacher ? (storeCourseId ?? null) : null
 
-  const isLoading =
-    isTeacher && (classGroupsQuery.isLoading || coursesQuery.isLoading)
+  const isLoading = isTeacher && classGroupsQuery.isLoading
 
-  // Tecnico: docente que dicta materias pero no es homeroom de ningun curso.
-  const isTechnical = isTeacher && !homeroomCourseId
+  // Tecnico = flag technical del login (true). Director/secretario = null.
+  const isTechnical = isTeacher && storeTechnical === true
 
   return {
     userId,

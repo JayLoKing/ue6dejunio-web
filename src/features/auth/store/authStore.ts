@@ -15,6 +15,8 @@ const initialState = {
   mustChangePassword: false,
   gradeName: null,
   parallelName: null,
+  courseId: null,
+  isTechnical: null,
 } as const
 
 export const useAuthStore = create<AuthState>()(
@@ -33,6 +35,8 @@ export const useAuthStore = create<AuthState>()(
           mustChangePassword: user.mustChangePassword,
           gradeName: user.gradeName,
           parallelName: user.parallelName,
+          courseId: user.courseId,
+          isTechnical: user.technical,
         }),
       logout: () => set({ ...initialState }),
     }),

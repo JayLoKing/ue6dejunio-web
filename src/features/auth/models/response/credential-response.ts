@@ -9,6 +9,9 @@ export interface CredentialResponse {
   mustChangePassword: boolean
   gradeName: string | null
   parallelName: string | null
+  courseId: string | null
+  /** null para director/secretario; true=tecnico, false=no tecnico (docente). */
+  technical: boolean | null
 }
 
 export interface MeResponse {
@@ -19,4 +22,6 @@ export interface MeResponse {
   mustChangePassword: boolean
   gradeName: string | null
   parallelName: string | null
+  courseId: string | null
+  technical: boolean | null
 }

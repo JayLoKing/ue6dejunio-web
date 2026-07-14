@@ -108,13 +108,13 @@ export const useDeleteGrade = mutationFactory(
 // Subjects
 export const useCreateSubject = mutationFactory(
   "subjects",
-  (p: { name: string; area: string }) => SubjectAdminService.create(p),
+  (p: { name: string; technical: boolean }) => SubjectAdminService.create(p),
   "Materia creada.",
 )
 export const useUpdateSubject = mutationFactory(
   "subjects",
-  (v: { id: string; name: string; area: string }) =>
-    SubjectAdminService.update(v.id, { name: v.name, area: v.area }),
+  (v: { id: string; name: string; technical: boolean }) =>
+    SubjectAdminService.update(v.id, { name: v.name, technical: v.technical }),
   "Materia actualizada.",
 )
 export const useDeleteSubject = mutationFactory(

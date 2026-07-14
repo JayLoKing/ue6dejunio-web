@@ -1,8 +1,15 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query"
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
+import { toast } from "sonner"
 
 import type { PageQuery } from "@/lib/types/pagination"
 
 import { CourseService } from "../services/courseService"
+import type { CreateCoursePayload } from "../types/course"
 
 export function useCourses(query: PageQuery, academicYearId?: number) {
   return useQuery({
@@ -42,3 +49,34 @@ export function useCourseStudents(
     queryFn: () => CourseService.students(courseId as string, query),
   })
 }
+
+// ---- Admin (Director): crear curso, docente de aula, materias ----
+
+function useInvalidateCourses() {
+  const qc = useQueryClient()
+  return () => void qc.invalidateQueries({ queryKey: ["courses"] })
+}
+
+export function useCreateCourse() {
+  const invalidate = useInvalidateCourses()
+  return useMutation({
+    mutationFn: (p: CreateCoursePayload) => CourseService.create(p),
+    onSuccess: () => {
+      toast.success("Curso creado.")
+      invalidate()
+    },
+  })
+}
+
+export function useSetHomeroom() {
+  const invalidate = useInvalidateCourses()
+  return useMutation({
+    mutationFn: (v: { id: string; teacherId: string }) =>
+      CourseService.setHomeroom(v.id, v.teacherId),
+    onSuccess: () => {
+      toast.success("Docente de aula asignado.")
+      invalidate()
+    },
+  })
+}
+

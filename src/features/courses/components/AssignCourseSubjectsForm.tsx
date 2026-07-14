@@ -28,8 +28,8 @@ import {
   useTeachers,
 } from "@/features/catalog/hooks/useCatalog"
 
-import { useCreateClassGroup } from "../hooks/useCreateClassGroup"
-import type { SubjectAssignment } from "../types"
+import { useCreateCourse } from "../hooks/useCourses"
+import type { SubjectAssignment } from "../types/course"
 
 type SubjectState = {
   checked: boolean
@@ -40,14 +40,16 @@ export function AssignCourseSubjectsForm() {
   const grades = useGrades()
   const parallels = useParallels()
   const subjects = useSubjects()
-  const teachers = useTeachers()
+  const aulaTeachers = useTeachers(false)
+  const technicalTeachers = useTeachers(true)
 
   const [gradeId, setGradeId] = useState<number | undefined>()
   const [parallelId, setParallelId] = useState<number | undefined>()
   const [homeroomTeacherId, setHomeroomTeacherId] = useState<string | undefined>()
   const [subjectStates, setSubjectStates] = useState<Record<string, SubjectState>>({})
 
-  const create = useCreateClassGroup()
+  const createCourse = useCreateCourse()
+  const saving = createCourse.isPending
 
   const toggleSubject = (id: string, checked: boolean) => {
     setSubjectStates((prev) => ({
@@ -73,7 +75,10 @@ export function AssignCourseSubjectsForm() {
     for (const subject of subjects.data ?? []) {
       const state = subjectStates[subject.id]
       if (!state?.checked) continue
-      const teacher = state.teacherId ?? homeroomTeacherId
+      // Tecnica: docente explicito. Aula: cae al docente de aula.
+      const teacher = subject.technical
+        ? state.teacherId
+        : (state.teacherId ?? homeroomTeacherId)
       if (!teacher) continue
       list.push({ id_subject: subject.id, id_teacher: teacher })
     }
@@ -92,9 +97,11 @@ export function AssignCourseSubjectsForm() {
     const assignments = buildAssignments()
     if (assignments.length === 0) return
     try {
-      await create.mutateAsync({
+      // Crea curso + materias en 1 transaccion (POST /courses con assignments).
+      await createCourse.mutateAsync({
         id_grade: gradeId,
         id_parallel: parallelId,
+        id_homeroom_teacher: homeroomTeacherId,
         assignments,
       })
       // reset (keep grade/parallel for fast re-use)
@@ -162,13 +169,13 @@ export function AssignCourseSubjectsForm() {
             <Select
               value={homeroomTeacherId}
               onValueChange={setHomeroomTeacherId}
-              disabled={teachers.isLoading}
+              disabled={aulaTeachers.isLoading}
             >
               <SelectTrigger id="homeroom">
                 <SelectValue placeholder="Selecciona docente principal" />
               </SelectTrigger>
               <SelectContent>
-                {(teachers.data ?? []).map((t) => (
+                {(aulaTeachers.data ?? []).map((t) => (
                   <SelectItem key={t.id} value={t.id}>
                     {t.fullName}
                   </SelectItem>
@@ -200,7 +207,14 @@ export function AssignCourseSubjectsForm() {
                 const state = subjectStates[s.id]
                 const checked = state?.checked ?? false
                 const teacherId = state?.teacherId ?? null
-                const effectiveTeacher = teacherId ?? homeroomTeacherId
+                // Materia tecnica: docente tecnico obligatorio (sin default de aula).
+                // Materia de aula: default al docente de aula si no se elige otro.
+                const effectiveTeacher = s.technical
+                  ? teacherId
+                  : (teacherId ?? homeroomTeacherId)
+                const options = s.technical
+                  ? (technicalTeachers.data ?? [])
+                  : (aulaTeachers.data ?? [])
                 return (
                   <div
                     key={s.id}
@@ -220,8 +234,15 @@ export function AssignCourseSubjectsForm() {
                       />
                       <div className="flex flex-col leading-tight">
                         <span className="font-medium">{s.name}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {s.area}
+                        <span
+                          className={cn(
+                            "text-xs",
+                            s.technical
+                              ? "text-amber-600 dark:text-amber-400"
+                              : "text-muted-foreground",
+                          )}
+                        >
+                          {s.technical ? "Técnica" : "Aula"}
                         </span>
                       </div>
                     </label>
@@ -237,24 +258,29 @@ export function AssignCourseSubjectsForm() {
                           <SelectTrigger className="h-8 flex-1 text-xs">
                             <SelectValue
                               placeholder={
-                                homeroomTeacherId
-                                  ? `Aula: ${
-                                      teachers.data?.find(
-                                        (t) => t.id === homeroomTeacherId,
-                                      )?.fullName ?? ""
-                                    }`
-                                  : "Selecciona docente"
+                                s.technical
+                                  ? "Selecciona docente técnico"
+                                  : homeroomTeacherId
+                                    ? `Aula: ${
+                                        aulaTeachers.data?.find(
+                                          (t) => t.id === homeroomTeacherId,
+                                        )?.fullName ?? ""
+                                      }`
+                                    : "Selecciona docente"
                               }
                             />
                           </SelectTrigger>
                           <SelectContent>
-                            {homeroomTeacherId ? (
+                            {!s.technical && homeroomTeacherId ? (
                               <SelectItem value={homeroomTeacherId}>
                                 Docente de aula
                               </SelectItem>
                             ) : null}
-                            {(teachers.data ?? [])
-                              .filter((t) => t.id !== homeroomTeacherId)
+                            {options
+                              .filter(
+                                (t) =>
+                                  s.technical || t.id !== homeroomTeacherId,
+                              )
                               .map((t) => (
                                 <SelectItem key={t.id} value={t.id}>
                                   {t.fullName}
@@ -283,11 +309,11 @@ export function AssignCourseSubjectsForm() {
         </div>
         <Button
           onClick={handleSubmit}
-          disabled={!canSubmit || create.isPending}
+          disabled={!canSubmit || saving}
           className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
         >
           <SaveIcon data-icon="inline-start" />
-          {create.isPending ? "Guardando..." : "Guardar Curso"}
+          {saving ? "Guardando..." : "Guardar Curso"}
         </Button>
       </div>
     </div>

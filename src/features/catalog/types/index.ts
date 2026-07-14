@@ -12,11 +12,12 @@ export interface ParallelItem {
 export interface SubjectItem {
   id: string
   name: string
-  area: string
+  technical: boolean
 }
 
 export interface TeacherItem {
   id: string
   fullName: string
   email: string
+  technical: boolean
 }

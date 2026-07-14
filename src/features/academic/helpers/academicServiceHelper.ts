@@ -153,7 +153,10 @@ export class SubjectServiceHelper {
       controller,
     }
   }
-  createAsync(payload: { name: string; area: string }): UseApiCall<Subject> {
+  createAsync(payload: {
+    name: string
+    technical: boolean
+  }): UseApiCall<Subject> {
     const controller = loadAbort()
     return {
       call: httpClient.post<Subject>(SubjectUrl.Base, payload, {
@@ -164,7 +167,7 @@ export class SubjectServiceHelper {
   }
   updateAsync(
     id: string,
-    payload: { name?: string; area?: string; active?: boolean },
+    payload: { name?: string; technical?: boolean; active?: boolean },
   ): UseApiCall<Subject> {
     const controller = loadAbort()
     return {

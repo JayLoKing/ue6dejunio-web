@@ -40,7 +40,7 @@ import {
 import { NavUser } from "@/components/shared/NavUser"
 import { useAuthStore } from "@/features/auth/store/authStore"
 import { isRole, type UserRole } from "@/features/auth/types"
-import { useTeacherClassGroups } from "@/features/courses/hooks/useCourses"
+import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
 import { isTechnicalSubject } from "@/features/courses/types/course"
 import { useParallels } from "@/features/catalog/hooks/useCatalog"
 
@@ -94,13 +94,14 @@ const ADMIN_LINKS: NavLink[] = [
 
 export function AppSidebar() {
   const role = useAuthStore((s) => s.role)
-  const userId = useAuthStore((s) => s.userId)
   const pathname = useRouterState({ select: (s) => s.location.pathname })
 
   const teacher = isRole(role, "TEACHER")
   const director = isRole(role, "DIRECTOR")
 
-  const subjectsQuery = useTeacherClassGroups(teacher ? userId : null)
+  const ctx = useCurrentContext()
+  const isTechnical = ctx.isTechnical
+  const classGroups = ctx.classGroups
   const parallelsQuery = useParallels()
 
   const visibleTop = TOP_LINKS.filter((l) => l.roles.some((r) => isRole(role, r)))
@@ -150,7 +151,7 @@ export function AppSidebar() {
                 )
               })}
 
-              {/* Teacher: Materias / Áreas → subjects */}
+              {/* Docente: aula ve sus materias; tecnico ve sus cursos (su unica materia por curso). */}
               {teacher ? (
                 <Collapsible
                   defaultOpen
@@ -159,28 +160,30 @@ export function AppSidebar() {
                 >
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
-                      <SidebarMenuButton tooltip="Materias / Areas">
-                        <ClipboardListIcon />
-                        <span>Materias / Areas</span>
+                      <SidebarMenuButton
+                        tooltip={isTechnical ? "Mis cursos" : "Materias / Areas"}
+                      >
+                        {isTechnical ? <SchoolIcon /> : <ClipboardListIcon />}
+                        <span>{isTechnical ? "Mis cursos" : "Materias / Areas"}</span>
                         <ChevronRightIcon className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <SidebarMenuSub>
-                        {subjectsQuery.isLoading ? (
+                        {ctx.isLoading ? (
                           <SidebarMenuSubItem>
                             <span className="px-2 text-xs text-muted-foreground">
                               Cargando…
                             </span>
                           </SidebarMenuSubItem>
-                        ) : (subjectsQuery.data ?? []).length === 0 ? (
+                        ) : classGroups.length === 0 ? (
                           <SidebarMenuSubItem>
                             <span className="px-2 text-xs text-muted-foreground">
-                              Sin materias
+                              {isTechnical ? "Sin cursos" : "Sin materias"}
                             </span>
                           </SidebarMenuSubItem>
                         ) : (
-                          (subjectsQuery.data ?? []).map((cg) => (
+                          classGroups.map((cg) => (
                             <SidebarMenuSubItem key={cg.id}>
                               <SidebarMenuSubButton
                                 asChild
@@ -190,8 +193,13 @@ export function AppSidebar() {
                                   to="/scores/$classGroupId"
                                   params={{ classGroupId: cg.id }}
                                 >
-                                  <span className="truncate">{cg.subjectName}</span>
-                                  {isTechnicalSubject(cg.subjectName) ? (
+                                  <span className="truncate">
+                                    {isTechnical
+                                      ? `${cg.gradeName} ${cg.parallelName}`
+                                      : cg.subjectName}
+                                  </span>
+                                  {!isTechnical &&
+                                  isTechnicalSubject(cg.subjectName) ? (
                                     <span className="ml-auto rounded bg-amber-500/20 px-1 text-[10px] text-amber-700 dark:text-amber-300">
                                       T
                                     </span>

@@ -5,6 +5,7 @@ import type {
   ClassGroupItem,
   Course,
   CourseStudent,
+  CourseWithSubjects,
   CreateCoursePayload,
 } from "../types/course"
 
@@ -20,7 +21,9 @@ export class CourseService {
   static async getById(id: string): Promise<Course> {
     return (await helper.getByIdAsync(id).call).data
   }
-  static async create(payload: CreateCoursePayload): Promise<Course> {
+  static async create(
+    payload: CreateCoursePayload,
+  ): Promise<CourseWithSubjects> {
     return (await helper.createAsync(payload).call).data
   }
   static async setHomeroom(id: string, teacherId: string): Promise<Course> {

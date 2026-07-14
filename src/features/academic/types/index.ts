@@ -18,6 +18,6 @@ export interface Parallel {
 export interface Subject {
   id: string
   name: string
-  area: string
+  technical: boolean
   active: boolean
 }

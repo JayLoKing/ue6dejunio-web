@@ -4,7 +4,7 @@ export interface DimensionMeta {
   key: Dimension
   label: string
   short: string
-  /** Tope de la dimension (suma de pesos de sus criterios no debe exceder). */
+  /** Tope de la dimension: nota maxima de cada casilla y del promedio. */
   weight: number
 }
 
@@ -19,14 +19,13 @@ export const DIMENSIONS: DimensionMeta[] = [
 export const dimensionMeta = (key: string): DimensionMeta =>
   DIMENSIONS.find((d) => d.key === key) ?? DIMENSIONS[0]
 
-/** Criterio de evaluacion (con peso) por materia+trimestre+dimension. */
+/** Criterio de evaluacion (solo nombre) por materia+trimestre+dimension. */
 export interface Criterion {
   id: string
   classGroupId: string
   trimester: number
   dimension: Dimension
   name: string
-  maxWeight: number
   curriculumPlanId: string | null
 }
 
@@ -35,13 +34,11 @@ export interface CreateCriterionPayload {
   trimester: number
   dimension: Dimension
   name: string
-  maxWeight: number
   id_curriculum_plan?: string
 }
 
 export interface UpdateCriterionPayload {
   name?: string
-  maxWeight?: number
 }
 
 /** Actividad bajo un criterio. */
@@ -75,6 +72,9 @@ export interface AssessmentScore {
   courseEnrollmentId: string
   eventId: string
   score: number
+  /** Fecha de registro y de ultima edicion (ISO-8601 del backend). */
+  recordedAt: string | null
+  updatedAt: string | null
 }
 
 export interface SetScorePayload {

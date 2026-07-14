@@ -143,6 +143,8 @@ export function useDeleteEvent() {
 export interface ScoreCell {
   id: string
   score: number
+  recordedAt: string | null
+  updatedAt: string | null
 }
 /** eventId → courseEnrollmentId → cell */
 export type ScoreMatrix = Record<string, Record<string, ScoreCell>>
@@ -165,7 +167,12 @@ export function useEventScores(eventIds: string[]) {
       if (!eventId) return
       const byCe: Record<string, ScoreCell> = {}
       for (const s of r.data ?? []) {
-        byCe[s.courseEnrollmentId] = { id: s.id, score: Number(s.score) }
+        byCe[s.courseEnrollmentId] = {
+          id: s.id,
+          score: Number(s.score),
+          recordedAt: s.recordedAt ?? null,
+          updatedAt: s.updatedAt ?? null,
+        }
       }
       out[eventId] = byCe
     })
@@ -180,8 +187,24 @@ export function useSetScore() {
   return useMutation({
     mutationFn: (p: SetScorePayload) => AssessmentScoreService.setScore(p),
     onSuccess: (_d, vars) => {
+      // Refresca para reflejar la fecha devuelta por el backend.
       void qc.invalidateQueries({
         queryKey: ["assessment-scores", "event", vars.id_assessment_event],
+      })
+      void qc.invalidateQueries({ queryKey: ["gradebook"] })
+    },
+  })
+}
+
+/** Casilla vaciada = no calificado: se borra la nota. */
+export function useDeleteScore() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (v: { id: string; eventId: string }) =>
+      AssessmentScoreService.remove(v.id),
+    onSuccess: (_d, vars) => {
+      void qc.invalidateQueries({
+        queryKey: ["assessment-scores", "event", vars.eventId],
       })
       void qc.invalidateQueries({ queryKey: ["gradebook"] })
     },

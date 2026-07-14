@@ -1,7 +1,6 @@
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import { Loader2Icon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
 
-import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -50,35 +49,18 @@ function DimensionBlock({
   const removeEvent = useDeleteEvent()
 
   const [name, setName] = useState("")
-  const [weight, setWeight] = useState("")
   const [editing, setEditing] = useState<Criterion | null>(null)
   const [deleting, setDeleting] = useState<Criterion | null>(null)
   const [activityDraft, setActivityDraft] = useState<Record<string, string>>({})
 
-  const used = useMemo(
-    () => criteria.reduce((a, c) => a + Number(c.maxWeight), 0),
-    [criteria],
-  )
-  const remaining = dim.weight - used
-  const w = Number(weight) || 0
-  const exceed = w > remaining + 0.0001
-  const canAdd = name.trim().length > 0 && w > 0 && !exceed && !create.isPending
+  const canAdd = name.trim().length > 0 && !create.isPending
 
   return (
     <div className="rounded-md border">
       <div className="flex items-center justify-between border-b bg-muted/40 px-3 py-2">
-        <span className="font-semibold">
-          {dim.label}{" "}
-          <span className="text-xs font-normal text-muted-foreground">
-            tope {dim.weight}
-          </span>
-        </span>
-        <Badge
-          variant={used > dim.weight ? "outline" : "secondary"}
-          className={cn(used > dim.weight && "text-destructive")}
-        >
-          Usado {used}/{dim.weight}
-        </Badge>
+        <span className="font-semibold">{dim.label}</span>
+        {/* Tope informativo: nota maxima de la dimension. */}
+        <Badge variant="secondary">Nota maxima {dim.weight}</Badge>
       </div>
 
       <ul className="divide-y">
@@ -92,7 +74,6 @@ function DimensionBlock({
               <li key={c.id} className="px-3 py-2">
                 <div className="flex items-center gap-2">
                   <span className="flex-1 text-sm font-medium">{c.name}</span>
-                  <Badge variant="secondary">peso {c.maxWeight}</Badge>
                   <Button size="icon" variant="ghost" className="size-7" onClick={() => setEditing(c)}>
                     <PencilIcon className="size-3.5" />
                   </Button>
@@ -143,8 +124,12 @@ function DimensionBlock({
       </ul>
 
       <div className="flex items-center gap-2 border-t p-2">
-        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre del criterio" className="h-8 flex-1" />
-        <Input value={weight} onChange={(e) => setWeight(e.target.value)} type="number" step="0.5" placeholder="peso" className={cn("h-8 w-20", exceed && "border-destructive")} />
+        <Input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Nombre del criterio"
+          className="h-8 flex-1"
+        />
         <Button
           size="sm"
           disabled={!canAdd}
@@ -156,25 +141,18 @@ function DimensionBlock({
                 trimester,
                 dimension: dim.key,
                 name: name.trim(),
-                maxWeight: w,
               },
-              { onSuccess: () => { setName(""); setWeight("") } },
+              { onSuccess: () => setName("") },
             )
           }
         >
           <PlusIcon data-icon="inline-start" /> Agregar
         </Button>
       </div>
-      {exceed ? (
-        <p className="px-3 pb-2 text-xs text-destructive">
-          Excede el tope. Disponible: {remaining}.
-        </p>
-      ) : null}
 
       {editing ? (
         <EditCriterionInline
           criterion={editing}
-          remaining={remaining + Number(editing.maxWeight)}
           onClose={() => setEditing(null)}
           saving={update.isPending}
           onSave={(payload) =>
@@ -202,27 +180,23 @@ function DimensionBlock({
 
 function EditCriterionInline({
   criterion,
-  remaining,
   onClose,
   onSave,
   saving,
 }: {
   criterion: Criterion
-  remaining: number
   onClose: () => void
-  onSave: (p: { name: string; maxWeight: number }) => void
+  onSave: (p: { name: string }) => void
   saving: boolean
 }) {
   const [name, setName] = useState(criterion.name)
-  const [weight, setWeight] = useState(String(criterion.maxWeight))
-  const w = Number(weight) || 0
-  const exceed = w > remaining + 0.0001
   return (
     <div className="flex items-center gap-2 border-t bg-muted/20 p-2">
       <Input value={name} onChange={(e) => setName(e.target.value)} className="h-8 flex-1" />
-      <Input value={weight} onChange={(e) => setWeight(e.target.value)} type="number" step="0.5" className={cn("h-8 w-20", exceed && "border-destructive")} />
-      <Button size="sm" variant="outline" onClick={onClose}>Cancelar</Button>
-      <Button size="sm" disabled={saving || exceed || !name.trim()} onClick={() => onSave({ name: name.trim(), maxWeight: w })}>
+      <Button size="sm" variant="outline" onClick={onClose}>
+        Cancelar
+      </Button>
+      <Button size="sm" disabled={saving || !name.trim()} onClick={() => onSave({ name: name.trim() })}>
         Guardar
       </Button>
     </div>

@@ -64,9 +64,12 @@ export function SubjectScoreSheet({ classGroup }: SubjectScoreSheetProps) {
   // Texto crudo por casilla: "" = no calificado (distinto de "0").
   const [draft, setDraft] = useState<Record<string, string>>({})
 
-  const { data: criteria = [], isLoading: critLoading } = useCriteria(
-    classGroup.id,
-    trimester,
+  const criteriaQuery = useCriteria(classGroup.id, trimester)
+  const critLoading = criteriaQuery.isLoading
+  // Ref estable: evita recrear columns/matrix cada render (loop de setState).
+  const criteria = useMemo(
+    () => criteriaQuery.data ?? [],
+    [criteriaQuery.data],
   )
   const { byCriterion } = useCriteriaEvents(criteria)
 

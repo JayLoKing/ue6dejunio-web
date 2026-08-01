@@ -62,3 +62,9 @@ Thumbs.db
 .env.local
 .env.*.local
 !.env.example
+# Local AI runtime state
+.atl/
+.gga
+
+# TanStack Router temp
+.tanstack/

@@ -1,5 +1,12 @@
-import { useState } from "react"
-import { Loader2Icon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
+import { useMemo, useState } from "react"
+import { Link } from "@tanstack/react-router"
+import {
+  ClipboardListIcon,
+  Loader2Icon,
+  PencilIcon,
+  PlusIcon,
+  Trash2Icon,
+} from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -27,6 +34,15 @@ export interface CriteriaManagerProps {
   trimester: number
 }
 
+interface DimensionBlockProps {
+  dim: DimensionMeta
+  classGroupId: string
+  trimester: number
+  criteria: Criterion[]
+  eventsByCriterion: Record<string, AssessmentEvent[]>
+  eventsLoading: boolean
+}
+
 function DimensionBlock({
   dim,
   classGroupId,
@@ -34,14 +50,7 @@ function DimensionBlock({
   criteria,
   eventsByCriterion,
   eventsLoading,
-}: {
-  dim: DimensionMeta
-  classGroupId: string
-  trimester: number
-  criteria: Criterion[]
-  eventsByCriterion: Record<string, AssessmentEvent[]>
-  eventsLoading: boolean
-}) {
+}: DimensionBlockProps) {
   const create = useCreateCriterion()
   const update = useUpdateCriterion()
   const remove = useDeleteCriterion()
@@ -59,8 +68,8 @@ function DimensionBlock({
     <div className="rounded-md border">
       <div className="flex items-center justify-between border-b bg-muted/40 px-3 py-2">
         <span className="font-semibold">{dim.label}</span>
-        {/* Tope informativo: nota maxima de la dimension. */}
-        <Badge variant="secondary">Nota maxima {dim.weight}</Badge>
+        {/* Tope informativo: nota máxima de la dimensión. */}
+        <Badge variant="secondary">Nota máxima {dim.weight}</Badge>
       </div>
 
       <ul className="divide-y">
@@ -74,10 +83,37 @@ function DimensionBlock({
               <li key={c.id} className="px-3 py-2">
                 <div className="flex items-center gap-2">
                   <span className="flex-1 text-sm font-medium">{c.name}</span>
-                  <Button size="icon" variant="ghost" className="size-7" onClick={() => setEditing(c)}>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="size-7"
+                    title="Notas de este criterio"
+                    asChild
+                  >
+                    <Link
+                      to="/scores/$classGroupId/criterio/$criterionId"
+                      params={{ classGroupId, criterionId: c.id }}
+                      search={{ trimester }}
+                    >
+                      <ClipboardListIcon className="size-3.5" />
+                    </Link>
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="size-7"
+                    aria-label={`Editar criterio ${c.name}`}
+                    onClick={() => setEditing(c)}
+                  >
                     <PencilIcon className="size-3.5" />
                   </Button>
-                  <Button size="icon" variant="ghost" className="size-7 text-destructive" onClick={() => setDeleting(c)}>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="size-7 text-destructive"
+                    aria-label={`Eliminar criterio ${c.name}`}
+                    onClick={() => setDeleting(c)}
+                  >
                     <Trash2Icon className="size-3.5" />
                   </Button>
                 </div>
@@ -88,7 +124,12 @@ function DimensionBlock({
                     evs.map((e) => (
                       <Badge key={e.id} variant="outline" className="gap-1">
                         {e.title}
-                        <button type="button" className="text-destructive" onClick={() => removeEvent.mutate(e.id)}>
+                        <button
+                          type="button"
+                          className="text-destructive"
+                          aria-label={`Quitar actividad ${e.title}`}
+                          onClick={() => removeEvent.mutate(e.id)}
+                        >
                           ×
                         </button>
                       </Badge>
@@ -105,6 +146,7 @@ function DimensionBlock({
                       size="icon"
                       variant="ghost"
                       className="size-7"
+                      aria-label="Agregar actividad"
                       disabled={!draft.trim() || createEvent.isPending}
                       onClick={() =>
                         createEvent.mutate(
@@ -164,7 +206,7 @@ function DimensionBlock({
       <ConfirmDialog
         open={Boolean(deleting)}
         title="Eliminar criterio"
-        description={deleting ? `"${deleting.name}" y sus actividades/notas seran eliminados.` : undefined}
+        description={deleting ? `"${deleting.name}" y sus actividades/notas serán eliminados.` : undefined}
         confirmLabel="Eliminar"
         destructive
         loading={remove.isPending}
@@ -178,17 +220,19 @@ function DimensionBlock({
   )
 }
 
+interface EditCriterionInlineProps {
+  criterion: Criterion
+  onClose: () => void
+  onSave: (p: { name: string }) => void
+  saving: boolean
+}
+
 function EditCriterionInline({
   criterion,
   onClose,
   onSave,
   saving,
-}: {
-  criterion: Criterion
-  onClose: () => void
-  onSave: (p: { name: string }) => void
-  saving: boolean
-}) {
+}: EditCriterionInlineProps) {
   const [name, setName] = useState(criterion.name)
   return (
     <div className="flex items-center gap-2 border-t bg-muted/20 p-2">
@@ -204,8 +248,22 @@ function EditCriterionInline({
 }
 
 export function CriteriaManager({ classGroupId, trimester }: CriteriaManagerProps) {
-  const { data: criteria = [], isLoading } = useCriteria(classGroupId, trimester)
+  const criteriaQuery = useCriteria(classGroupId, trimester)
+  const isLoading = criteriaQuery.isLoading
+  // Ref estable: evita recrear la cadena de memos cada render.
+  const criteria = useMemo(
+    () => criteriaQuery.data ?? [],
+    [criteriaQuery.data],
+  )
   const { byCriterion, isLoading: evLoading } = useCriteriaEvents(criteria)
+
+  // Agrupa una sola vez por dimensión (evita filtrar por cada dimensión en cada render).
+  const byDimension = useMemo(() => {
+    const out: Record<string, typeof criteria> = {}
+    for (const d of DIMENSIONS) out[d.key] = []
+    for (const c of criteria) (out[c.dimension] ??= []).push(c)
+    return out
+  }, [criteria])
 
   if (isLoading) {
     return (
@@ -223,7 +281,7 @@ export function CriteriaManager({ classGroupId, trimester }: CriteriaManagerProp
           dim={dim}
           classGroupId={classGroupId}
           trimester={trimester}
-          criteria={criteria.filter((c) => c.dimension === dim.key)}
+          criteria={byDimension[dim.key] ?? []}
           eventsByCriterion={byCriterion}
           eventsLoading={evLoading}
         />

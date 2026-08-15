@@ -14,7 +14,7 @@ Frontend: React 19 + TypeScript + TanStack Router + Vite 7 + Bun + shadcn/ui + T
 ## TypeScript
 - Use `const`/`let`, never `var`. No `any` (prefer `unknown` + narrowing).
 - Prefer `interface` for object shapes; `type` for unions/aliases.
-- Explicit return types on exported services/helpers/hooks. React components may omit the return type (JSX inferred).
+- Explicit return types on exported services and helpers. React components and react-query hooks may rely on inference (JSX and `UseQueryResult`/`UseMutationResult` are canonical and verbose); annotating a hook return type is allowed but not required.
 - Backend nullable fields are `T | null` in types, not optional, when the API always sends the key.
 
 ## React / hooks

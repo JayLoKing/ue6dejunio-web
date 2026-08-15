@@ -1,5 +1,6 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { Link } from "@tanstack/react-router"
 import { LogInIcon } from "lucide-react"
 
 import { Button } from "@/components/animate-ui/components/buttons/button"
@@ -100,9 +101,13 @@ export function LoginForm() {
           <LogInIcon data-icon="inline-start" />
           {loading ? "Ingresando..." : "Ingresar"}
         </Button>
+        <Link
+          to="/auth/forgot-password"
+          className="text-sm text-muted-foreground underline-offset-4 hover:text-univalle hover:underline"
+        >
+          ¿Olvidaste tu contraseña?
+        </Link>
       </CardFooter>
     </Card>
   )
 }
-
-export default LoginForm

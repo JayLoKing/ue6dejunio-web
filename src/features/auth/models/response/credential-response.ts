@@ -14,6 +14,10 @@ export interface CredentialResponse {
   technical: boolean | null
 }
 
+export interface ForgotPasswordResponse {
+  message: string
+}
+
 export interface MeResponse {
   userId: string
   email: string

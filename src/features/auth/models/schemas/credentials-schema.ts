@@ -5,34 +5,39 @@ import { emailString, passwordString } from "@/lib/validation/rules"
 export const credentialsSchema = z.object({
   email: emailString(),
   password: z
-    .string({ message: "La contrasena es requerida" })
-    .min(1, "La contrasena es requerida"),
+    .string({ message: "La contraseña es requerida" })
+    .min(1, "La contraseña es requerida"),
 })
 
 export type CredentialsFormValues = z.infer<typeof credentialsSchema>
 
 export const changePasswordSchema = z
   .object({
-    currentPassword: z.string().min(1, "Contrasena actual requerida"),
+    currentPassword: z.string().min(1, "Contraseña actual requerida"),
     newPassword: passwordString(),
-    confirmPassword: z.string().min(1, "Confirma la contrasena"),
+    confirmPassword: z.string().min(1, "Confirma la contraseña"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Las contrasenas no coinciden",
+    message: "Las contraseñas no coinciden",
     path: ["confirmPassword"],
   })
 
 export type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>
 
-export const credentialResponseSchema = z.object({
-  userId: z.string(),
-  email: z.string(),
-  fullName: z.string(),
-  role: z.string(),
-  accessToken: z.string(),
-  tokenType: z.string(),
-  expiresAt: z.string(),
-  mustChangePassword: z.boolean(),
-  gradeName: z.string().nullable(),
-  parallelName: z.string().nullable(),
+export const forgotPasswordSchema = z.object({
+  email: emailString(),
 })
+
+export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>
+
+export const resetPasswordSchema = z
+  .object({
+    newPassword: passwordString(),
+    confirmPassword: z.string().min(1, "Confirma la contraseña"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Las contraseñas no coinciden",
+    path: ["confirmPassword"],
+  })
+
+export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>

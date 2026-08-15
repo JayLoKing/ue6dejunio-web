@@ -2,9 +2,12 @@ import type { UseApiCall } from "@/lib/useApicall"
 import type {
   ChangePasswordRequest,
   CredentialsRequest,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
 } from "../models/requests/credentials-request"
 import type {
   CredentialResponse,
+  ForgotPasswordResponse,
   MeResponse,
 } from "../models/response/credential-response"
 import { loadAbort } from "@/lib/loadAbort"
@@ -36,6 +39,30 @@ export default class AuthServiceHelper {
     const controller = loadAbort()
     return {
       call: httpClient.post<void>(AuthUrl.ChangePassword, payload, {
+        signal: controller.signal,
+      }),
+      controller,
+    }
+  }
+
+  forgotPasswordAsync(
+    payload: ForgotPasswordRequest,
+  ): UseApiCall<ForgotPasswordResponse> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.post<ForgotPasswordResponse>(
+        AuthUrl.ForgotPassword,
+        payload,
+        { signal: controller.signal },
+      ),
+      controller,
+    }
+  }
+
+  resetPasswordAsync(payload: ResetPasswordRequest): UseApiCall<void> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.post<void>(AuthUrl.ResetPassword, payload, {
         signal: controller.signal,
       }),
       controller,

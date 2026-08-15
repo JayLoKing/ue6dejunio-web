@@ -3,13 +3,7 @@ import { Loader2Icon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { TrimesterSelect } from "@/components/shared/TrimesterSelect"
 import { cualitativoOf, situacionClass, situacionOf } from "@/lib/grading"
 
 import { useEnrollmentScores, useStudentSummary } from "../hooks/useGradebook"
@@ -61,19 +55,7 @@ export function StudentGradesDetail({ courseEnrollmentId }: StudentGradesDetailP
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Trimestre</span>
-          <Select
-            value={String(trimester)}
-            onValueChange={(v) => setTrimester(Number(v))}
-          >
-            <SelectTrigger className="w-28">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1">1ro</SelectItem>
-              <SelectItem value="2">2do</SelectItem>
-              <SelectItem value="3">3ro</SelectItem>
-            </SelectContent>
-          </Select>
+          <TrimesterSelect value={trimester} onChange={setTrimester} />
         </div>
       </div>
 

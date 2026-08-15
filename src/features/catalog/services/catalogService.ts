@@ -1,5 +1,11 @@
 import CatalogServiceHelper from "../helpers/catalogServiceHelper"
-import type { GradeItem, ParallelItem, SubjectItem, TeacherItem } from "../types"
+import type {
+  GradeItem,
+  ParallelItem,
+  SubjectItem,
+  TeacherItem,
+  TrimesterItem,
+} from "../types"
 
 const helper = new CatalogServiceHelper()
 
@@ -15,5 +21,8 @@ export class CatalogService {
   }
   static async teachers(technical?: boolean): Promise<TeacherItem[]> {
     return (await helper.teachersAsync(technical).call).data
+  }
+  static async trimesters(academicYearId?: number): Promise<TrimesterItem[]> {
+    return (await helper.trimestersAsync(academicYearId).call).data
   }
 }

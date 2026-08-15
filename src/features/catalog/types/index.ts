@@ -21,3 +21,11 @@ export interface TeacherItem {
   email: string
   technical: boolean
 }
+
+/** Trimestre configurado (catálogo): 1|2|3 + rango de fechas. */
+export interface TrimesterItem {
+  id: string
+  trimester: number
+  startDate: string
+  endDate: string
+}

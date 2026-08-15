@@ -5,4 +5,5 @@ export const CatalogUrl = {
   Parallels: `${baseModuleUrl}/parallels`,
   Subjects: `${baseModuleUrl}/subjects`,
   Teachers: `${baseModuleUrl}/teachers`,
+  Trimesters: `${baseModuleUrl}/trimesters`,
 } as const

@@ -8,6 +8,8 @@ export const catalogKeys = {
   subjects: ["catalog", "subjects"] as const,
   teachers: (technical?: boolean) =>
     ["catalog", "teachers", technical ?? "all"] as const,
+  trimesters: (academicYearId?: number) =>
+    ["catalog", "trimesters", academicYearId ?? "current"] as const,
 }
 
 export const useGrades = () =>
@@ -36,5 +38,13 @@ export const useTeachers = (technical?: boolean) =>
   useQuery({
     queryKey: catalogKeys.teachers(technical),
     queryFn: () => CatalogService.teachers(technical),
+    staleTime: 5 * 60_000,
+  })
+
+/** Trimestres configurados (por defecto el año académico actual). */
+export const useTrimesters = (academicYearId?: number) =>
+  useQuery({
+    queryKey: catalogKeys.trimesters(academicYearId),
+    queryFn: () => CatalogService.trimesters(academicYearId),
     staleTime: 5 * 60_000,
   })

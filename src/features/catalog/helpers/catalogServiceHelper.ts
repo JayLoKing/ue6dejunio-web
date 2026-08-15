@@ -3,7 +3,13 @@ import { loadAbort } from "@/lib/loadAbort"
 import { httpClient } from "@/lib/axios"
 
 import { CatalogUrl } from "./catalogServicePath"
-import type { GradeItem, ParallelItem, SubjectItem, TeacherItem } from "../types"
+import type {
+  GradeItem,
+  ParallelItem,
+  SubjectItem,
+  TeacherItem,
+  TrimesterItem,
+} from "../types"
 
 export default class CatalogServiceHelper {
   gradesAsync(): UseApiCall<GradeItem[]> {
@@ -29,6 +35,19 @@ export default class CatalogServiceHelper {
     return {
       call: httpClient.get<SubjectItem[]>(CatalogUrl.Subjects, {
         signal: controller.signal,
+      }),
+      controller,
+    }
+  }
+  trimestersAsync(academicYearId?: number): UseApiCall<TrimesterItem[]> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.get<TrimesterItem[]>(CatalogUrl.Trimesters, {
+        signal: controller.signal,
+        params:
+          academicYearId === undefined
+            ? undefined
+            : { id_academic_year: academicYearId },
       }),
       controller,
     }

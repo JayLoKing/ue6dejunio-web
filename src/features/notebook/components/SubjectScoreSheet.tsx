@@ -4,14 +4,8 @@ import { AlertTriangleIcon, Loader2Icon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { TrimesterSelect } from "@/components/shared/TrimesterSelect"
 import { useCourseStudents } from "@/features/courses/hooks/useCourses"
 import type { ClassGroupItem } from "@/features/courses/types/course"
 import { isTechnicalSubject } from "@/features/courses/types/course"
@@ -37,7 +31,11 @@ export interface SubjectScoreSheetProps {
 }
 
 type Trimester = 1 | 2 | 3
-type Column = { dimKey: string; criterion: Criterion; event: AssessmentEvent }
+interface Column {
+  dimKey: string
+  criterion: Criterion
+  event: AssessmentEvent
+}
 
 const round1 = (n: number) => Math.round(n * 10) / 10
 
@@ -174,16 +172,10 @@ export function SubjectScoreSheet({ classGroup }: SubjectScoreSheetProps) {
         </h2>
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Trimestre</span>
-          <Select value={String(trimester)} onValueChange={(v) => setTrimester(Number(v) as Trimester)}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1">1ro</SelectItem>
-              <SelectItem value="2">2do</SelectItem>
-              <SelectItem value="3">3ro</SelectItem>
-            </SelectContent>
-          </Select>
+          <TrimesterSelect
+            value={trimester}
+            onChange={(t) => setTrimester(t as Trimester)}
+          />
         </div>
       </div>
 
@@ -350,7 +342,7 @@ export function SubjectScoreSheet({ classGroup }: SubjectScoreSheetProps) {
           )}
           <p className="pt-2 text-xs text-muted-foreground">
             La nota se guarda al salir del campo; cada casilla admite hasta el tope de
-            su dimension. Dejar la casilla <strong>vacía</strong> marca la actividad como
+            su dimensión. Dejar la casilla <strong>vacía</strong> marca la actividad como
             no calificada (distinto de 0). Promedios y total son de solo lectura.
           </p>
         </TabsContent>

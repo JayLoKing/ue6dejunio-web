@@ -4,14 +4,8 @@ import { Loader2Icon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { DataTablePagination } from "@/components/shared/DataTablePagination"
+import { TrimesterSelect } from "@/components/shared/TrimesterSelect"
 import { cualitativoOf, situacionClass, situacionOf } from "@/lib/grading"
 
 import { useCentralizer } from "../hooks/useGradebook"
@@ -55,16 +49,13 @@ export function CentralizerTable({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Trimestre</span>
-          <Select value={String(trimester)} onValueChange={(v) => { setTrimester(Number(v)); setPage(1) }}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1">1ro</SelectItem>
-              <SelectItem value="2">2do</SelectItem>
-              <SelectItem value="3">3ro</SelectItem>
-            </SelectContent>
-          </Select>
+          <TrimesterSelect
+            value={trimester}
+            onChange={(t) => {
+              setTrimester(t)
+              setPage(1)
+            }}
+          />
         </div>
         <div className="flex items-center gap-2 text-sm">
           <Badge variant="secondary">{counters.apr} aprobados</Badge>

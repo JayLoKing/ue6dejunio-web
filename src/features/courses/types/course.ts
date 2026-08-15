@@ -1,3 +1,6 @@
+import type { PagedResponse } from "@/lib/types/pagination"
+import type { StudentSummary } from "@/features/gradebook/types"
+
 export interface Course {
   id: string
   gradeId: number
@@ -18,6 +21,8 @@ export interface CourseStudent {
   identityCard: string
   fullName: string
   status: string
+  /** "M" | "F". El backend aún no lo expone en este listado (pendiente). */
+  gender?: string | null
 }
 
 export interface SubjectAssignment {
@@ -39,6 +44,13 @@ export interface CourseWithSubjects {
   classGroups: ClassGroupItem[]
 }
 
+/** GET /courses/{id}/overview: header + materias(docente) + estudiantes con totales. */
+export interface CourseOverview {
+  course: Course
+  classGroups: ClassGroupItem[]
+  students: PagedResponse<StudentSummary>
+}
+
 
 /** ClassGroup = materia dentro de un curso. */
 export interface ClassGroupItem {
@@ -54,9 +66,16 @@ export interface ClassGroupItem {
 }
 
 // Materias tecnicas (marcado visual). Ajustar nombres si el backend cambia.
-const TECHNICAL_SUBJECTS = ["religion", "musica", "música", "educacion musical"]
+const TECHNICAL_SUBJECTS = ["religion", "musica", "educacion musical"]
+
+// Quita acentos para que "Religión"/"Música" coincidan igual que sin tilde.
+const normalize = (s: string): string =>
+  s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
 
 export const isTechnicalSubject = (subjectName: string): boolean => {
-  const n = subjectName.toLowerCase()
+  const n = normalize(subjectName)
   return TECHNICAL_SUBJECTS.some((t) => n.includes(t))
 }

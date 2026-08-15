@@ -1,5 +1,6 @@
 import {
   keepPreviousData,
+  skipToken,
   useMutation,
   useQuery,
   useQueryClient,
@@ -32,9 +33,28 @@ export function useAllCourses(enabled = true) {
 export function useTeacherClassGroups(userId: string | null | undefined) {
   return useQuery({
     queryKey: ["teacher", userId ?? "", "class-groups"],
-    enabled: Boolean(userId),
     staleTime: 5 * 60_000,
-    queryFn: () => CourseService.teacherClassGroups(userId as string),
+    queryFn: userId
+      ? () => CourseService.teacherClassGroups(userId)
+      : skipToken,
+  })
+}
+
+/** Vista consolidada del curso (Director): header + materias(docente) + estudiantes. */
+export function useCourseOverview(
+  courseId: string | null | undefined,
+  trimester: number,
+) {
+  return useQuery({
+    queryKey: ["course-overview", courseId ?? "", trimester],
+    queryFn: courseId
+      ? () =>
+          CourseService.overview(courseId, trimester, {
+            offset: 1,
+            limit: 200,
+            sort: "asc",
+          })
+      : skipToken,
   })
 }
 
@@ -44,9 +64,10 @@ export function useCourseStudents(
 ) {
   return useQuery({
     queryKey: ["course-students", courseId ?? "", query],
-    enabled: Boolean(courseId),
     placeholderData: keepPreviousData,
-    queryFn: () => CourseService.students(courseId as string, query),
+    queryFn: courseId
+      ? () => CourseService.students(courseId, query)
+      : skipToken,
   })
 }
 
@@ -54,7 +75,11 @@ export function useCourseStudents(
 
 function useInvalidateCourses() {
   const qc = useQueryClient()
-  return () => void qc.invalidateQueries({ queryKey: ["courses"] })
+  return () => {
+    void qc.invalidateQueries({ queryKey: ["courses"] })
+    void qc.invalidateQueries({ queryKey: ["course-overview"] })
+    void qc.invalidateQueries({ queryKey: ["course-students"] })
+  }
 }
 
 export function useCreateCourse() {

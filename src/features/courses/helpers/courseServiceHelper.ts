@@ -12,6 +12,7 @@ import {
 import type {
   ClassGroupItem,
   Course,
+  CourseOverview,
   CourseStudent,
   CourseWithSubjects,
   CreateCoursePayload,
@@ -31,6 +32,21 @@ export default class CourseServiceHelper {
       controller,
     }
   }
+  overviewAsync(
+    id: string,
+    trimester: number,
+    query: PageQuery,
+  ): UseApiCall<CourseOverview> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.get<CourseOverview>(CourseUrl.Overview(id), {
+        signal: controller.signal,
+        params: toPageParams(query, { trimester }),
+      }),
+      controller,
+    }
+  }
+
   getByIdAsync(id: string): UseApiCall<Course> {
     const controller = loadAbort()
     return {

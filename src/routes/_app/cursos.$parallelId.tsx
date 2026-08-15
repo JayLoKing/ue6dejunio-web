@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react"
 import { createFileRoute } from "@tanstack/react-router"
-import { Loader2Icon, UserCogIcon } from "lucide-react"
+import { InfoIcon, Loader2Icon, UserCogIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table"
 import { useParallels } from "@/features/catalog/hooks/useCatalog"
 import { useAllCourses } from "@/features/courses/hooks/useCourses"
+import { CourseInfoModal } from "@/features/courses/components/CourseInfoModal"
 import { SetHomeroomDialog } from "@/features/courses/components/SetHomeroomDialog"
 import type { Course } from "@/features/courses/types/course"
 
@@ -27,6 +28,7 @@ function ParallelCoursesPage() {
   const coursesQuery = useAllCourses()
 
   const [homeroom, setHomeroom] = useState<Course | null>(null)
+  const [info, setInfo] = useState<Course | null>(null)
 
   const parallel = parallels.data?.find((p) => String(p.id) === parallelId)
   const parallelName = parallel?.name ?? parallelId
@@ -86,6 +88,14 @@ function ParallelCoursesPage() {
                       <Button
                         size="sm"
                         variant="outline"
+                        onClick={() => setInfo(c)}
+                      >
+                        <InfoIcon data-icon="inline-start" />
+                        Info
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
                         onClick={() => setHomeroom(c)}
                       >
                         <UserCogIcon data-icon="inline-start" />
@@ -100,6 +110,7 @@ function ParallelCoursesPage() {
         </Table>
       </div>
 
+      <CourseInfoModal course={info} onClose={() => setInfo(null)} />
       <SetHomeroomDialog course={homeroom} onClose={() => setHomeroom(null)} />
     </div>
   )

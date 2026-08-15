@@ -4,6 +4,7 @@ import CourseServiceHelper from "../helpers/courseServiceHelper"
 import type {
   ClassGroupItem,
   Course,
+  CourseOverview,
   CourseStudent,
   CourseWithSubjects,
   CreateCoursePayload,
@@ -20,6 +21,13 @@ export class CourseService {
   }
   static async getById(id: string): Promise<Course> {
     return (await helper.getByIdAsync(id).call).data
+  }
+  static async overview(
+    id: string,
+    trimester: number,
+    query: PageQuery,
+  ): Promise<CourseOverview> {
+    return (await helper.overviewAsync(id, trimester, query).call).data
   }
   static async create(
     payload: CreateCoursePayload,

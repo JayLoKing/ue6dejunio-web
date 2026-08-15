@@ -20,6 +20,21 @@ export interface CourseAttendanceItem {
   status: string
 }
 
+/** Consolidado por dimensión de una materia (GET /scores?id_course_enrollment). */
+export interface EnrollmentScore {
+  id: string
+  courseEnrollmentId: string
+  classGroupId: string
+  subjectName: string
+  trimester: number
+  scoreBeing: number | null
+  scoreKnowing: number | null
+  scoreDoing: number | null
+  scoreDeciding: number | null
+  totalScore: number | null
+  updatedAt: string | null
+}
+
 export interface CourseAttendanceRow {
   courseEnrollmentId: string
   studentId: string

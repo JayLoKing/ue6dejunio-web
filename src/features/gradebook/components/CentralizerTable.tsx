@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useMemo, useState, type ReactNode } from "react"
 import { Loader2Icon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -17,19 +17,28 @@ import { cualitativoOf, situacionClass, situacionOf } from "@/lib/grading"
 import { useCentralizer } from "../hooks/useGradebook"
 import type { StudentSummary } from "../types"
 
-const SHORT = (name: string) =>
+const shortLabel = (name: string) =>
   name.split(/\s+/).map((w) => w[0]).join("").slice(0, 4).toUpperCase()
 
-export function CentralizerTable({ courseId }: { courseId: string }) {
+export interface CentralizerTableProps {
+  courseId: string
+  /** Opcional: render del nombre del estudiante (p. ej. link a su detalle). */
+  renderStudent?: (row: StudentSummary) => ReactNode
+}
+
+export function CentralizerTable({
+  courseId,
+  renderStudent,
+}: CentralizerTableProps) {
   const [trimester, setTrimester] = useState(1)
   const [page, setPage] = useState(1)
-  const [limit, setLimit] = useState(30)
+  const [limit, setLimit] = useState(20)
 
   const query = useMemo(() => ({ offset: page, limit, sort: "asc" as const }), [page, limit])
   const { data, isLoading, isFetching } = useCentralizer(courseId, trimester, query)
 
-  const rows: StudentSummary[] = data?.content ?? []
-  const subjects = rows[0]?.subjects ?? []
+  const rows = useMemo<StudentSummary[]>(() => data?.content ?? [], [data])
+  const subjects = useMemo(() => rows[0]?.subjects ?? [], [rows])
 
   const counters = useMemo(() => {
     let apr = 0
@@ -73,11 +82,11 @@ export function CentralizerTable({ courseId }: { courseId: string }) {
                 </th>
                 {subjects.map((s) => (
                   <th key={s.classGroupId} title={s.subjectName} className="min-w-16 border-r border-b bg-muted/50 px-2 py-2 text-center font-medium">
-                    {SHORT(s.subjectName)}
+                    {shortLabel(s.subjectName)}
                   </th>
                 ))}
                 <th className="min-w-24 border-r border-b bg-univalle/10 px-3 py-2 text-center font-semibold text-univalle">PROM.</th>
-                <th className="min-w-32 border-b bg-muted/50 px-3 py-2 text-center font-medium">Situacion</th>
+                <th className="min-w-32 border-b bg-muted/50 px-3 py-2 text-center font-medium">Situación</th>
               </tr>
             </thead>
             <tbody>
@@ -95,7 +104,7 @@ export function CentralizerTable({ courseId }: { courseId: string }) {
                   return (
                     <tr key={r.courseEnrollmentId} className="border-t">
                       <td className={cn("sticky left-0 z-10 min-w-[16rem] border-r px-3 py-2 font-medium shadow-[2px_0_0_0_var(--border)]", rowBg)}>
-                        {r.fullName}
+                        {renderStudent ? renderStudent(r) : r.fullName}
                       </td>
                       {subjects.map((s) => {
                         const cell = byId.get(s.classGroupId)

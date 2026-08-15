@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query"
+import { keepPreviousData, skipToken, useQuery } from "@tanstack/react-query"
 
 import type { PageQuery } from "@/lib/types/pagination"
 
@@ -11,9 +11,9 @@ export function useCentralizer(
 ) {
   return useQuery({
     queryKey: ["gradebook", "centralizer", courseId ?? "", trimester, query],
-    queryFn: () =>
-      GradebookService.centralizer(courseId as string, trimester, query),
-    enabled: Boolean(courseId),
+    queryFn: courseId
+      ? () => GradebookService.centralizer(courseId, trimester, query)
+      : skipToken,
     placeholderData: keepPreviousData,
   })
 }
@@ -25,8 +25,9 @@ export function useCourseAttendance(
 ) {
   return useQuery({
     queryKey: ["gradebook", "attendance", courseId ?? "", query, date ?? null],
-    queryFn: () => GradebookService.attendance(courseId as string, query, date),
-    enabled: Boolean(courseId),
+    queryFn: courseId
+      ? () => GradebookService.attendance(courseId, query, date)
+      : skipToken,
     placeholderData: keepPreviousData,
   })
 }
@@ -37,8 +38,20 @@ export function useStudentSummary(
 ) {
   return useQuery({
     queryKey: ["gradebook", "student-summary", courseEnrollmentId ?? "", trimester],
-    queryFn: () =>
-      GradebookService.studentSummary(courseEnrollmentId as string, trimester),
-    enabled: Boolean(courseEnrollmentId),
+    queryFn: courseEnrollmentId
+      ? () => GradebookService.studentSummary(courseEnrollmentId, trimester)
+      : skipToken,
+  })
+}
+
+/** Consolidado por dimensión (todas las materias) de un course_enrollment. */
+export function useEnrollmentScores(
+  courseEnrollmentId: string | null | undefined,
+) {
+  return useQuery({
+    queryKey: ["scores", "enrollment", courseEnrollmentId ?? ""],
+    queryFn: courseEnrollmentId
+      ? () => GradebookService.enrollmentScores(courseEnrollmentId)
+      : skipToken,
   })
 }

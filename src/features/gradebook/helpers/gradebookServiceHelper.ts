@@ -4,8 +4,12 @@ import { httpClient } from "@/lib/axios"
 import type { PagedResponse, PageQuery } from "@/lib/types/pagination"
 import { toPageParams } from "@/lib/types/pagination"
 
-import { GradebookUrl } from "./gradebookPath"
-import type { CourseAttendanceRow, StudentSummary } from "../types"
+import { GradebookUrl, ScoreUrl } from "./gradebookPath"
+import type {
+  CourseAttendanceRow,
+  EnrollmentScore,
+  StudentSummary,
+} from "../types"
 
 export default class GradebookServiceHelper {
   studentSummaryAsync(
@@ -36,6 +40,19 @@ export default class GradebookServiceHelper {
           params: toPageParams(query, { id_course: courseId, trimester }),
         },
       ),
+      controller,
+    }
+  }
+
+  enrollmentScoresAsync(
+    courseEnrollmentId: string,
+  ): UseApiCall<EnrollmentScore[]> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.get<EnrollmentScore[]>(ScoreUrl.Base, {
+        signal: controller.signal,
+        params: { id_course_enrollment: courseEnrollmentId },
+      }),
       controller,
     }
   }

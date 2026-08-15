@@ -1,7 +1,11 @@
 import type { PagedResponse, PageQuery } from "@/lib/types/pagination"
 
 import GradebookServiceHelper from "../helpers/gradebookServiceHelper"
-import type { CourseAttendanceRow, StudentSummary } from "../types"
+import type {
+  CourseAttendanceRow,
+  EnrollmentScore,
+  StudentSummary,
+} from "../types"
 
 const helper = new GradebookServiceHelper()
 
@@ -26,5 +30,10 @@ export class GradebookService {
     date?: string,
   ): Promise<PagedResponse<CourseAttendanceRow>> {
     return (await helper.attendanceAsync(courseId, query, date).call).data
+  }
+  static async enrollmentScores(
+    courseEnrollmentId: string,
+  ): Promise<EnrollmentScore[]> {
+    return (await helper.enrollmentScoresAsync(courseEnrollmentId).call).data
   }
 }

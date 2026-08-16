@@ -65,6 +65,7 @@ Thumbs.db
 # Local AI runtime state
 .atl/
 .gga
+.codegraph/
 
 # TanStack Router temp
 .tanstack/

@@ -10,3 +10,9 @@ export const GradebookUrl = {
 export const ScoreUrl = {
   Base: "/scores",
 } as const
+
+// Estadísticas de asistencia (endpoint bajo /courses).
+export const CourseStatsUrl = {
+  AttendanceStats: (courseId: string) =>
+    `/courses/${courseId}/attendance-stats`,
+} as const

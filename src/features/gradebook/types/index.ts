@@ -35,6 +35,35 @@ export interface EnrollmentScore {
   updatedAt: string | null
 }
 
+/** Conteos de asistencia. percentage = present/(present+absent+late); null si no computable. */
+export interface AttendanceCounts {
+  present: number
+  absent: number
+  late: number
+  excused: number
+  computableSessions: number
+  percentage: number | null
+}
+
+export interface MonthlyAttendanceStat extends AttendanceCounts {
+  year: number
+  month: number
+}
+
+export interface TrimesterAttendanceStat extends AttendanceCounts {
+  trimester: number
+}
+
+/** GET /courses/{id}/attendance-stats — % de asistencia diaria del curso. */
+export interface CourseAttendanceStats {
+  courseId: string
+  scope: string
+  trimester: number | null
+  overall: AttendanceCounts
+  byMonth: MonthlyAttendanceStat[]
+  byTrimester: TrimesterAttendanceStat[]
+}
+
 export interface CourseAttendanceRow {
   courseEnrollmentId: string
   studentId: string

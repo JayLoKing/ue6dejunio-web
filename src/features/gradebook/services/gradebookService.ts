@@ -3,6 +3,7 @@ import type { PagedResponse, PageQuery } from "@/lib/types/pagination"
 import GradebookServiceHelper from "../helpers/gradebookServiceHelper"
 import type {
   CourseAttendanceRow,
+  CourseAttendanceStats,
   EnrollmentScore,
   StudentSummary,
 } from "../types"
@@ -35,5 +36,11 @@ export class GradebookService {
     courseEnrollmentId: string,
   ): Promise<EnrollmentScore[]> {
     return (await helper.enrollmentScoresAsync(courseEnrollmentId).call).data
+  }
+  static async attendanceStats(
+    courseId: string,
+    trimester?: number,
+  ): Promise<CourseAttendanceStats> {
+    return (await helper.attendanceStatsAsync(courseId, trimester).call).data
   }
 }

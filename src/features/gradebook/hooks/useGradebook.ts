@@ -44,6 +44,19 @@ export function useStudentSummary(
   })
 }
 
+/** Estadísticas de asistencia del curso (KPIs %). trimester opcional. */
+export function useCourseAttendanceStats(
+  courseId: string | null | undefined,
+  trimester?: number,
+) {
+  return useQuery({
+    queryKey: ["gradebook", "attendance-stats", courseId ?? "", trimester ?? "all"],
+    queryFn: courseId
+      ? () => GradebookService.attendanceStats(courseId, trimester)
+      : skipToken,
+  })
+}
+
 /** Consolidado por dimensión (todas las materias) de un course_enrollment. */
 export function useEnrollmentScores(
   courseEnrollmentId: string | null | undefined,

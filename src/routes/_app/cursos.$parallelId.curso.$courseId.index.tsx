@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { ArrowLeftIcon, UserIcon } from "lucide-react"
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAllCourses } from "@/features/courses/hooks/useCourses"
 import { CentralizerTable } from "@/features/gradebook/components/CentralizerTable"
+import { CourseAttendancePanel } from "@/features/gradebook/components/CourseAttendancePanel"
 
 export const Route = createFileRoute(
   "/_app/cursos/$parallelId/curso/$courseId/",
@@ -40,27 +42,39 @@ function CourseGradebookPage() {
         ) : null}
       </div>
 
-      <p className="text-xs text-muted-foreground">
-        Consolidado de solo lectura. Selecciona un estudiante para ver su detalle
-        por dimensión.
-      </p>
+      <Tabs defaultValue="notas">
+        <TabsList>
+          <TabsTrigger value="notas">Notas</TabsTrigger>
+          <TabsTrigger value="asistencia">Asistencia</TabsTrigger>
+        </TabsList>
 
-      <CentralizerTable
-        courseId={courseId}
-        renderStudent={(row) => (
-          <Link
-            to="/cursos/$parallelId/curso/$courseId/estudiante/$enrollmentId"
-            params={{
-              parallelId,
-              courseId,
-              enrollmentId: row.courseEnrollmentId,
-            }}
-            className="text-univalle underline-offset-4 hover:underline"
-          >
-            {row.fullName}
-          </Link>
-        )}
-      />
+        <TabsContent value="notas" className="pt-4">
+          <p className="pb-3 text-xs text-muted-foreground">
+            Consolidado de solo lectura. Selecciona un estudiante para ver su
+            detalle por dimensión.
+          </p>
+          <CentralizerTable
+            courseId={courseId}
+            renderStudent={(row) => (
+              <Link
+                to="/cursos/$parallelId/curso/$courseId/estudiante/$enrollmentId"
+                params={{
+                  parallelId,
+                  courseId,
+                  enrollmentId: row.courseEnrollmentId,
+                }}
+                className="text-univalle underline-offset-4 hover:underline"
+              >
+                {row.fullName}
+              </Link>
+            )}
+          />
+        </TabsContent>
+
+        <TabsContent value="asistencia" className="pt-4">
+          <CourseAttendancePanel courseId={courseId} />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

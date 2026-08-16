@@ -4,9 +4,10 @@ import { httpClient } from "@/lib/axios"
 import type { PagedResponse, PageQuery } from "@/lib/types/pagination"
 import { toPageParams } from "@/lib/types/pagination"
 
-import { GradebookUrl, ScoreUrl } from "./gradebookPath"
+import { CourseStatsUrl, GradebookUrl, ScoreUrl } from "./gradebookPath"
 import type {
   CourseAttendanceRow,
+  CourseAttendanceStats,
   EnrollmentScore,
   StudentSummary,
 } from "../types"
@@ -38,6 +39,23 @@ export default class GradebookServiceHelper {
         {
           signal: controller.signal,
           params: toPageParams(query, { id_course: courseId, trimester }),
+        },
+      ),
+      controller,
+    }
+  }
+
+  attendanceStatsAsync(
+    courseId: string,
+    trimester?: number,
+  ): UseApiCall<CourseAttendanceStats> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.get<CourseAttendanceStats>(
+        CourseStatsUrl.AttendanceStats(courseId),
+        {
+          signal: controller.signal,
+          params: trimester === undefined ? undefined : { trimester },
         },
       ),
       controller,

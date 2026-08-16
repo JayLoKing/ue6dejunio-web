@@ -17,3 +17,8 @@ export const SubjectUrl = {
   Base: "/subjects",
   ById: (id: string) => `/subjects/${id}`,
 } as const
+
+export const TrimesterPeriodUrl = {
+  Base: "/trimester-periods",
+  ById: (id: string) => `/trimester-periods/${id}`,
+} as const

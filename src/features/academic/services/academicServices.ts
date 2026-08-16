@@ -1,16 +1,27 @@
 import type { PagedResponse, PageQuery } from "@/lib/types/pagination"
 
-import LevelServiceHelper, {
+import {
   GradeServiceHelper,
+  LevelServiceHelper,
   ParallelServiceHelper,
   SubjectServiceHelper,
+  TrimesterPeriodServiceHelper,
 } from "../helpers/academicServiceHelper"
-import type { Grade, Level, Parallel, Subject } from "../types"
+import type {
+  CreateTrimesterPeriodPayload,
+  Grade,
+  Level,
+  Parallel,
+  Subject,
+  TrimesterPeriod,
+  UpdateTrimesterPeriodPayload,
+} from "../types"
 
 const levelHelper = new LevelServiceHelper()
 const gradeHelper = new GradeServiceHelper()
 const parallelHelper = new ParallelServiceHelper()
 const subjectHelper = new SubjectServiceHelper()
+const trimesterHelper = new TrimesterPeriodServiceHelper()
 
 // ---- Levels ----
 export class LevelService {
@@ -100,5 +111,26 @@ export class SubjectAdminService {
   }
   static async remove(id: string): Promise<void> {
     await subjectHelper.removeAsync(id).call
+  }
+}
+
+// ---- Trimester periods ----
+export class TrimesterPeriodService {
+  static async list(academicYearId: number): Promise<TrimesterPeriod[]> {
+    return (await trimesterHelper.listAsync(academicYearId).call).data
+  }
+  static async create(
+    payload: CreateTrimesterPeriodPayload,
+  ): Promise<TrimesterPeriod> {
+    return (await trimesterHelper.createAsync(payload).call).data
+  }
+  static async update(
+    id: string,
+    payload: UpdateTrimesterPeriodPayload,
+  ): Promise<TrimesterPeriod> {
+    return (await trimesterHelper.updateAsync(id, payload).call).data
+  }
+  static async remove(id: string): Promise<void> {
+    await trimesterHelper.removeAsync(id).call
   }
 }

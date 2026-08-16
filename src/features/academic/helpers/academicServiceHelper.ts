@@ -9,11 +9,20 @@ import {
   LevelUrl,
   ParallelUrl,
   SubjectUrl,
+  TrimesterPeriodUrl,
 } from "./academicServicePath"
-import type { Grade, Level, Parallel, Subject } from "../types"
+import type {
+  CreateTrimesterPeriodPayload,
+  Grade,
+  Level,
+  Parallel,
+  Subject,
+  TrimesterPeriod,
+  UpdateTrimesterPeriodPayload,
+} from "../types"
 
 // ---- Levels ----
-export default class LevelServiceHelper {
+export class LevelServiceHelper {
   listAsync(query: PageQuery): UseApiCall<PagedResponse<Level>> {
     const controller = loadAbort()
     return {
@@ -181,6 +190,54 @@ export class SubjectServiceHelper {
     const controller = loadAbort()
     return {
       call: httpClient.delete<void>(SubjectUrl.ById(id), {
+        signal: controller.signal,
+      }),
+      controller,
+    }
+  }
+}
+
+// ---- Trimester periods ----
+export class TrimesterPeriodServiceHelper {
+  listAsync(academicYearId: number): UseApiCall<TrimesterPeriod[]> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.get<TrimesterPeriod[]>(TrimesterPeriodUrl.Base, {
+        signal: controller.signal,
+        params: { id_academic_year: academicYearId },
+      }),
+      controller,
+    }
+  }
+  createAsync(
+    payload: CreateTrimesterPeriodPayload,
+  ): UseApiCall<TrimesterPeriod> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.post<TrimesterPeriod>(TrimesterPeriodUrl.Base, payload, {
+        signal: controller.signal,
+      }),
+      controller,
+    }
+  }
+  updateAsync(
+    id: string,
+    payload: UpdateTrimesterPeriodPayload,
+  ): UseApiCall<TrimesterPeriod> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.put<TrimesterPeriod>(
+        TrimesterPeriodUrl.ById(id),
+        payload,
+        { signal: controller.signal },
+      ),
+      controller,
+    }
+  }
+  removeAsync(id: string): UseApiCall<void> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.delete<void>(TrimesterPeriodUrl.ById(id), {
         signal: controller.signal,
       }),
       controller,

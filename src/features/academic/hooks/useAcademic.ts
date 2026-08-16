@@ -1,5 +1,6 @@
 import {
   keepPreviousData,
+  skipToken,
   useMutation,
   useQuery,
   useQueryClient,
@@ -13,7 +14,12 @@ import {
   LevelService,
   ParallelService,
   SubjectAdminService,
+  TrimesterPeriodService,
 } from "../services/academicServices"
+import type {
+  CreateTrimesterPeriodPayload,
+  UpdateTrimesterPeriodPayload,
+} from "../types"
 
 const useResourceList = <T,>(
   key: string,
@@ -122,3 +128,59 @@ export const useDeleteSubject = mutationFactory(
   (id: string) => SubjectAdminService.remove(id),
   "Materia eliminada.",
 )
+
+// Trimester periods (fechas por trimestre del año académico)
+const TRIMESTER_KEY = ["trimester-periods"]
+
+export function useTrimesterPeriods(academicYearId: number | null | undefined) {
+  return useQuery({
+    queryKey: [...TRIMESTER_KEY, academicYearId ?? 0],
+    queryFn: academicYearId
+      ? () => TrimesterPeriodService.list(academicYearId)
+      : skipToken,
+  })
+}
+
+function useInvalidateTrimesters() {
+  const qc = useQueryClient()
+  return () => {
+    void qc.invalidateQueries({ queryKey: TRIMESTER_KEY })
+    // El catálogo alimenta los selectores de notas → refrescar también.
+    void qc.invalidateQueries({ queryKey: ["catalog", "trimesters"] })
+  }
+}
+
+export function useCreateTrimesterPeriod() {
+  const invalidate = useInvalidateTrimesters()
+  return useMutation({
+    mutationFn: (p: CreateTrimesterPeriodPayload) =>
+      TrimesterPeriodService.create(p),
+    onSuccess: () => {
+      toast.success("Trimestre configurado.")
+      invalidate()
+    },
+  })
+}
+
+export function useUpdateTrimesterPeriod() {
+  const invalidate = useInvalidateTrimesters()
+  return useMutation({
+    mutationFn: (v: { id: string; payload: UpdateTrimesterPeriodPayload }) =>
+      TrimesterPeriodService.update(v.id, v.payload),
+    onSuccess: () => {
+      toast.success("Trimestre actualizado.")
+      invalidate()
+    },
+  })
+}
+
+export function useDeleteTrimesterPeriod() {
+  const invalidate = useInvalidateTrimesters()
+  return useMutation({
+    mutationFn: (id: string) => TrimesterPeriodService.remove(id),
+    onSuccess: () => {
+      toast.success("Trimestre eliminado.")
+      invalidate()
+    },
+  })
+}

@@ -1,6 +1,8 @@
+import { useMemo } from "react"
 import {
   BookOpenIcon,
   CalendarCheckIcon,
+  CalendarRangeIcon,
   ChevronRightIcon,
   ClipboardListIcon,
   FileBarChartIcon,
@@ -90,6 +92,7 @@ const ADMIN_LINKS: NavLink[] = [
   { title: "Grados", to: "/grades", icon: GraduationCapIcon, roles: ["DIRECTOR"] },
   { title: "Paralelos", to: "/parallels", icon: LayoutGridIcon, roles: ["DIRECTOR"] },
   { title: "Materias", to: "/subjects", icon: BookOpenIcon, roles: ["DIRECTOR"] },
+  { title: "Trimestres", to: "/trimestres", icon: CalendarRangeIcon, roles: ["DIRECTOR"] },
 ]
 
 export function AppSidebar() {
@@ -103,6 +106,10 @@ export function AppSidebar() {
   const isTechnical = ctx.isTechnical
   const classGroups = ctx.classGroups
   const parallelsQuery = useParallels()
+  const parallels = useMemo(
+    () => parallelsQuery.data ?? [],
+    [parallelsQuery.data],
+  )
 
   const visibleTop = TOP_LINKS.filter((l) => l.roles.some((r) => isRole(role, r)))
 
@@ -119,7 +126,7 @@ export function AppSidebar() {
                 <div className="flex flex-col gap-0.5 leading-none">
                   <span className="font-semibold">U.E. 6 de Junio</span>
                   <span className="text-xs text-muted-foreground">
-                    Sistema academico
+                    Sistema académico
                   </span>
                 </div>
               </Link>
@@ -161,10 +168,10 @@ export function AppSidebar() {
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton
-                        tooltip={isTechnical ? "Mis cursos" : "Materias / Areas"}
+                        tooltip={isTechnical ? "Mis cursos" : "Materias / Áreas"}
                       >
                         {isTechnical ? <SchoolIcon /> : <ClipboardListIcon />}
-                        <span>{isTechnical ? "Mis cursos" : "Materias / Areas"}</span>
+                        <span>{isTechnical ? "Mis cursos" : "Materias / Áreas"}</span>
                         <ChevronRightIcon className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
@@ -228,7 +235,7 @@ export function AppSidebar() {
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <SidebarMenuSub>
-                        {(parallelsQuery.data ?? []).map((p) => (
+                        {parallels.map((p) => (
                           <SidebarMenuSubItem key={p.id}>
                             <SidebarMenuSubButton
                               asChild
@@ -254,7 +261,7 @@ export function AppSidebar() {
 
         {director ? (
           <SidebarGroup>
-            <SidebarGroupLabel>Academico</SidebarGroupLabel>
+            <SidebarGroupLabel>Académico</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {ADMIN_LINKS.map((item) => {
@@ -281,7 +288,7 @@ export function AppSidebar() {
 
         {teacher || director ? (
           <SidebarGroup>
-            <SidebarGroupLabel>Planificacion</SidebarGroupLabel>
+            <SidebarGroupLabel>Planificación</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>

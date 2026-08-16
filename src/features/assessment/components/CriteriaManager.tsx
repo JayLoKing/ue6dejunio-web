@@ -32,6 +32,8 @@ import {
 export interface CriteriaManagerProps {
   classGroupId: string
   trimester: number
+  /** true = solo visualizar criterios/actividades (docente de aula en materia técnica). */
+  readOnly?: boolean
 }
 
 interface DimensionBlockProps {
@@ -41,6 +43,7 @@ interface DimensionBlockProps {
   criteria: Criterion[]
   eventsByCriterion: Record<string, AssessmentEvent[]>
   eventsLoading: boolean
+  readOnly: boolean
 }
 
 function DimensionBlock({
@@ -50,6 +53,7 @@ function DimensionBlock({
   criteria,
   eventsByCriterion,
   eventsLoading,
+  readOnly,
 }: DimensionBlockProps) {
   const create = useCreateCriterion()
   const update = useUpdateCriterion()
@@ -83,39 +87,45 @@ function DimensionBlock({
               <li key={c.id} className="px-3 py-2">
                 <div className="flex items-center gap-2">
                   <span className="flex-1 text-sm font-medium">{c.name}</span>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="size-7"
-                    title="Notas de este criterio"
-                    asChild
-                  >
-                    <Link
-                      to="/scores/$classGroupId/criterio/$criterionId"
-                      params={{ classGroupId, criterionId: c.id }}
-                      search={{ trimester }}
+                  {readOnly ? null : (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="size-7"
+                      title="Notas de este criterio"
+                      asChild
                     >
-                      <ClipboardListIcon className="size-3.5" />
-                    </Link>
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="size-7"
-                    aria-label={`Editar criterio ${c.name}`}
-                    onClick={() => setEditing(c)}
-                  >
-                    <PencilIcon className="size-3.5" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="size-7 text-destructive"
-                    aria-label={`Eliminar criterio ${c.name}`}
-                    onClick={() => setDeleting(c)}
-                  >
-                    <Trash2Icon className="size-3.5" />
-                  </Button>
+                      <Link
+                        to="/scores/$classGroupId/criterio/$criterionId"
+                        params={{ classGroupId, criterionId: c.id }}
+                        search={{ trimester }}
+                      >
+                        <ClipboardListIcon className="size-3.5" />
+                      </Link>
+                    </Button>
+                  )}
+                  {readOnly ? null : (
+                    <>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-7"
+                        aria-label={`Editar criterio ${c.name}`}
+                        onClick={() => setEditing(c)}
+                      >
+                        <PencilIcon className="size-3.5" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-7 text-destructive"
+                        aria-label={`Eliminar criterio ${c.name}`}
+                        onClick={() => setDeleting(c)}
+                      >
+                        <Trash2Icon className="size-3.5" />
+                      </Button>
+                    </>
+                  )}
                 </div>
                 <div className="mt-1.5 flex flex-wrap items-center gap-1.5 pl-2">
                   {eventsLoading ? (
@@ -124,40 +134,44 @@ function DimensionBlock({
                     evs.map((e) => (
                       <Badge key={e.id} variant="outline" className="gap-1">
                         {e.title}
-                        <button
-                          type="button"
-                          className="text-destructive"
-                          aria-label={`Quitar actividad ${e.title}`}
-                          onClick={() => removeEvent.mutate(e.id)}
-                        >
-                          ×
-                        </button>
+                        {readOnly ? null : (
+                          <button
+                            type="button"
+                            className="text-destructive"
+                            aria-label={`Quitar actividad ${e.title}`}
+                            onClick={() => removeEvent.mutate(e.id)}
+                          >
+                            ×
+                          </button>
+                        )}
                       </Badge>
                     ))
                   )}
-                  <div className="flex items-center gap-1">
-                    <Input
-                      value={draft}
-                      onChange={(ev) => setActivityDraft((d) => ({ ...d, [c.id]: ev.target.value }))}
-                      placeholder="Nueva actividad"
-                      className="h-7 w-40 text-xs"
-                    />
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="size-7"
-                      aria-label="Agregar actividad"
-                      disabled={!draft.trim() || createEvent.isPending}
-                      onClick={() =>
-                        createEvent.mutate(
-                          { id_criterion: c.id, title: draft.trim() },
-                          { onSuccess: () => setActivityDraft((d) => ({ ...d, [c.id]: "" })) },
-                        )
-                      }
-                    >
-                      <PlusIcon className="size-3.5" />
-                    </Button>
-                  </div>
+                  {readOnly ? null : (
+                    <div className="flex items-center gap-1">
+                      <Input
+                        value={draft}
+                        onChange={(ev) => setActivityDraft((d) => ({ ...d, [c.id]: ev.target.value }))}
+                        placeholder="Nueva actividad"
+                        className="h-7 w-40 text-xs"
+                      />
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-7"
+                        aria-label="Agregar actividad"
+                        disabled={!draft.trim() || createEvent.isPending}
+                        onClick={() =>
+                          createEvent.mutate(
+                            { id_criterion: c.id, title: draft.trim() },
+                            { onSuccess: () => setActivityDraft((d) => ({ ...d, [c.id]: "" })) },
+                          )
+                        }
+                      >
+                        <PlusIcon className="size-3.5" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </li>
             )
@@ -165,32 +179,34 @@ function DimensionBlock({
         )}
       </ul>
 
-      <div className="flex items-center gap-2 border-t p-2">
-        <Input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Nombre del criterio"
-          className="h-8 flex-1"
-        />
-        <Button
-          size="sm"
-          disabled={!canAdd}
-          className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
-          onClick={() =>
-            create.mutate(
-              {
-                id_class_group: classGroupId,
-                trimester,
-                dimension: dim.key,
-                name: name.trim(),
-              },
-              { onSuccess: () => setName("") },
-            )
-          }
-        >
-          <PlusIcon data-icon="inline-start" /> Agregar
-        </Button>
-      </div>
+      {readOnly ? null : (
+        <div className="flex items-center gap-2 border-t p-2">
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Nombre del criterio"
+            className="h-8 flex-1"
+          />
+          <Button
+            size="sm"
+            disabled={!canAdd}
+            className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
+            onClick={() =>
+              create.mutate(
+                {
+                  id_class_group: classGroupId,
+                  trimester,
+                  dimension: dim.key,
+                  name: name.trim(),
+                },
+                { onSuccess: () => setName("") },
+              )
+            }
+          >
+            <PlusIcon data-icon="inline-start" /> Agregar
+          </Button>
+        </div>
+      )}
 
       {editing ? (
         <EditCriterionInline
@@ -247,7 +263,11 @@ function EditCriterionInline({
   )
 }
 
-export function CriteriaManager({ classGroupId, trimester }: CriteriaManagerProps) {
+export function CriteriaManager({
+  classGroupId,
+  trimester,
+  readOnly = false,
+}: CriteriaManagerProps) {
   const criteriaQuery = useCriteria(classGroupId, trimester)
   const isLoading = criteriaQuery.isLoading
   // Ref estable: evita recrear la cadena de memos cada render.
@@ -284,6 +304,7 @@ export function CriteriaManager({ classGroupId, trimester }: CriteriaManagerProp
           criteria={byDimension[dim.key] ?? []}
           eventsByCriterion={byCriterion}
           eventsLoading={evLoading}
+          readOnly={readOnly}
         />
       ))}
     </div>

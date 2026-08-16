@@ -43,6 +43,7 @@ import { NavUser } from "@/components/shared/NavUser"
 import { useAuthStore } from "@/features/auth/store/authStore"
 import { isRole, type UserRole } from "@/features/auth/types"
 import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
+import { useCourseOverview } from "@/features/courses/hooks/useCourses"
 import { isTechnicalSubject } from "@/features/courses/types/course"
 import { useParallels } from "@/features/catalog/hooks/useCatalog"
 
@@ -105,6 +106,17 @@ export function AppSidebar() {
   const ctx = useCurrentContext()
   const isTechnical = ctx.isTechnical
   const classGroups = ctx.classGroups
+  // Docente de aula: ve las 9 materias del curso (incl. técnicas) vía overview.
+  const aulaOverview = useCourseOverview(
+    teacher && !isTechnical ? ctx.homeroomCourseId : null,
+    1,
+  )
+  const materias = useMemo(
+    () => (isTechnical ? classGroups : (aulaOverview.data?.classGroups ?? [])),
+    [isTechnical, classGroups, aulaOverview.data],
+  )
+  const materiasLoading =
+    ctx.isLoading || (!isTechnical && aulaOverview.isLoading)
   const parallelsQuery = useParallels()
   const parallels = useMemo(
     () => parallelsQuery.data ?? [],
@@ -177,20 +189,20 @@ export function AppSidebar() {
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <SidebarMenuSub>
-                        {ctx.isLoading ? (
+                        {materiasLoading ? (
                           <SidebarMenuSubItem>
                             <span className="px-2 text-xs text-muted-foreground">
                               Cargando…
                             </span>
                           </SidebarMenuSubItem>
-                        ) : classGroups.length === 0 ? (
+                        ) : materias.length === 0 ? (
                           <SidebarMenuSubItem>
                             <span className="px-2 text-xs text-muted-foreground">
                               {isTechnical ? "Sin cursos" : "Sin materias"}
                             </span>
                           </SidebarMenuSubItem>
                         ) : (
-                          classGroups.map((cg) => (
+                          materias.map((cg) => (
                             <SidebarMenuSubItem key={cg.id}>
                               <SidebarMenuSubButton
                                 asChild

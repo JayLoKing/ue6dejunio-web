@@ -28,6 +28,8 @@ import { CriteriaManager } from "@/features/assessment/components/CriteriaManage
 
 export interface SubjectScoreSheetProps {
   classGroup: ClassGroupItem
+  /** true = el docente de aula viendo una materia técnica: sin editar/borrar. */
+  readOnly?: boolean
 }
 
 type Trimester = 1 | 2 | 3
@@ -57,7 +59,10 @@ const cellTitle = (cell: ScoreCell | undefined): string | undefined => {
   return parts.join(" · ")
 }
 
-export function SubjectScoreSheet({ classGroup }: SubjectScoreSheetProps) {
+export function SubjectScoreSheet({
+  classGroup,
+  readOnly = false,
+}: SubjectScoreSheetProps) {
   const [trimester, setTrimester] = useState<Trimester>(1)
   // Texto crudo por casilla: "" = no calificado (distinto de "0").
   const [draft, setDraft] = useState<Record<string, string>>({})
@@ -167,6 +172,11 @@ export function SubjectScoreSheet({ classGroup }: SubjectScoreSheetProps) {
           {technical ? (
             <span className="rounded bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-300">
               Técnica
+            </span>
+          ) : null}
+          {readOnly ? (
+            <span className="rounded bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+              Solo lectura
             </span>
           ) : null}
         </h2>
@@ -299,20 +309,29 @@ export function SubjectScoreSheet({ classGroup }: SubjectScoreSheetProps) {
                                           key={col.event.id}
                                           className={cn("border-r px-1 py-1 text-center", rowBg)}
                                         >
-                                          <Input
-                                            type="number"
-                                            inputMode="decimal"
-                                            min={0}
-                                            max={dim.weight}
-                                            step={0.5}
-                                            title={cellTitle(cell)}
-                                            value={draft[k] ?? ""}
-                                            onChange={(e) =>
-                                              setDraft((d) => ({ ...d, [k]: e.target.value }))
-                                            }
-                                            onBlur={(e) => commit(ce, col, e.target.value)}
-                                            className="h-9 w-16 text-center"
-                                          />
+                                          {readOnly ? (
+                                            <span
+                                              title={cellTitle(cell)}
+                                              className="inline-block w-16 py-1"
+                                            >
+                                              {draft[k] && draft[k] !== "" ? draft[k] : "—"}
+                                            </span>
+                                          ) : (
+                                            <Input
+                                              type="number"
+                                              inputMode="decimal"
+                                              min={0}
+                                              max={dim.weight}
+                                              step={0.5}
+                                              title={cellTitle(cell)}
+                                              value={draft[k] ?? ""}
+                                              onChange={(e) =>
+                                                setDraft((d) => ({ ...d, [k]: e.target.value }))
+                                              }
+                                              onBlur={(e) => commit(ce, col, e.target.value)}
+                                              className="h-9 w-16 text-center"
+                                            />
+                                          )}
                                         </td>
                                       )
                                     })}
@@ -341,14 +360,18 @@ export function SubjectScoreSheet({ classGroup }: SubjectScoreSheetProps) {
             </div>
           )}
           <p className="pt-2 text-xs text-muted-foreground">
-            La nota se guarda al salir del campo; cada casilla admite hasta el tope de
-            su dimensión. Dejar la casilla <strong>vacía</strong> marca la actividad como
-            no calificada (distinto de 0). Promedios y total son de solo lectura.
+            {readOnly
+              ? "Materia técnica: las notas las registra el docente técnico. Aquí solo se visualizan."
+              : "La nota se guarda al salir del campo; cada casilla admite hasta el tope de su dimensión. Dejar la casilla vacía marca la actividad como no calificada (distinto de 0). Promedios y total son de solo lectura."}
           </p>
         </TabsContent>
 
         <TabsContent value="criterios" className="pt-4">
-          <CriteriaManager classGroupId={classGroup.id} trimester={trimester} />
+          <CriteriaManager
+            classGroupId={classGroup.id}
+            trimester={trimester}
+            readOnly={readOnly}
+          />
         </TabsContent>
       </Tabs>
     </div>

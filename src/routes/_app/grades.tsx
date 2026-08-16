@@ -22,14 +22,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTablePagination } from "@/components/shared/DataTablePagination"
 import { trimmedString } from "@/lib/validation/rules"
@@ -60,6 +52,8 @@ const schema = z.object({
 })
 type FormValues = z.infer<typeof schema>
 
+const LEVELS_QUERY: PageQuery = { offset: 1, limit: 100, sort: "asc" }
+
 function GradesPage() {
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
@@ -72,7 +66,7 @@ function GradesPage() {
     [page, limit],
   )
   const { data, isLoading, isFetching, refetch } = useGradesAdmin(query)
-  const levels = useLevels({ offset: 1, limit: 100, sort: "asc" })
+  const levels = useLevels(LEVELS_QUERY)
   const create = useCreateGrade()
   const update = useUpdateGrade()
   const remove = useDeleteGrade()
@@ -115,7 +109,7 @@ function GradesPage() {
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl font-semibold">Grados</h1>
           <p className="text-sm text-muted-foreground">
-            Grados por nivel (max 6 en primaria).
+            Grados por nivel (máx 6 en primaria).
           </p>
         </div>
         <Button
@@ -127,61 +121,51 @@ function GradesPage() {
         </Button>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Grado</TableHead>
-              <TableHead>Nivel</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={3} className="text-center text-muted-foreground">
-                  Cargando…
-                </TableCell>
-              </TableRow>
-            ) : rows.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={3} className="text-center text-muted-foreground">
-                  Sin grados.
-                </TableCell>
-              </TableRow>
-            ) : (
-              rows.map((g) => (
-                <TableRow key={g.id}>
-                  <TableCell>{g.name}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {g.levelName}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="size-8"
-                        onClick={() => openEdit(g)}
-                      >
-                        <PencilIcon className="size-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="size-8 text-destructive"
-                        onClick={() => setDeleting(g)}
-                      >
-                        <Trash2Icon className="size-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      {isLoading ? (
+        <div className="rounded-md border border-dashed p-10 text-center text-sm text-muted-foreground">
+          Cargando…
+        </div>
+      ) : rows.length === 0 ? (
+        <div className="rounded-md border border-dashed p-10 text-center text-sm text-muted-foreground">
+          Sin grados.
+        </div>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {rows.map((g) => (
+            <div
+              key={g.id}
+              className="group flex items-start justify-between gap-2 rounded-lg border bg-card p-4 transition-colors hover:border-univalle/40"
+            >
+              <div className="flex min-w-0 flex-col">
+                <span className="truncate font-medium">{g.name}</span>
+                <span className="truncate text-xs text-muted-foreground">
+                  {g.levelName}
+                </span>
+              </div>
+              <div className="flex shrink-0 gap-1 opacity-70 transition-opacity group-hover:opacity-100">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="size-8"
+                  aria-label={`Editar ${g.name}`}
+                  onClick={() => openEdit(g)}
+                >
+                  <PencilIcon className="size-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="size-8 text-destructive"
+                  aria-label={`Eliminar ${g.name}`}
+                  onClick={() => setDeleting(g)}
+                >
+                  <Trash2Icon className="size-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <DataTablePagination
         page={data?.page != null ? data.page + 1 : page}
@@ -256,7 +240,7 @@ function GradesPage() {
       <ConfirmDialog
         open={Boolean(deleting)}
         title="Eliminar grado"
-        description={deleting ? `"${deleting.name}" sera eliminado.` : undefined}
+        description={deleting ? `"${deleting.name}" será eliminado.` : undefined}
         confirmLabel="Eliminar"
         destructive
         loading={remove.isPending}

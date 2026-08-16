@@ -11,9 +11,6 @@ import { cualitativoOf, situacionClass, situacionOf } from "@/lib/grading"
 import { useCentralizer } from "../hooks/useGradebook"
 import type { StudentSummary } from "../types"
 
-const shortLabel = (name: string) =>
-  name.split(/\s+/).map((w) => w[0]).join("").slice(0, 4).toUpperCase()
-
 export interface CentralizerTableProps {
   courseId: string
   /** Opcional: render del nombre del estudiante (p. ej. link a su detalle). */
@@ -35,13 +32,13 @@ export function CentralizerTable({
   const subjects = useMemo(() => rows[0]?.subjects ?? [], [rows])
 
   const counters = useMemo(() => {
-    let apr = 0
-    let rep = 0
+    let passed = 0
+    let failed = 0
     for (const r of rows) {
-      if (situacionOf(Number(r.generalAverage)) === "APROBADO") apr++
-      else rep++
+      if (situacionOf(Number(r.generalAverage)) === "APROBADO") passed++
+      else failed++
     }
-    return { apr, rep }
+    return { passed, failed }
   }, [rows])
 
   return (
@@ -58,8 +55,8 @@ export function CentralizerTable({
           />
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <Badge variant="secondary">{counters.apr} aprobados</Badge>
-          <Badge variant="outline" className="text-destructive">{counters.rep} reprobados</Badge>
+          <Badge variant="secondary">{counters.passed} aprobados</Badge>
+          <Badge variant="outline" className="text-destructive">{counters.failed} reprobados</Badge>
         </div>
       </div>
 
@@ -72,8 +69,16 @@ export function CentralizerTable({
                   Estudiante
                 </th>
                 {subjects.map((s) => (
-                  <th key={s.classGroupId} title={s.subjectName} className="min-w-16 border-r border-b bg-muted/50 px-2 py-2 text-center font-medium">
-                    {shortLabel(s.subjectName)}
+                  <th
+                    key={s.classGroupId}
+                    title={s.subjectName}
+                    className="h-36 min-w-10 border-r border-b bg-muted/50 px-1 py-2 align-bottom font-medium"
+                  >
+                    <div className="mx-auto flex h-full items-end justify-center">
+                      <span className="whitespace-nowrap [writing-mode:vertical-rl] rotate-180">
+                        {s.subjectName}
+                      </span>
+                    </div>
                   </th>
                 ))}
                 <th className="min-w-24 border-r border-b bg-univalle/10 px-3 py-2 text-center font-semibold text-univalle">PROM.</th>
@@ -89,8 +94,8 @@ export function CentralizerTable({
                 rows.map((r, idx) => {
                   const rowBg = idx % 2 === 0 ? "bg-card" : "bg-muted"
                   const avg = Number(r.generalAverage)
-                  const sit = situacionOf(avg)
-                  const cual = cualitativoOf(avg)
+                  const status = situacionOf(avg)
+                  const qualitative = cualitativoOf(avg)
                   const byId = new Map(r.subjects.map((s) => [s.classGroupId, s]))
                   return (
                     <tr key={r.courseEnrollmentId} className="border-t">
@@ -107,8 +112,8 @@ export function CentralizerTable({
                       })}
                       <td className="border-r bg-univalle/5 px-3 py-2 text-center font-semibold text-univalle">{avg.toFixed(2)}</td>
                       <td className={cn("px-3 py-2 text-center", rowBg)}>
-                        <Badge className={cn("gap-1", situacionClass(sit))}>
-                          {sit === "APROBADO" ? "Aprobado" : "Reprobado"} · {cual.code}
+                        <Badge className={cn("gap-1", situacionClass(status))}>
+                          {status === "APROBADO" ? "Aprobado" : "Reprobado"} · {qualitative.code}
                         </Badge>
                       </td>
                     </tr>

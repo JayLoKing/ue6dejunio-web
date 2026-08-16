@@ -16,14 +16,6 @@ import {
 } from "@/components/ui/dialog"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTablePagination } from "@/components/shared/DataTablePagination"
 import type { PageQuery, PagedResponse } from "@/lib/types/pagination"
@@ -31,6 +23,10 @@ import { trimmedString } from "@/lib/validation/rules"
 
 export interface NameEntity {
   id: number
+  name: string
+}
+
+interface FormValues {
   name: string
 }
 
@@ -72,8 +68,6 @@ export function NameCrudPage<T extends NameEntity>({
     () => z.object({ name: trimmedString({ min: 1, max: maxLen, field: label }) }),
     [maxLen, label],
   )
-  type FormValues = { name: string }
-
   const query = useMemo<PageQuery>(
     () => ({ offset: page, limit, sort: "asc" }),
     [page, limit],
@@ -156,57 +150,46 @@ export function NameCrudPage<T extends NameEntity>({
         </Dialog>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{label}</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={2} className="text-center text-muted-foreground">
-                  Cargando…
-                </TableCell>
-              </TableRow>
-            ) : rows.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={2} className="text-center text-muted-foreground">
-                  Sin registros.
-                </TableCell>
-              </TableRow>
-            ) : (
-              rows.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell>{row.name}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="size-8"
-                        onClick={() => openEdit(row)}
-                      >
-                        <PencilIcon className="size-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="size-8 text-destructive"
-                        onClick={() => setDeleting(row)}
-                      >
-                        <Trash2Icon className="size-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      {isLoading ? (
+        <div className="rounded-md border border-dashed p-10 text-center text-sm text-muted-foreground">
+          Cargando…
+        </div>
+      ) : rows.length === 0 ? (
+        <div className="rounded-md border border-dashed p-10 text-center text-sm text-muted-foreground">
+          Sin registros.
+        </div>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {rows.map((row) => (
+            <div
+              key={row.id}
+              className="group flex items-center justify-between gap-2 rounded-lg border bg-card p-4 transition-colors hover:border-univalle/40"
+            >
+              <span className="min-w-0 truncate font-medium">{row.name}</span>
+              <div className="flex shrink-0 gap-1 opacity-70 transition-opacity group-hover:opacity-100">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="size-8"
+                  aria-label={`Editar ${row.name}`}
+                  onClick={() => openEdit(row)}
+                >
+                  <PencilIcon className="size-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="size-8 text-destructive"
+                  aria-label={`Eliminar ${row.name}`}
+                  onClick={() => setDeleting(row)}
+                >
+                  <Trash2Icon className="size-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <DataTablePagination
         page={data?.page != null ? data.page + 1 : page}
@@ -258,7 +241,7 @@ export function NameCrudPage<T extends NameEntity>({
       <ConfirmDialog
         open={Boolean(deleting)}
         title={`Eliminar ${label.toLowerCase()}`}
-        description={deleting ? `"${deleting.name}" sera eliminado.` : undefined}
+        description={deleting ? `"${deleting.name}" será eliminado.` : undefined}
         confirmLabel="Eliminar"
         destructive
         loading={mutations.remove.isPending}

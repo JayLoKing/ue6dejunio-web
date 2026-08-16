@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
 
+import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -17,14 +18,6 @@ import {
 } from "@/components/ui/dialog"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTablePagination } from "@/components/shared/DataTablePagination"
 import { trimmedString } from "@/lib/validation/rules"
@@ -112,7 +105,7 @@ function SubjectsPage() {
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl font-semibold">Materias</h1>
           <p className="text-sm text-muted-foreground">
-            Materias / areas curriculares.
+            Materias / áreas curriculares.
           </p>
         </div>
         <Button
@@ -124,75 +117,62 @@ function SubjectsPage() {
         </Button>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Materia</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground">
-                  Cargando…
-                </TableCell>
-              </TableRow>
-            ) : rows.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground">
-                  Sin materias.
-                </TableCell>
-              </TableRow>
-            ) : (
-              rows.map((s) => (
-                <TableRow key={s.id}>
-                  <TableCell>{s.name}</TableCell>
-                  <TableCell>
-                    <Badge
-                      className={
-                        s.technical
-                          ? "bg-amber-500/20 text-amber-700 dark:text-amber-300"
-                          : "bg-muted text-muted-foreground"
-                      }
-                    >
-                      {s.technical ? "Técnica" : "Aula"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={s.active ? "secondary" : "outline"}>
-                      {s.active ? "Activa" : "Inactiva"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="size-8"
-                        onClick={() => openEdit(s)}
-                      >
-                        <PencilIcon className="size-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="size-8 text-destructive"
-                        onClick={() => setDeleting(s)}
-                      >
-                        <Trash2Icon className="size-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      {isLoading ? (
+        <div className="rounded-md border border-dashed p-10 text-center text-sm text-muted-foreground">
+          Cargando…
+        </div>
+      ) : rows.length === 0 ? (
+        <div className="rounded-md border border-dashed p-10 text-center text-sm text-muted-foreground">
+          Sin materias.
+        </div>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {rows.map((s) => (
+            <div
+              key={s.id}
+              className="group flex flex-col gap-3 rounded-lg border bg-card p-4 transition-colors hover:border-univalle/40"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <span className="min-w-0 truncate font-medium">{s.name}</span>
+                <div className="flex shrink-0 gap-1 opacity-70 transition-opacity group-hover:opacity-100">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="size-8"
+                    aria-label={`Editar ${s.name}`}
+                    onClick={() => openEdit(s)}
+                  >
+                    <PencilIcon className="size-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="size-8 text-destructive"
+                    aria-label={`Eliminar ${s.name}`}
+                    onClick={() => setDeleting(s)}
+                  >
+                    <Trash2Icon className="size-4" />
+                  </Button>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                <Badge
+                  className={cn(
+                    s.technical
+                      ? "bg-amber-500/20 text-amber-700 dark:text-amber-300"
+                      : "bg-muted text-muted-foreground",
+                  )}
+                >
+                  {s.technical ? "Técnica" : "Aula"}
+                </Badge>
+                <Badge variant={s.active ? "secondary" : "outline"}>
+                  {s.active ? "Activa" : "Inactiva"}
+                </Badge>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <DataTablePagination
         page={data?.page != null ? data.page + 1 : page}
@@ -252,7 +232,7 @@ function SubjectsPage() {
       <ConfirmDialog
         open={Boolean(deleting)}
         title="Eliminar materia"
-        description={deleting ? `"${deleting.name}" sera desactivada.` : undefined}
+        description={deleting ? `"${deleting.name}" será desactivada.` : undefined}
         confirmLabel="Eliminar"
         destructive
         loading={remove.isPending}

@@ -27,7 +27,14 @@ export default defineConfig({
     setupFiles: ["./src/test/setup.ts"],
     css: true,
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
-    exclude: ["node_modules", "dist", ".idea", ".git", ".cache", "src/routeTree.gen.ts"],
+    exclude: [
+      "node_modules",
+      "dist",
+      ".idea",
+      ".git",
+      ".cache",
+      "src/routeTree.gen.ts",
+    ],
     coverage: {
       provider: "v8",
       reporter: ["text", "html", "lcov"],
@@ -42,5 +49,9 @@ export default defineConfig({
         "**/models/**",
       ],
     },
+  },
+  server: {
+    port: 5300,
+    strictPort: true,
   },
 })

@@ -227,7 +227,10 @@ export function SubjectScoreSheet({
                           <th
                             key={dim.key}
                             colSpan={count + 1}
-                            className="border-r border-b bg-muted/60 px-2 py-1.5 text-center font-semibold"
+                            className={cn(
+                              "border-r border-b px-2 py-1.5 text-center font-semibold",
+                              dim.color.soft,
+                            )}
                           >
                             {dim.label}{" "}
                             <span className="text-xs font-normal text-muted-foreground">

@@ -8,6 +8,7 @@ import {
   Trash2Icon,
 } from "lucide-react"
 
+import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -69,9 +70,17 @@ function DimensionBlock({
   const canAdd = name.trim().length > 0 && !create.isPending
 
   return (
-    <div className="rounded-md border">
-      <div className="flex items-center justify-between border-b bg-muted/40 px-3 py-2">
-        <span className="font-semibold">{dim.label}</span>
+    <div className={cn("overflow-hidden rounded-md border", dim.color.border)}>
+      <div
+        className={cn(
+          "flex items-center justify-between gap-2 border-b px-3 py-2",
+          dim.color.soft,
+        )}
+      >
+        <span className="flex items-center gap-2 font-semibold">
+          <span className={cn("h-4 w-1.5 rounded-full", dim.color.bar)} />
+          {dim.label}
+        </span>
         {/* Tope informativo: nota máxima de la dimensión. */}
         <Badge variant="secondary">Nota máxima {dim.weight}</Badge>
       </div>
@@ -210,6 +219,7 @@ function DimensionBlock({
 
       {editing ? (
         <EditCriterionInline
+          key={editing.id}
           criterion={editing}
           onClose={() => setEditing(null)}
           saving={update.isPending}
@@ -294,7 +304,7 @@ export function CriteriaManager({
   }
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="flex flex-col gap-4">
       {DIMENSIONS.map((dim) => (
         <DimensionBlock
           key={dim.key}

@@ -31,7 +31,7 @@ import type { Pdc } from "../types"
 const schema = z.object({
   classGroupId: z.string().min(1, "Selecciona materia"),
   trimester: z.coerce.number().int().min(1).max(3),
-  title: trimmedString({ min: 1, max: 200, field: "Titulo" }),
+  title: trimmedString({ min: 1, max: 200, field: "Título" }),
   holisticObjective: z.string().optional(),
   learningObjective: z.string().optional(),
   contents: z.string().optional(),
@@ -231,20 +231,20 @@ export function PdcFormDialog({
           </div>
 
           <Field data-invalid={Boolean(errors.title) || undefined}>
-            <FieldLabel htmlFor="pdc-title">Titulo</FieldLabel>
+            <FieldLabel htmlFor="pdc-title">Título</FieldLabel>
             <Input id="pdc-title" {...register("title")} />
             {errors.title ? <FieldError>{errors.title.message}</FieldError> : null}
           </Field>
 
-          {textArea("holisticObjective", "Objetivo holistico")}
+          {textArea("holisticObjective", "Objetivo holístico")}
           {textArea("learningObjective", "Objetivo de aprendizaje")}
           {textArea("contents", "Contenidos")}
 
           <div className="grid grid-cols-2 gap-4">
-            {textArea("practiceActivities", "Actividades de practica")}
-            {textArea("theoryActivities", "Actividades de teoria")}
-            {textArea("valuationActivities", "Actividades de valoracion")}
-            {textArea("productionActivities", "Actividades de produccion")}
+            {textArea("practiceActivities", "Actividades de práctica")}
+            {textArea("theoryActivities", "Actividades de teoría")}
+            {textArea("valuationActivities", "Actividades de valoración")}
+            {textArea("productionActivities", "Actividades de producción")}
           </div>
 
           {textArea("resources", "Recursos")}
@@ -264,7 +264,7 @@ export function PdcFormDialog({
             {textArea("criteriaBeing", "Criterio SER")}
             {textArea("criteriaKnowing", "Criterio SABER")}
             {textArea("criteriaDoing", "Criterio HACER")}
-            {textArea("criteriaDeciding", "Criterio DECIDIR")}
+            {textArea("criteriaDeciding", "Criterio AUTOEVALUACIÓN")}
           </div>
 
           <DialogFooter>

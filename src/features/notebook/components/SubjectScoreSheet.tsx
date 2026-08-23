@@ -209,6 +209,19 @@ export function SubjectScoreSheet({
                 criterio con su actividad para este trimestre.
               </p>
             </div>
+          ) : columns.length === 0 ? (
+            <div className="flex flex-col items-center gap-2 rounded-md border border-dashed border-amber-500/40 bg-amber-500/5 p-8 text-center text-sm">
+              <AlertTriangleIcon className="size-6 text-amber-600" />
+              <p className="font-medium">
+                Los criterios aún no tienen actividades.
+              </p>
+              <p className="text-muted-foreground">
+                Las notas se registran por actividad.
+                {readOnly
+                  ? " Aún no hay actividades registradas en esta materia."
+                  : " Ve a la pestaña Criterios y agrega al menos una actividad a un criterio para poder calificar."}
+              </p>
+            </div>
           ) : (
             <div className="min-w-0 overflow-hidden rounded-md border bg-card">
               <ScrollArea className="w-full whitespace-nowrap">

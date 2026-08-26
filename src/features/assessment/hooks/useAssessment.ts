@@ -187,6 +187,45 @@ export function useEventScores(eventIds: string[]) {
 }
 
 /**
+ * Notas directas de varios criterios a la vez: criterionId → courseEnrollmentId → cell.
+ * Espeja a useEventScores. El cuaderno necesita el lote porque arma una columna por
+ * criterio; useCriterionScores (singular) sirve a la grilla de un solo criterio.
+ */
+export function useCriteriaScores(criterionIds: string[]) {
+  const results = useQueries({
+    queries: criterionIds.map((id) => ({
+      queryKey: ["assessment-scores", "criterion", id] as const,
+      queryFn: () => AssessmentScoreService.byCriterion(id),
+      enabled: Boolean(id),
+      staleTime: 30_000,
+    })),
+  })
+  const sig = results.map((r) => r.dataUpdatedAt).join("|")
+  const isLoading = results.some((r) => r.isLoading)
+  const matrix = useMemo<ScoreMatrix>(() => {
+    const out: ScoreMatrix = {}
+    results.forEach((r, idx) => {
+      const criterionId = criterionIds[idx]
+      if (!criterionId) return
+      const byCe: Record<string, ScoreCell> = {}
+      for (const s of r.data ?? []) {
+        byCe[s.courseEnrollmentId] = {
+          id: s.id,
+          score: Number(s.score),
+          recordedAt: s.recordedAt ?? null,
+          updatedAt: s.updatedAt ?? null,
+        }
+      }
+      out[criterionId] = byCe
+    })
+    return out
+    // Misma razón que en useCriteriaEvents: `results` cambia de identidad en cada render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [criterionIds, sig])
+  return { matrix, isLoading }
+}
+
+/**
  * Notas directas de un criterio, para toda la lista del curso.
  * courseEnrollmentId → cell. Espeja a useEventScores para el criterio sin actividad.
  */

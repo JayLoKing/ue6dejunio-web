@@ -1,4 +1,5 @@
-import { Fragment, useEffect, useMemo, useState } from "react"
+import { Fragment, useMemo, useState } from "react"
+import { Link } from "@tanstack/react-router"
 import { AlertTriangleIcon, Loader2Icon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -15,10 +16,12 @@ import {
   dimensionMeta,
   type AssessmentEvent,
   type Criterion,
+  type Dimension,
 } from "@/features/assessment/types"
 import {
   useCriteria,
   useCriteriaEvents,
+  useCriteriaScores,
   useDeleteScore,
   useEventScores,
   useSetScore,
@@ -33,13 +36,26 @@ export interface SubjectScoreSheetProps {
 }
 
 type Trimester = 1 | 2 | 3
+/**
+ * Una columna por criterio, no por item: es la unidad que el backend promedia.
+ * `events` vacío = criterio directo, la nota se escribe aquí. Con ítems, la nota del
+ * criterio es el promedio de ellos y esta celda es de solo lectura.
+ */
 interface Column {
   dimKey: string
   criterion: Criterion
-  event: AssessmentEvent
+  events: AssessmentEvent[]
 }
 
 const round1 = (n: number) => Math.round(n * 10) / 10
+
+/**
+ * Encabezado rotado: `vertical-rl` gira el texto, y el `rotate-180` lo deja leyéndose de
+ * abajo hacia arriba (sin él, queda cabeza abajo). Los nombres de criterio son largos y
+ * como columna horizontal se cortaban; así entran enteros y la columna baja a 2.5rem.
+ */
+const VERTICAL_HEAD =
+  "[writing-mode:vertical-rl] rotate-180 whitespace-nowrap min-h-40 mx-auto"
 
 const formatDate = (iso?: string | null): string | null => {
   if (!iso) return null
@@ -47,7 +63,7 @@ const formatDate = (iso?: string | null): string | null => {
   return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString("es-BO")
 }
 
-/** Tooltip de la casilla: fecha de registro (y edicion si difiere). */
+/** Tooltip de la casilla: fecha de registro (y edición si difiere). */
 const cellTitle = (cell: ScoreCell | undefined): string | undefined => {
   if (!cell) return undefined
   const recorded = formatDate(cell.recordedAt)
@@ -64,7 +80,9 @@ export function SubjectScoreSheet({
   readOnly = false,
 }: SubjectScoreSheetProps) {
   const [trimester, setTrimester] = useState<Trimester>(1)
-  // Texto crudo por casilla: "" = no calificado (distinto de "0").
+  // Solo lo TECLEADO, no un espejo del servidor: una casilla sin tocar no tiene entrada
+  // acá y se dibuja leyendo directamente la nota. Así un refetch no puede pisar lo que
+  // el docente está escribiendo, y no hace falta sincronizar nada en un efecto.
   const [draft, setDraft] = useState<Record<string, string>>({})
 
   const criteriaQuery = useCriteria(classGroup.id, trimester)
@@ -86,42 +104,70 @@ export function SubjectScoreSheet({
     [studentsQuery.data],
   )
 
-  // Columnas planas en orden dimension→criterio→actividad.
+  // Columnas planas en orden dimension→criterio. Todo criterio da una columna, tenga
+  // ítems o no: lo que se califica es el criterio.
   const columns = useMemo(() => {
     const cols: Column[] = []
     for (const dim of DIMENSIONS) {
       for (const c of criteria.filter((x) => x.dimension === dim.key)) {
-        for (const e of byCriterion[c.id] ?? []) {
-          cols.push({ dimKey: dim.key, criterion: c, event: e })
-        }
+        cols.push({ dimKey: dim.key, criterion: c, events: byCriterion[c.id] ?? [] })
       }
     }
     return cols
   }, [criteria, byCriterion])
 
-  const eventIds = useMemo(() => columns.map((c) => c.event.id), [columns])
-  const { matrix } = useEventScores(eventIds)
+  // Los ítems alimentan el promedio de su criterio; los criterios sin ítems reciben
+  // la nota directa. Cada lote va a su propio endpoint.
+  const eventIds = useMemo(
+    () => columns.flatMap((c) => c.events.map((e) => e.id)),
+    [columns],
+  )
+  const directIds = useMemo(
+    () => columns.filter((c) => c.events.length === 0).map((c) => c.criterion.id),
+    [columns],
+  )
+  const { matrix, isLoading: eventScoresLoading } = useEventScores(eventIds)
+  const { matrix: directMatrix, isLoading: directScoresLoading } =
+    useCriteriaScores(directIds)
+  // Sin esto la casilla cargando y la no calificada dibujan el mismo "—".
+  const scoresLoading = eventScoresLoading || directScoresLoading
   const setScore = useSetScore()
   const deleteScore = useDeleteScore()
 
-  useEffect(() => {
-    const next: Record<string, string> = {}
-    for (const s of students) {
-      for (const col of columns) {
-        const cell = matrix[col.event.id]?.[s.courseEnrollmentId]
-        if (cell) next[`${s.courseEnrollmentId}:${col.event.id}`] = String(cell.score)
-      }
+  /** Nota del criterio: la directa, o el promedio de sus ítems. null si no hay ninguna. */
+  const valueOf = (col: Column, ce: string): number | null => {
+    if (col.events.length === 0) {
+      const cell = directMatrix[col.criterion.id]?.[ce]
+      return cell ? cell.score : null
     }
-    setDraft(next)
-  }, [students, columns, matrix])
+    const values: number[] = []
+    for (const e of col.events) {
+      const cell = matrix[e.id]?.[ce]
+      if (cell) values.push(cell.score)
+    }
+    if (values.length === 0) return null
+    return values.reduce((a, b) => a + b, 0) / values.length
+  }
+
+  /** Lo tecleado si la casilla se tocó; si no, la nota guardada. "" = no calificado. */
+  const directText = (col: Column, ce: string): string => {
+    const typed = draft[`${ce}:${col.criterion.id}`]
+    if (typed !== undefined) return typed
+    const cell = directMatrix[col.criterion.id]?.[ce]
+    return cell ? String(cell.score) : ""
+  }
 
   const commit = (ce: string, col: Column, raw: string) => {
-    const existing = matrix[col.event.id]?.[ce]
+    const key = `${ce}:${col.criterion.id}`
+    const existing = directMatrix[col.criterion.id]?.[ce]
     const trimmed = raw.trim()
 
-    // Vacio = no calificado: borra la nota si existia.
+    // Vacío = no calificado: borra la nota si existía.
     if (trimmed === "") {
-      if (existing) deleteScore.mutate({ id: existing.id, eventId: col.event.id })
+      setDraft((d) => ({ ...d, [key]: "" }))
+      if (existing) {
+        deleteScore.mutate({ id: existing.id, criterionId: col.criterion.id })
+      }
       return
     }
 
@@ -130,23 +176,37 @@ export function SubjectScoreSheet({
     if (!Number.isFinite(val) || val < 0) val = 0
     if (val > max) val = max
 
+    // El draft queda con el valor YA acotado, que es el que el backend va a devolver:
+    // sin esto la casilla seguiria mostrando el "999" que el docente tecleo.
+    setDraft((d) => ({ ...d, [key]: String(val) }))
+
     if (existing && existing.score === val) return
     setScore.mutate({
       id_course_enrollment: ce,
-      id_assessment_event: col.event.id,
+      id_criterion: col.criterion.id,
       score: val,
     })
   }
 
-  /** Promedio de la dimension = media de las casillas con valor. null si ninguna. */
-  const dimensionAverage = (ce: string, dimKey: string): number | null => {
+  /**
+   * Promedio de la dimensión = media de las notas de sus CRITERIOS, no de las casillas
+   * sueltas. Es la misma cuenta de dos niveles que hace el backend: si se promediaran
+   * los ítems crudos, un criterio con diez ítems pesaría diez veces más que uno directo.
+   */
+  const dimensionAverage = (ce: string, dimKey: Dimension): number | null => {
     const values: number[] = []
     for (const col of columns) {
       if (col.dimKey !== dimKey) continue
-      const raw = draft[`${ce}:${col.event.id}`]
-      if (raw === undefined || raw.trim() === "") continue
-      const n = Number(raw)
-      if (Number.isFinite(n)) values.push(n)
+      if (col.events.length === 0) {
+        // Sigue al tecleo, no al último refetch: directText prefiere lo tecleado.
+        const raw = directText(col, ce)
+        if (raw.trim() === "") continue
+        const n = Number(raw)
+        if (Number.isFinite(n)) values.push(n)
+        continue
+      }
+      const v = valueOf(col, ce)
+      if (v !== null) values.push(v)
     }
     if (values.length === 0) return null
     return values.reduce((a, b) => a + b, 0) / values.length
@@ -206,20 +266,7 @@ export function SubjectScoreSheet({
               <p className="font-medium">Define criterios antes de cargar notas.</p>
               <p className="text-muted-foreground">
                 Ve a la pestaña <strong>Criterios</strong> y agrega al menos un
-                criterio con su actividad para este trimestre.
-              </p>
-            </div>
-          ) : columns.length === 0 ? (
-            <div className="flex flex-col items-center gap-2 rounded-md border border-dashed border-amber-500/40 bg-amber-500/5 p-8 text-center text-sm">
-              <AlertTriangleIcon className="size-6 text-amber-600" />
-              <p className="font-medium">
-                Los criterios aún no tienen actividades.
-              </p>
-              <p className="text-muted-foreground">
-                Las notas se registran por actividad.
-                {readOnly
-                  ? " Aún no hay actividades registradas en esta materia."
-                  : " Ve a la pestaña Criterios y agrega al menos una actividad a un criterio para poder calificar."}
+                criterio para este trimestre.
               </p>
             </div>
           ) : (
@@ -254,10 +301,9 @@ export function SubjectScoreSheet({
                       })}
                       <th
                         rowSpan={2}
-                        className="border-b bg-muted px-2 py-2 text-center align-bottom font-semibold"
+                        className="w-10 border-b bg-muted p-1 align-bottom font-semibold"
                       >
-                        Total
-                        <div className="text-[10px] font-normal text-muted-foreground">/100</div>
+                        <div className={VERTICAL_HEAD}>PROMEDIO TRIMESTRAL · /100</div>
                       </th>
                     </tr>
                     <tr>
@@ -267,18 +313,37 @@ export function SubjectScoreSheet({
                             .filter((c) => c.dimKey === dim.key)
                             .map((col) => (
                               <th
-                                key={col.event.id}
-                                title={`${col.criterion.name} · ${col.event.title}`}
-                                className="min-w-24 border-r border-b bg-muted/40 px-2 py-1 text-center text-xs font-normal"
+                                key={col.criterion.id}
+                                title={
+                                  col.events.length > 0
+                                    ? `${col.criterion.name} · promedio de ${col.events.length} ${
+                                        col.events.length === 1 ? "criterio" : "criterios"
+                                      } de la actividad${
+                                        col.criterion.activityName
+                                          ? ` "${col.criterion.activityName}"`
+                                          : ""
+                                      }`
+                                    : `${col.criterion.name} · calificación directa`
+                                }
+                                className="w-10 border-r border-b bg-muted/40 p-1 align-bottom text-xs font-normal"
                               >
-                                <div className="truncate">{col.event.title}</div>
-                                <div className="text-[10px] text-muted-foreground">
-                                  /{dim.weight}
+                                <div className={cn("flex items-center gap-1", VERTICAL_HEAD)}>
+                                  <span>{col.criterion.name}</span>
+                                  <span className="text-[10px] text-muted-foreground">
+                                    {col.events.length > 0 ? "prom. actividad" : `/${dim.weight}`}
+                                  </span>
                                 </div>
                               </th>
                             ))}
-                          <th className="min-w-20 border-r border-b bg-muted/70 px-2 py-1 text-center text-xs font-semibold">
-                            Prom.
+                          <th
+                            className={cn(
+                              "w-10 border-r border-b p-1 align-bottom text-xs font-semibold",
+                              dim.color.soft,
+                            )}
+                          >
+                            <div className={VERTICAL_HEAD}>
+                              PROMEDIO {dim.label} · /{dim.weight}
+                            </div>
                           </th>
                         </Fragment>
                       ))}
@@ -318,19 +383,45 @@ export function SubjectScoreSheet({
                                   {columns
                                     .filter((c) => c.dimKey === dim.key)
                                     .map((col) => {
-                                      const k = `${ce}:${col.event.id}`
-                                      const cell = matrix[col.event.id]?.[ce]
+                                      const k = `${ce}:${col.criterion.id}`
+                                      const cell = directMatrix[col.criterion.id]?.[ce]
+                                      // Con ítems la nota no se escribe aquí: es el promedio
+                                      // de la grilla de la actividad, y se entra a esa grilla.
+                                      const activityAvg =
+                                        col.events.length > 0 ? valueOf(col, ce) : null
                                       return (
                                         <td
-                                          key={col.event.id}
+                                          key={col.criterion.id}
                                           className={cn("border-r px-1 py-1 text-center", rowBg)}
                                         >
-                                          {readOnly ? (
+                                          {col.events.length > 0 ? (
+                                            <Link
+                                              to="/scores/$classGroupId/criterio/$criterionId"
+                                              params={{
+                                                classGroupId: classGroup.id,
+                                                criterionId: col.criterion.id,
+                                              }}
+                                              // La grilla del criterio carga los criterios
+                                              // de su trimestre: sin esto cae al 1 y no lo halla.
+                                              search={{ trimester }}
+                                              title={`Calificar los criterios de "${
+                                                col.criterion.activityName ?? col.criterion.name
+                                              }"`}
+                                              className="inline-block w-16 py-1 font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                                            >
+                                              {scoresLoading && activityAvg === null
+                                                ? "…"
+                                                : activityAvg === null
+                                                  ? "—"
+                                                  : round1(activityAvg)}
+                                            </Link>
+                                          ) : readOnly ? (
                                             <span
                                               title={cellTitle(cell)}
                                               className="inline-block w-16 py-1"
                                             >
-                                              {draft[k] && draft[k] !== "" ? draft[k] : "—"}
+                                              {directText(col, ce) ||
+                                                (scoresLoading ? "…" : "—")}
                                             </span>
                                           ) : (
                                             <Input
@@ -340,7 +431,7 @@ export function SubjectScoreSheet({
                                               max={dim.weight}
                                               step={0.5}
                                               title={cellTitle(cell)}
-                                              value={draft[k] ?? ""}
+                                              value={directText(col, ce)}
                                               onChange={(e) =>
                                                 setDraft((d) => ({ ...d, [k]: e.target.value }))
                                               }
@@ -378,7 +469,7 @@ export function SubjectScoreSheet({
           <p className="pt-2 text-xs text-muted-foreground">
             {readOnly
               ? "Materia técnica: las notas las registra el docente técnico. Aquí solo se visualizan."
-              : "La nota se guarda al salir del campo; cada casilla admite hasta el tope de su dimensión. Dejar la casilla vacía marca la actividad como no calificada (distinto de 0). Promedios y total son de solo lectura."}
+              : "Hay una columna por criterio. El criterio de calificación directa se escribe aquí y se guarda al salir del campo; dejarlo vacío lo marca como no calificado (distinto de 0). El criterio que viene de una actividad muestra el promedio de sus criterios: haz clic para calificarlos. Promedios y total son de solo lectura."}
           </p>
         </TabsContent>
 

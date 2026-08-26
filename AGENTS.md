@@ -4,6 +4,7 @@ Frontend: React 19 + TypeScript + TanStack Router + Vite 7 + Bun + shadcn/ui + T
 
 ## Architecture (Screaming / feature-based)
 - Code lives under `src/features/<feature>/` with `types/`, `helpers/`, `services/`, `hooks/`, `components/`.
+- A feature may also have `utils/` for pure functions with no React and no I/O (derivations, formatting, clamping). It sits outside the data layer, so it may not import from `helpers/`, `services/` or `hooks/`. Keep `helpers/` for the API modules described below.
 - Strict data layer, one direction only:
   - **helpers** make raw API calls, return `UseApiCall<T>` using `loadAbort()` + `httpClient`, with query params in the axios config (`params`). No business logic.
   - **services** consume `helper.xAsync().call` and return `.data`. No React.

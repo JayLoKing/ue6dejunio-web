@@ -6,7 +6,7 @@ export interface DatedCell {
   updatedAt: string | null
 }
 
-/** Una décima: las notas se muestran redondeadas, se guardan enteras. */
+/** Una décima: los promedios se muestran redondeados, la nota se guarda como se tecleó. */
 export const round1 = (n: number): number => Math.round(n * 10) / 10
 
 const formatDate = (iso: string | null | undefined): string | null => {

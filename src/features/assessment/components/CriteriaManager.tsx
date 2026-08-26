@@ -67,7 +67,52 @@ function DimensionBlock({
   const [deleting, setDeleting] = useState<Criterion | null>(null)
   const [activityDraft, setActivityDraft] = useState<Record<string, string>>({})
 
-  const canAdd = name.trim().length > 0 && !create.isPending
+  // Alta opcional de la actividad junto al criterio, en un solo POST.
+  const [withActivity, setWithActivity] = useState(false)
+  const [activityTitle, setActivityTitle] = useState("")
+  const [items, setItems] = useState<string[]>([])
+  const [itemDraft, setItemDraft] = useState("")
+
+  // Repetidos se rechazan sin distinguir mayúsculas, igual que el backend: dos casillas
+  // con el mismo nombre son indistinguibles para el docente.
+  const canAddItem =
+    itemDraft.trim().length > 0 &&
+    !items.some((i) => i.toLowerCase() === itemDraft.trim().toLowerCase())
+
+  const addItem = () => {
+    if (!canAddItem) return
+    setItems((prev) => [...prev, itemDraft.trim()])
+    setItemDraft("")
+  }
+
+  const canAdd =
+    name.trim().length > 0 &&
+    !create.isPending &&
+    (!withActivity || (activityTitle.trim().length > 0 && items.length > 0))
+
+  const submitCriterion = () => {
+    if (!canAdd) return
+    create.mutate(
+      {
+        id_class_group: classGroupId,
+        trimester,
+        dimension: dim.key,
+        name: name.trim(),
+        ...(withActivity
+          ? { activity: { title: activityTitle.trim(), items } }
+          : {}),
+      },
+      {
+        onSuccess: () => {
+          setName("")
+          setWithActivity(false)
+          setActivityTitle("")
+          setItems([])
+          setItemDraft("")
+        },
+      },
+    )
+  }
 
   return (
     <div className={cn("overflow-hidden rounded-md border", dim.color.border)}>
@@ -92,10 +137,20 @@ function DimensionBlock({
           criteria.map((c) => {
             const evs = eventsByCriterion[c.id] ?? []
             const draft = activityDraft[c.id] ?? ""
+            // Tener items es lo que define el criterio de actividad, no el nombre: los
+            // criterios anteriores a `activityName` lo traen en null y ya tienen items.
+            const activityBased = c.activityName !== null || evs.length > 0
             return (
               <li key={c.id} className="px-3 py-2">
                 <div className="flex items-center gap-2">
-                  <span className="flex-1 text-sm font-medium">{c.name}</span>
+                  <span className="flex-1 text-sm font-medium">
+                    {c.name}
+                    {c.activityName ? (
+                      <span className="ml-2 text-xs font-normal text-muted-foreground">
+                        actividad: {c.activityName}
+                      </span>
+                    ) : null}
+                  </span>
                   {readOnly ? null : (
                     <Button
                       size="icon"
@@ -136,52 +191,63 @@ function DimensionBlock({
                     </>
                   )}
                 </div>
-                <div className="mt-1.5 flex flex-wrap items-center gap-1.5 pl-2">
-                  {eventsLoading ? (
+                {/* Hasta que los items lleguen, `evs` está vacío y un criterio antiguo
+                    pasaría por directo: se decide recién con la lista cargada. */}
+                {eventsLoading ? (
+                  <div className="mt-1.5 pl-2">
                     <Loader2Icon className="size-3.5 animate-spin text-muted-foreground" />
-                  ) : (
-                    evs.map((e) => (
-                      <Badge key={e.id} variant="outline" className="gap-1">
-                        {e.title}
-                        {readOnly ? null : (
-                          <button
-                            type="button"
-                            className="text-destructive"
-                            aria-label={`Quitar actividad ${e.title}`}
-                            onClick={() => removeEvent.mutate(e.id)}
-                          >
-                            ×
-                          </button>
-                        )}
-                      </Badge>
-                    ))
-                  )}
-                  {readOnly ? null : (
-                    <div className="flex items-center gap-1">
-                      <Input
-                        value={draft}
-                        onChange={(ev) => setActivityDraft((d) => ({ ...d, [c.id]: ev.target.value }))}
-                        placeholder="Nueva actividad"
-                        className="h-7 w-40 text-xs"
-                      />
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="size-7"
-                        aria-label="Agregar actividad"
-                        disabled={!draft.trim() || createEvent.isPending}
-                        onClick={() =>
-                          createEvent.mutate(
-                            { id_criterion: c.id, title: draft.trim() },
-                            { onSuccess: () => setActivityDraft((d) => ({ ...d, [c.id]: "" })) },
-                          )
-                        }
-                      >
-                        <PlusIcon className="size-3.5" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
+                  </div>
+                ) : activityBased ? (
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5 pl-2">
+                    {evs.map((e) => (
+                        <Badge key={e.id} variant="outline" className="gap-1">
+                          {e.title}
+                          {/* El último item no se puede quitar: dejaría la actividad sin nada
+                              que promediar y sin poder recibir nota directa. El backend
+                              responde 409; aquí se desactiva antes de llegar. */}
+                          {readOnly || evs.length === 1 ? null : (
+                            <button
+                              type="button"
+                              className="text-destructive"
+                              aria-label={`Quitar criterio ${e.title}`}
+                              onClick={() => removeEvent.mutate(e.id)}
+                            >
+                              ×
+                            </button>
+                          )}
+                        </Badge>
+                    ))}
+                    {readOnly ? null : (
+                      <div className="flex items-center gap-1">
+                        <Input
+                          value={draft}
+                          onChange={(ev) => setActivityDraft((d) => ({ ...d, [c.id]: ev.target.value }))}
+                          placeholder="Nuevo criterio"
+                          className="h-7 w-40 text-xs"
+                        />
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-7"
+                          aria-label="Agregar criterio de actividad"
+                          disabled={!draft.trim() || createEvent.isPending}
+                          onClick={() =>
+                            createEvent.mutate(
+                              { id_criterion: c.id, title: draft.trim() },
+                              { onSuccess: () => setActivityDraft((d) => ({ ...d, [c.id]: "" })) },
+                            )
+                          }
+                        >
+                          <PlusIcon className="size-3.5" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="mt-1 pl-2 text-xs text-muted-foreground">
+                    Calificación directa: la nota se registra sobre el criterio.
+                  </p>
+                )}
               </li>
             )
           })
@@ -189,31 +255,86 @@ function DimensionBlock({
       </ul>
 
       {readOnly ? null : (
-        <div className="flex items-center gap-2 border-t p-2">
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Nombre del criterio"
-            className="h-8 flex-1"
-          />
-          <Button
-            size="sm"
-            disabled={!canAdd}
-            className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
-            onClick={() =>
-              create.mutate(
-                {
-                  id_class_group: classGroupId,
-                  trimester,
-                  dimension: dim.key,
-                  name: name.trim(),
-                },
-                { onSuccess: () => setName("") },
-              )
-            }
-          >
-            <PlusIcon data-icon="inline-start" /> Agregar
-          </Button>
+        <div className="flex flex-col gap-2 border-t p-2">
+          <div className="flex items-center gap-2">
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Nombre del criterio"
+              className="h-8 flex-1"
+            />
+            <Button
+              size="sm"
+              disabled={!canAdd}
+              className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
+              onClick={submitCriterion}
+            >
+              <PlusIcon data-icon="inline-start" /> Agregar
+            </Button>
+          </div>
+
+          <label className="flex items-center gap-2 text-xs text-muted-foreground">
+            <input
+              type="checkbox"
+              checked={withActivity}
+              onChange={(e) => setWithActivity(e.target.checked)}
+              className="size-3.5"
+            />
+            Proviene de una actividad
+          </label>
+
+          {withActivity ? (
+            <div className="flex flex-col gap-2 rounded-md border bg-muted/20 p-2">
+              <Input
+                value={activityTitle}
+                onChange={(e) => setActivityTitle(e.target.value)}
+                placeholder="Nombre de la actividad (ej. Revisión de Cuadernos)"
+                className="h-8"
+              />
+              <div className="flex flex-wrap items-center gap-1.5">
+                {items.map((it) => (
+                  <Badge key={it} variant="outline" className="gap-1">
+                    {it}
+                    <button
+                      type="button"
+                      className="text-destructive"
+                      aria-label={`Quitar ${it}`}
+                      onClick={() => setItems((prev) => prev.filter((x) => x !== it))}
+                    >
+                      ×
+                    </button>
+                  </Badge>
+                ))}
+                <div className="flex items-center gap-1">
+                  <Input
+                    value={itemDraft}
+                    onChange={(e) => setItemDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter") return
+                      e.preventDefault()
+                      addItem()
+                    }}
+                    placeholder="Criterio de la actividad (ej. Tema 1)"
+                    className="h-7 w-56 text-xs"
+                  />
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="size-7"
+                    aria-label="Agregar criterio a la actividad"
+                    disabled={!canAddItem}
+                    onClick={addItem}
+                  >
+                    <PlusIcon className="size-3.5" />
+                  </Button>
+                </div>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                La nota del criterio será el promedio de estos criterios. Se necesita al
+                menos uno.
+              </p>
+            </div>
+          ) : null}
         </div>
       )}
 

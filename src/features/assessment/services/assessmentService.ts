@@ -65,6 +65,9 @@ export class AssessmentScoreService {
   static async byEvent(eventId: string): Promise<AssessmentScore[]> {
     return (await scoreHelper.byEventAsync(eventId).call).data
   }
+  static async byCriterion(criterionId: string): Promise<AssessmentScore[]> {
+    return (await scoreHelper.byCriterionAsync(criterionId).call).data
+  }
   static async byCourseEnrollment(
     courseEnrollmentId: string,
   ): Promise<AssessmentScore[]> {

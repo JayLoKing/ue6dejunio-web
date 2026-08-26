@@ -134,6 +134,16 @@ export class AssessmentScoreHelper {
       controller,
     }
   }
+  byCriterionAsync(criterionId: string): UseApiCall<AssessmentScore[]> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.get<AssessmentScore[]>(
+        AssessmentScoreUrl.ByCriterion(criterionId),
+        { signal: controller.signal },
+      ),
+      controller,
+    }
+  }
   byCourseEnrollmentAsync(
     courseEnrollmentId: string,
   ): UseApiCall<AssessmentScore[]> {

@@ -1,6 +1,7 @@
 import { useMemo } from "react"
 import {
   keepPreviousData,
+  skipToken,
   useMutation,
   useQueries,
   useQuery,
@@ -92,6 +93,8 @@ export function useCriteriaEvents(criteria: Criterion[]) {
       if (c) out[c.id] = r.data ?? []
     })
     return out
+    // `results` es un arreglo nuevo en cada render, así que como dependencia recalcularía
+    // siempre. `sig` resume el dataUpdatedAt de cada query y solo cambia cuando llegan datos.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [criteria, sig])
   return { byCriterion, isLoading }
@@ -177,9 +180,57 @@ export function useEventScores(eventIds: string[]) {
       out[eventId] = byCe
     })
     return out
+    // Misma razón que en useCriteriaEvents: `results` cambia de identidad en cada render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventIds, sig])
   return { matrix, isLoading }
+}
+
+/**
+ * Notas directas de un criterio, para toda la lista del curso.
+ * courseEnrollmentId → cell. Espeja a useEventScores para el criterio sin actividad.
+ */
+export function useCriterionScores(criterionId: string | null) {
+  const query = useQuery({
+    queryKey: ["assessment-scores", "criterion", criterionId] as const,
+    // skipToken en vez de `enabled`: deja el id como string dentro del closure,
+    // sin castearlo.
+    queryFn: criterionId
+      ? () => AssessmentScoreService.byCriterion(criterionId)
+      : skipToken,
+    staleTime: 30_000,
+  })
+  const byEnrollment = useMemo<Record<string, ScoreCell>>(() => {
+    const out: Record<string, ScoreCell> = {}
+    for (const s of query.data ?? []) {
+      out[s.courseEnrollmentId] = {
+        id: s.id,
+        score: Number(s.score),
+        recordedAt: s.recordedAt ?? null,
+        updatedAt: s.updatedAt ?? null,
+      }
+    }
+    return out
+  }, [query.data])
+  return { byEnrollment, isLoading: query.isLoading }
+}
+
+/** Invalida la lista del destino que corresponda; la nota vive en uno solo de los dos. */
+function invalidateScoreTarget(
+  qc: ReturnType<typeof useQueryClient>,
+  target: { eventId?: string | null; criterionId?: string | null },
+) {
+  if (target.eventId) {
+    void qc.invalidateQueries({
+      queryKey: ["assessment-scores", "event", target.eventId],
+    })
+  }
+  if (target.criterionId) {
+    void qc.invalidateQueries({
+      queryKey: ["assessment-scores", "criterion", target.criterionId],
+    })
+  }
+  void qc.invalidateQueries({ queryKey: ["gradebook"] })
 }
 
 export function useSetScore() {
@@ -188,10 +239,10 @@ export function useSetScore() {
     mutationFn: (p: SetScorePayload) => AssessmentScoreService.setScore(p),
     onSuccess: (_d, vars) => {
       // Refresca para reflejar la fecha devuelta por el backend.
-      void qc.invalidateQueries({
-        queryKey: ["assessment-scores", "event", vars.id_assessment_event],
+      invalidateScoreTarget(qc, {
+        eventId: vars.id_assessment_event,
+        criterionId: vars.id_criterion,
       })
-      void qc.invalidateQueries({ queryKey: ["gradebook"] })
     },
   })
 }
@@ -200,13 +251,11 @@ export function useSetScore() {
 export function useDeleteScore() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (v: { id: string; eventId: string }) =>
-      AssessmentScoreService.remove(v.id),
-    onSuccess: (_d, vars) => {
-      void qc.invalidateQueries({
-        queryKey: ["assessment-scores", "event", vars.eventId],
-      })
-      void qc.invalidateQueries({ queryKey: ["gradebook"] })
-    },
+    mutationFn: (v: {
+      id: string
+      eventId?: string | null
+      criterionId?: string | null
+    }) => AssessmentScoreService.remove(v.id),
+    onSuccess: (_d, vars) => invalidateScoreTarget(qc, vars),
   })
 }

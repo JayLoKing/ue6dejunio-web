@@ -70,21 +70,32 @@ export const DIMENSIONS: DimensionMeta[] = [
 export const dimensionMeta = (key: string): DimensionMeta =>
   DIMENSIONS.find((d) => d.key === key) ?? DIMENSIONS[0]
 
-/** Criterio de evaluacion (solo nombre) por materia+trimestre+dimension. */
+/**
+ * Criterio de evaluación por materia+trimestre+dimensión.
+ *
+ * Con `activityName` en null se califica de forma directa: la nota va al criterio.
+ * Con `activityName`, la nota del criterio es el promedio de los ítems de la actividad.
+ */
 export interface Criterion {
   id: string
   classGroupId: string
   trimester: number
   dimension: Dimension
   name: string
+  activityName: string | null
   curriculumPlanId: string | null
 }
 
+/** Sin `activity` crea un criterio directo; con `activity` crea también sus ítems. */
 export interface CreateCriterionPayload {
   id_class_group: string
   trimester: number
   dimension: Dimension
   name: string
+  activity?: {
+    title: string
+    items: string[]
+  }
   id_curriculum_plan?: string
 }
 
@@ -92,7 +103,7 @@ export interface UpdateCriterionPayload {
   name?: string
 }
 
-/** Actividad bajo un criterio. */
+/** Ítem calificable de una actividad ("Tema 1"). Usa la escala de su dimensión. */
 export interface AssessmentEvent {
   id: string
   criterionId: string
@@ -100,36 +111,33 @@ export interface AssessmentEvent {
   trimester: number
   dimension: Dimension
   title: string
-  description: string | null
-  maxScore: number
 }
 
 export interface CreateEventPayload {
   id_criterion: string
   title: string
-  description?: string
-  maxScore?: number
 }
 
 export interface UpdateEventPayload {
   title?: string
-  description?: string
-  maxScore?: number
 }
 
-/** Nota por (course_enrollment, actividad). */
+/** Nota de un estudiante sobre un item de actividad o sobre un criterio directo. */
 export interface AssessmentScore {
   id: string
   courseEnrollmentId: string
-  eventId: string
+  eventId: string | null
+  criterionId: string | null
   score: number
   /** Fecha de registro y de ultima edicion (ISO-8601 del backend). */
   recordedAt: string | null
   updatedAt: string | null
 }
 
+/** Envíe exactamente uno de los dos destinos: ítem de actividad o criterio directo. */
 export interface SetScorePayload {
   id_course_enrollment: string
-  id_assessment_event: string
+  id_assessment_event?: string
+  id_criterion?: string
   score: number
 }

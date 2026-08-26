@@ -25,9 +25,15 @@ import {
   useDeleteScore,
   useEventScores,
   useSetScore,
-  type ScoreCell,
 } from "@/features/assessment/hooks/useAssessment"
+import { cellTitle, round1 } from "@/features/assessment/utils/scoreCell"
+import {
+  draftText,
+  mean,
+  scoreFromText,
+} from "@/features/assessment/utils/scoreDraft"
 import { CriteriaManager } from "@/features/assessment/components/CriteriaManager"
+import type { Trimester } from "@/features/notebook/types"
 
 export interface SubjectScoreSheetProps {
   classGroup: ClassGroupItem
@@ -35,19 +41,16 @@ export interface SubjectScoreSheetProps {
   readOnly?: boolean
 }
 
-type Trimester = 1 | 2 | 3
 /**
  * Una columna por criterio, no por item: es la unidad que el backend promedia.
  * `events` vacío = criterio directo, la nota se escribe aquí. Con ítems, la nota del
  * criterio es el promedio de ellos y esta celda es de solo lectura.
  */
 interface Column {
-  dimKey: string
+  dimKey: Dimension
   criterion: Criterion
   events: AssessmentEvent[]
 }
-
-const round1 = (n: number) => Math.round(n * 10) / 10
 
 /**
  * Encabezado rotado: `vertical-rl` gira el texto, y el `rotate-180` lo deja leyéndose de
@@ -56,24 +59,6 @@ const round1 = (n: number) => Math.round(n * 10) / 10
  */
 const VERTICAL_HEAD =
   "[writing-mode:vertical-rl] rotate-180 whitespace-nowrap min-h-40 mx-auto"
-
-const formatDate = (iso?: string | null): string | null => {
-  if (!iso) return null
-  const d = new Date(iso)
-  return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString("es-BO")
-}
-
-/** Tooltip de la casilla: fecha de registro (y edición si difiere). */
-const cellTitle = (cell: ScoreCell | undefined): string | undefined => {
-  if (!cell) return undefined
-  const recorded = formatDate(cell.recordedAt)
-  const updated = formatDate(cell.updatedAt)
-  if (!recorded && !updated) return undefined
-  const parts: string[] = []
-  if (recorded) parts.push(`registrada ${recorded}`)
-  if (updated && updated !== recorded) parts.push(`editada ${updated}`)
-  return parts.join(" · ")
-}
 
 export function SubjectScoreSheet({
   classGroup,
@@ -87,12 +72,13 @@ export function SubjectScoreSheet({
 
   const criteriaQuery = useCriteria(classGroup.id, trimester)
   const critLoading = criteriaQuery.isLoading
-  // Ref estable: evita recrear columns/matrix cada render (loop de setState).
+  // Ref estable: sin esto columns/eventIds/directIds se recrean en cada render y las
+  // queries por id se vuelven a disparar.
   const criteria = useMemo(
     () => criteriaQuery.data ?? [],
     [criteriaQuery.data],
   )
-  const { byCriterion } = useCriteriaEvents(criteria)
+  const { byCriterion, isLoading: evLoading } = useCriteriaEvents(criteria)
 
   const studentsQuery = useCourseStudents(classGroup.courseId, {
     offset: 1,
@@ -104,7 +90,7 @@ export function SubjectScoreSheet({
     [studentsQuery.data],
   )
 
-  // Columnas planas en orden dimension→criterio. Todo criterio da una columna, tenga
+  // Columnas planas en orden dimensión→criterio. Todo criterio da una columna, tenga
   // ítems o no: lo que se califica es el criterio.
   const columns = useMemo(() => {
     const cols: Column[] = []
@@ -118,19 +104,29 @@ export function SubjectScoreSheet({
 
   // Los ítems alimentan el promedio de su criterio; los criterios sin ítems reciben
   // la nota directa. Cada lote va a su propio endpoint.
+  //
+  // Nada arranca hasta que los ítems cargan: mientras `byCriterion` está vacío TODO
+  // criterio parece directo, y esa lectura no es solo un promedio transitorio mal
+  // calculado — deja la casilla editable sobre un criterio de actividad y una nota
+  // tecleada ahí se guardaría como nota DIRECTA de un criterio que se califica por
+  // sus ítems. Es la misma guarda que aplica CriterionScoreSheet.
   const eventIds = useMemo(
-    () => columns.flatMap((c) => c.events.map((e) => e.id)),
-    [columns],
+    () => (evLoading ? [] : columns.flatMap((c) => c.events.map((e) => e.id))),
+    [evLoading, columns],
   )
   const directIds = useMemo(
-    () => columns.filter((c) => c.events.length === 0).map((c) => c.criterion.id),
-    [columns],
+    () =>
+      evLoading
+        ? []
+        : columns.filter((c) => c.events.length === 0).map((c) => c.criterion.id),
+    [evLoading, columns],
   )
   const { matrix, isLoading: eventScoresLoading } = useEventScores(eventIds)
   const { matrix: directMatrix, isLoading: directScoresLoading } =
     useCriteriaScores(directIds)
-  // Sin esto la casilla cargando y la no calificada dibujan el mismo "—".
-  const scoresLoading = eventScoresLoading || directScoresLoading
+  // Sin esto la casilla cargando y la no calificada dibujan el mismo "—", y la casilla
+  // queda escribible antes de saber si el criterio se califica directo o por ítems.
+  const scoresLoading = evLoading || eventScoresLoading || directScoresLoading
   const setScore = useSetScore()
   const deleteScore = useDeleteScore()
 
@@ -140,22 +136,20 @@ export function SubjectScoreSheet({
       const cell = directMatrix[col.criterion.id]?.[ce]
       return cell ? cell.score : null
     }
-    const values: number[] = []
-    for (const e of col.events) {
-      const cell = matrix[e.id]?.[ce]
-      if (cell) values.push(cell.score)
-    }
-    if (values.length === 0) return null
-    return values.reduce((a, b) => a + b, 0) / values.length
+    return mean(
+      col.events
+        .map((e) => matrix[e.id]?.[ce]?.score)
+        .filter((n): n is number => n !== undefined),
+    )
   }
 
   /** Lo tecleado si la casilla se tocó; si no, la nota guardada. "" = no calificado. */
-  const directText = (col: Column, ce: string): string => {
-    const typed = draft[`${ce}:${col.criterion.id}`]
-    if (typed !== undefined) return typed
-    const cell = directMatrix[col.criterion.id]?.[ce]
-    return cell ? String(cell.score) : ""
-  }
+  const directText = (col: Column, ce: string): string =>
+    draftText(
+      draft,
+      `${ce}:${col.criterion.id}`,
+      directMatrix[col.criterion.id]?.[ce]?.score,
+    )
 
   const commit = (ce: string, col: Column, raw: string) => {
     const key = `${ce}:${col.criterion.id}`
@@ -171,13 +165,20 @@ export function SubjectScoreSheet({
       return
     }
 
-    const max = dimensionMeta(col.dimKey).weight
-    let val = Number(trimmed)
-    if (!Number.isFinite(val) || val < 0) val = 0
-    if (val > max) val = max
+    const val = scoreFromText(trimmed, dimensionMeta(col.dimKey).weight)
+    if (val === null) {
+      // Texto inválido: no persiste; deja que la casilla vuelva a la nota guardada.
+      // Guardar un 0 por un tecleo mal escrito sería peor que descartarlo.
+      setDraft((d) => {
+        const next = { ...d }
+        delete next[key]
+        return next
+      })
+      return
+    }
 
-    // El draft queda con el valor YA acotado, que es el que el backend va a devolver:
-    // sin esto la casilla seguiria mostrando el "999" que el docente tecleo.
+    // El borrador queda con el valor YA acotado, que es el que el backend va a devolver:
+    // sin esto la casilla seguiría mostrando el "999" que el docente tecleó.
     setDraft((d) => ({ ...d, [key]: String(val) }))
 
     if (existing && existing.score === val) return
@@ -194,25 +195,22 @@ export function SubjectScoreSheet({
    * los ítems crudos, un criterio con diez ítems pesaría diez veces más que uno directo.
    */
   const dimensionAverage = (ce: string, dimKey: Dimension): number | null => {
+    const max = dimensionMeta(dimKey).weight
     const values: number[] = []
     for (const col of columns) {
       if (col.dimKey !== dimKey) continue
-      if (col.events.length === 0) {
-        // Sigue al tecleo, no al último refetch: directText prefiere lo tecleado.
-        const raw = directText(col, ce)
-        if (raw.trim() === "") continue
-        const n = Number(raw)
-        if (Number.isFinite(n)) values.push(n)
-        continue
-      }
-      const v = valueOf(col, ce)
+      // El criterio directo sigue al tecleo, no al último refetch, y ya viene acotado:
+      // sin el tope, un 999 sin confirmar inflaba el promedio y el total de la fila.
+      const v =
+        col.events.length === 0
+          ? scoreFromText(directText(col, ce), max)
+          : valueOf(col, ce)
       if (v !== null) values.push(v)
     }
-    if (values.length === 0) return null
-    return values.reduce((a, b) => a + b, 0) / values.length
+    return mean(values)
   }
 
-  /** Total = suma de los 4 promedios de dimension. */
+  /** Total = suma de los 4 promedios de dimensión. */
   const totalOf = (ce: string): number =>
     DIMENSIONS.reduce((acc, d) => acc + (dimensionAverage(ce, d.key) ?? 0), 0)
 
@@ -432,6 +430,8 @@ export function SubjectScoreSheet({
                                               step={0.5}
                                               title={cellTitle(cell)}
                                               value={directText(col, ce)}
+                                              disabled={scoresLoading}
+                                              placeholder={scoresLoading ? "…" : undefined}
                                               onChange={(e) =>
                                                 setDraft((d) => ({ ...d, [k]: e.target.value }))
                                               }

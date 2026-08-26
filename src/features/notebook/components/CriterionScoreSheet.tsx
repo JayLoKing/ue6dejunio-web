@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { Link } from "@tanstack/react-router"
 import { ArrowLeftIcon, Loader2Icon } from "lucide-react"
 
@@ -18,6 +18,12 @@ import {
   useSetScore,
   type ScoreCell,
 } from "@/features/assessment/hooks/useAssessment"
+import { cellTitle, round1 } from "@/features/assessment/utils/scoreCell"
+import {
+  draftText,
+  mean,
+  scoreFromText,
+} from "@/features/assessment/utils/scoreDraft"
 
 export interface CriterionScoreSheetProps {
   classGroup: ClassGroupItem
@@ -32,26 +38,7 @@ type ScoreColumn =
   | { kind: "event"; id: string; title: string }
   | { kind: "criterion"; id: string; title: string }
 
-const round1 = (n: number) => Math.round(n * 10) / 10
-
-const formatDate = (iso: string | null): string | null => {
-  if (!iso) return null
-  const d = new Date(iso)
-  return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString("es-BO")
-}
-
-const cellTitle = (cell: ScoreCell | undefined): string | undefined => {
-  if (!cell) return undefined
-  const recorded = formatDate(cell.recordedAt)
-  const updated = formatDate(cell.updatedAt)
-  if (!recorded && !updated) return undefined
-  const parts: string[] = []
-  if (recorded) parts.push(`registrada ${recorded}`)
-  if (updated && updated !== recorded) parts.push(`editada ${updated}`)
-  return parts.join(" · ")
-}
-
-/** Grilla de notas de un criterio: columnas = items de su actividad, o el criterio solo. */
+/** Grilla de notas de un criterio: columnas = ítems de su actividad, o el criterio solo. */
 export function CriterionScoreSheet({ classGroup, criterion }: CriterionScoreSheetProps) {
   const meta = dimensionMeta(criterion.dimension)
   const cap = meta.weight
@@ -65,9 +52,12 @@ export function CriterionScoreSheet({ classGroup, criterion }: CriterionScoreShe
   )
 
   /**
-   * Tener items es lo que descalifica la nota directa, no el nombre de la actividad:
+   * Tener ítems es lo que descalifica la nota directa, no el nombre de la actividad:
    * los criterios creados antes de que existiera `activityName` lo traen en null y aun
-   * asi se califican por sus items. Es la misma regla que aplica el backend.
+   * así se califican por sus ítems. Es la misma regla que aplica el backend.
+   *
+   * Mientras los ítems cargan, `events` está vacío y un criterio legacy se leería como
+   * directo: por eso ninguna consulta de notas arranca hasta que `evLoading` termina.
    */
   const activityBased = criterion.activityName !== null || events.length > 0
 
@@ -82,11 +72,15 @@ export function CriterionScoreSheet({ classGroup, criterion }: CriterionScoreShe
   )
 
   const eventIds = useMemo(
-    () => (activityBased ? events.map((e) => e.id) : []),
-    [activityBased, events],
+    () => (!evLoading && activityBased ? events.map((e) => e.id) : []),
+    [evLoading, activityBased, events],
   )
-  const { matrix } = useEventScores(eventIds)
-  const { byEnrollment } = useCriterionScores(activityBased ? null : criterion.id)
+  const { matrix, isLoading: eventScoresLoading } = useEventScores(eventIds)
+  const { byEnrollment, isLoading: directScoresLoading } = useCriterionScores(
+    !evLoading && !activityBased ? criterion.id : null,
+  )
+  // Sin esto la casilla que todavía carga se ve igual que la no calificada.
+  const scoresLoading = evLoading || eventScoresLoading || directScoresLoading
 
   const setScore = useSetScore()
   const deleteScore = useDeleteScore()
@@ -102,27 +96,20 @@ export function CriterionScoreSheet({ classGroup, criterion }: CriterionScoreShe
   const cellOf = (col: ScoreColumn, ce: string): ScoreCell | undefined =>
     col.kind === "event" ? matrix[col.id]?.[ce] : byEnrollment[ce]
 
-  // Texto crudo por casilla: "" = no calificado (distinto de "0").
+  // Solo lo TECLEADO, no un espejo del servidor: la casilla sin tocar se dibuja leyendo
+  // la nota guardada, así un refetch no puede pisar lo que el docente está escribiendo.
   const [draft, setDraft] = useState<Record<string, string>>({})
-  useEffect(() => {
-    const next: Record<string, string> = {}
-    for (const s of students) {
-      for (const col of columns) {
-        const cell =
-          col.kind === "event"
-            ? matrix[col.id]?.[s.courseEnrollmentId]
-            : byEnrollment[s.courseEnrollmentId]
-        if (cell) next[`${s.courseEnrollmentId}:${col.id}`] = String(cell.score)
-      }
-    }
-    // Merge sobre lo tecleado: un refetch (guardar otra casilla) no borra lo no confirmado.
-    setDraft((prev) => ({ ...prev, ...next }))
-  }, [students, columns, matrix, byEnrollment])
+
+  /** Lo tecleado si la casilla se tocó; si no, la nota guardada. "" = no calificado. */
+  const cellText = (col: ScoreColumn, ce: string): string =>
+    draftText(draft, `${ce}:${col.id}`, cellOf(col, ce)?.score)
 
   const commit = (ce: string, col: ScoreColumn, raw: string) => {
+    const key = `${ce}:${col.id}`
     const existing = cellOf(col, ce)
     const trimmed = raw.trim()
     if (trimmed === "") {
+      setDraft((d) => ({ ...d, [key]: "" }))
       if (existing) {
         deleteScore.mutate({
           id: existing.id,
@@ -132,17 +119,19 @@ export function CriterionScoreSheet({ classGroup, criterion }: CriterionScoreShe
       }
       return
     }
-    let val = Number(trimmed)
-    if (!Number.isFinite(val)) {
-      // Texto inválido: no persiste; restaura el valor previo en la casilla.
-      setDraft((d) => ({
-        ...d,
-        [`${ce}:${col.id}`]: existing ? String(existing.score) : "",
-      }))
+    const val = scoreFromText(trimmed, cap)
+    if (val === null) {
+      // Texto inválido: no persiste; deja que la casilla vuelva a la nota guardada.
+      setDraft((d) => {
+        const next = { ...d }
+        delete next[key]
+        return next
+      })
       return
     }
-    if (val < 0) val = 0
-    if (val > cap) val = cap
+    // El borrador queda con el valor YA acotado, que es el que el backend va a devolver:
+    // sin esto la casilla seguiría mostrando el "999" que el docente tecleó.
+    setDraft((d) => ({ ...d, [key]: String(val) }))
     if (existing && existing.score === val) return
     // Exactamente un destino: el backend rechaza un cuerpo que traiga los dos.
     setScore.mutate(
@@ -153,23 +142,15 @@ export function CriterionScoreSheet({ classGroup, criterion }: CriterionScoreShe
   }
 
   /** Promedio del criterio = media de sus casillas con valor. null si ninguna. */
-  const rowAverage = (ce: string): number | null => {
-    const values: number[] = []
-    for (const col of columns) {
-      const raw = draft[`${ce}:${col.id}`]
-      if (raw === undefined || raw.trim() === "") continue
-      let n = Number(raw)
-      if (!Number.isFinite(n)) continue
-      // Mismo clamp que commit: el promedio no infla por texto sin confirmar.
-      if (n < 0) n = 0
-      if (n > cap) n = cap
-      values.push(n)
-    }
-    if (values.length === 0) return null
-    return values.reduce((a, b) => a + b, 0) / values.length
-  }
+  const rowAverage = (ce: string): number | null =>
+    mean(
+      columns
+        // Sigue al tecleo, no al último refetch: cellText prefiere lo tecleado.
+        .map((col) => scoreFromText(cellText(col, ce), cap))
+        .filter((n): n is number => n !== null),
+    )
 
-  // El criterio directo no promedia nada: su unica casilla ES la nota del criterio.
+  // El criterio directo no promedia nada: su única casilla ES la nota del criterio.
   const showAverage = activityBased
   const colSpan = columns.length + (showAverage ? 2 : 1)
 
@@ -272,7 +253,9 @@ export function CriterionScoreSheet({ classGroup, criterion }: CriterionScoreShe
                                 max={cap}
                                 step={0.5}
                                 title={cellTitle(cellOf(col, ce))}
-                                value={draft[k] ?? ""}
+                                value={cellText(col, ce)}
+                                disabled={scoresLoading}
+                                placeholder={scoresLoading ? "…" : undefined}
                                 onChange={(ev) =>
                                   setDraft((d) => ({ ...d, [k]: ev.target.value }))
                                 }

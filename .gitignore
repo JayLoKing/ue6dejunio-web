@@ -66,6 +66,7 @@ Thumbs.db
 .atl/
 .gga
 .codegraph/
+openspec/
 
 # TanStack Router temp
 .tanstack/

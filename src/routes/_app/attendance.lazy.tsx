@@ -182,7 +182,11 @@ function SessionAttendance({ year, month }: SessionAttendanceProps) {
       {!cg ? (
         <p className="text-sm text-muted-foreground">Selecciona una materia.</p>
       ) : (
+        // Una materia por matriz. Sin la key la instancia se reusa al cambiar de materia y se
+        // queda con las marcas de la anterior: como esta vista no recibe datos del servidor, esas
+        // marcas locales son lo único que se ve, y aparecen bajo la materia equivocada.
         <AttendanceMatrix
+          key={cg.id}
           students={students}
           year={year}
           month={month}

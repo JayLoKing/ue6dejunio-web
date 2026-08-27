@@ -1,20 +1,15 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { CalendarDaysIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 
-import {
-  CELL_TO_API,
-  nextStatus,
-  type AttendanceApiStatus,
-  type AttendanceCellStatus,
-} from "../types"
+import type { AttendanceApiStatus, AttendanceCellStatus } from "../types"
+import { CELL_TO_API, nextStatus } from "../utils/attendanceStatus"
 
 export interface AttendanceStudentRow {
   courseEnrollmentId: string
   fullName: string
-  rudeCode?: string
 }
 
 export interface AttendanceMatrixProps {
@@ -23,11 +18,15 @@ export interface AttendanceMatrixProps {
   month: number
   /** courseEnrollmentId → isoDate → cell */
   initialData?: Record<string, Record<string, AttendanceCellStatus>>
+  /**
+   * Records the mark. Returning the save lets the matrix take the mark back when it is rejected,
+   * so hand back the promise rather than firing and forgetting.
+   */
   onMark: (
     courseEnrollmentId: string,
     isoDate: string,
     status: AttendanceApiStatus,
-  ) => void
+  ) => void | Promise<unknown>
 }
 
 const STATUS_STYLE: Record<
@@ -66,18 +65,38 @@ export function AttendanceMatrix({
   initialData,
   onMark,
 }: AttendanceMatrixProps) {
-  const [matrix, setMatrix] = useState(initialData ?? {})
+  // What the teacher clicked, kept apart from what the server sent. Mirroring the server into a
+  // single draft meant every refetch overwrote clicks the mutation had not yet come back for, so a
+  // mark could silently vanish from the screen while the request was still in flight. Reading the
+  // local mark first keeps the click authoritative until the server catches up.
+  const [marked, setMarked] = useState<
+    Record<string, Record<string, AttendanceCellStatus>>
+  >({})
   const cols = useMemo(() => weekdaysOfMonth(year, month), [year, month])
   const today = todayIso()
 
-  useEffect(() => setMatrix(initialData ?? {}), [initialData])
+  const cellOf = (ceId: string, iso: string): AttendanceCellStatus =>
+    marked[ceId]?.[iso] ?? initialData?.[ceId]?.[iso] ?? null
+
+  const write = (ceId: string, iso: string, status: AttendanceCellStatus) =>
+    setMarked((prev) => ({ ...prev, [ceId]: { ...(prev[ceId] ?? {}), [iso]: status } }))
 
   const click = (ceId: string, iso: string) => {
     if (iso !== today) return
-    const current = matrix[ceId]?.[iso] ?? null
-    const next = nextStatus(current)
-    setMatrix((prev) => ({ ...prev, [ceId]: { ...(prev[ceId] ?? {}), [iso]: next } }))
-    onMark(ceId, iso, CELL_TO_API[next])
+    const previous = cellOf(ceId, iso)
+    const next = nextStatus(previous)
+    write(ceId, iso, next)
+    // The mark goes up on screen before the server confirms it, so a rejected save has to take it
+    // back. Leaving it there would show attendance nobody recorded, and because the local mark
+    // shadows the server's answer no later refetch could ever correct it.
+    void Promise.resolve(onMark(ceId, iso, CELL_TO_API[next])).catch(() => {
+      setMarked((prev) => {
+        // Only take back the mark this save was for. Clicking again while the first save is in
+        // flight already replaced it, and a late rejection must not undo the newer click.
+        if ((prev[ceId]?.[iso] ?? null) !== next) return prev
+        return { ...prev, [ceId]: { ...(prev[ceId] ?? {}), [iso]: previous } }
+      })
+    })
   }
 
   return (
@@ -85,7 +104,7 @@ export function AttendanceMatrix({
       <div className="flex items-center gap-3 text-sm text-muted-foreground">
         <CalendarDaysIcon className="size-4" />
         <span>
-          Lun–Vie. Solo el dia actual ({today}) es editable. Click ciclico{" "}
+          Lun–Vie. Solo el día actual ({today}) es editable. Clic cíclico{" "}
           <span className="font-semibold text-emerald-600">P</span> →{" "}
           <span className="font-semibold text-destructive">A</span> →{" "}
           <span className="font-semibold text-univalle">L</span>
@@ -125,7 +144,7 @@ export function AttendanceMatrix({
                         <span className="font-medium">{s.fullName}</span>
                       </td>
                       {cols.map((c) => {
-                        const status = matrix[s.courseEnrollmentId]?.[c.iso] ?? null
+                        const status = cellOf(s.courseEnrollmentId, c.iso)
                         const style = status ? STATUS_STYLE[status] : null
                         const editable = c.iso === today
                         return (
@@ -134,6 +153,10 @@ export function AttendanceMatrix({
                               type="button"
                               disabled={!editable}
                               onClick={() => click(s.courseEnrollmentId, c.iso)}
+                              // The glyph alone repeats across every cell of the grid, so it names
+                              // nothing. Saying whose day this is makes each cell reachable by
+                              // name, out loud and from a test.
+                              aria-label={`${s.fullName}, ${c.iso}: ${style?.label ?? "sin registrar"}`}
                               title={editable ? (style?.label ?? "Registrar") : "Solo lectura"}
                               className={cn("size-8 rounded-md text-xs font-semibold transition-colors", editable && "hover:ring-2 hover:ring-univalle/40", !editable && "cursor-default", style?.cls ?? "bg-muted/60 text-muted-foreground")}
                             >

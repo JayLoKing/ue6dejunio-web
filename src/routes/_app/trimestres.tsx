@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { createFileRoute, redirect } from "@tanstack/react-router"
 import { Loader2Icon, SaveIcon, Trash2Icon } from "lucide-react"
 
@@ -26,7 +26,12 @@ export const Route = createFileRoute("/_app/trimestres")({
   component: TrimesterPeriodsPage,
 })
 
-const ORDINAL: Record<number, string> = { 1: "1er", 2: "2do", 3: "3er" }
+/** The school year holds exactly three trimesters, so the ordinal table covers all of them. */
+type Trimester = 1 | 2 | 3
+
+const TRIMESTERS = [1, 2, 3] as const satisfies readonly Trimester[]
+
+const ORDINAL: Record<Trimester, string> = { 1: "1er", 2: "2do", 3: "3er" }
 
 function TrimesterPeriodsPage() {
   const coursesQuery = useAllCourses()
@@ -62,14 +67,20 @@ function TrimesterPeriodsPage() {
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-3">
-          {[1, 2, 3].map((t) => (
-            <TrimesterCard
-              key={t}
-              trimester={t}
-              academicYearId={academicYearId}
-              existing={byTrimester.get(t) ?? null}
-            />
-          ))}
+          {TRIMESTERS.map((t) => {
+            const existing = byTrimester.get(t) ?? null
+            return (
+              // La key incluye el período que edita, así la tarjeta arranca de cero cuando se
+              // crea o se borra uno. Espejar las fechas en un efecto reseteaba los campos en
+              // cada refetch y borraba lo que el director había tecleado sin guardar.
+              <TrimesterCard
+                key={`${t}-${existing?.id ?? "new"}`}
+                trimester={t}
+                academicYearId={academicYearId}
+                existing={existing}
+              />
+            )
+          })}
         </div>
       )}
     </div>
@@ -77,7 +88,7 @@ function TrimesterPeriodsPage() {
 }
 
 interface TrimesterCardProps {
-  trimester: number
+  trimester: Trimester
   academicYearId: number
   existing: TrimesterPeriod | null
 }
@@ -90,11 +101,6 @@ function TrimesterCard({ trimester, academicYearId, existing }: TrimesterCardPro
   const create = useCreateTrimesterPeriod()
   const update = useUpdateTrimesterPeriod()
   const remove = useDeleteTrimesterPeriod()
-
-  useEffect(() => {
-    setStart(existing?.startDate ?? "")
-    setEnd(existing?.endDate ?? "")
-  }, [existing])
 
   const saving = create.isPending || update.isPending
   const valid = start !== "" && end !== "" && start <= end

@@ -20,7 +20,8 @@ import {
   useDailyAttendance,
   useSessionAttendance,
 } from "@/features/attendance/hooks/useAttendance"
-import { API_TO_CELL, type AttendanceCellStatus } from "@/features/attendance/types"
+import type { AttendanceCellStatus } from "@/features/attendance/types"
+import { cellFromApi } from "@/features/attendance/utils/attendanceStatus"
 
 export const Route = createLazyFileRoute("/_app/attendance")({
   component: AttendancePage,
@@ -54,7 +55,7 @@ function AttendancePage() {
           <p className="text-sm text-muted-foreground">
             {ctx.homeroomCourseId
               ? "Regularidad oficial (curso de aula)."
-              : "Asistencia por sesion de materia (docente tecnico)."}
+              : "Asistencia por sesión de materia (docente técnico)."}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -86,10 +87,20 @@ function AttendancePage() {
   )
 }
 
+// Un curso no pasa de 200 estudiantes, así que la lista entra en una sola página. Vive aquí
+// arriba para que la referencia no cambie en cada render y arrastre a los hooks que la reciben.
+const WHOLE_COURSE_PAGE = { offset: 1, limit: 200, sort: "asc" } as const
+
 // ---- Aula: asistencia diaria del curso ----
-function DailyCourseAttendance({ courseId, year, month }: { courseId: string; year: number; month: number }) {
-  const studentsQuery = useCourseStudents(courseId, { offset: 1, limit: 200, sort: "asc" })
-  const attQuery = useCourseAttendance(courseId, { offset: 1, limit: 200, sort: "asc" })
+interface DailyCourseAttendanceProps {
+  courseId: string
+  year: number
+  month: number
+}
+
+function DailyCourseAttendance({ courseId, year, month }: DailyCourseAttendanceProps) {
+  const studentsQuery = useCourseStudents(courseId, WHOLE_COURSE_PAGE)
+  const attQuery = useCourseAttendance(courseId, WHOLE_COURSE_PAGE)
   const daily = useDailyAttendance()
 
   const students = useMemo<AttendanceStudentRow[]>(
@@ -97,7 +108,6 @@ function DailyCourseAttendance({ courseId, year, month }: { courseId: string; ye
       (studentsQuery.data?.content ?? []).map((s) => ({
         courseEnrollmentId: s.courseEnrollmentId,
         fullName: s.fullName,
-        rudeCode: s.rudeCode,
       })),
     [studentsQuery.data],
   )
@@ -108,7 +118,7 @@ function DailyCourseAttendance({ courseId, year, month }: { courseId: string; ye
     for (const row of attQuery.data?.content ?? []) {
       const byDate: Record<string, AttendanceCellStatus> = {}
       for (const a of row.attendances) {
-        if (a.date.startsWith(prefix)) byDate[a.date] = API_TO_CELL[a.status as keyof typeof API_TO_CELL]
+        if (a.date.startsWith(prefix)) byDate[a.date] = cellFromApi(a.status)
       }
       out[row.courseEnrollmentId] = byDate
     }
@@ -125,19 +135,26 @@ function DailyCourseAttendance({ courseId, year, month }: { courseId: string; ye
       year={year}
       month={month}
       initialData={initialData}
-      onMark={(ce, date, status) => daily.mutate({ id_course_enrollment: ce, date, status })}
+      onMark={(ce, date, status) =>
+        daily.mutateAsync({ id_course_enrollment: ce, date, status })
+      }
     />
   )
 }
 
-// ---- Tecnico: asistencia por sesion de materia ----
-function SessionAttendance({ year, month }: { year: number; month: number }) {
+// ---- Técnico: asistencia por sesión de materia ----
+interface SessionAttendanceProps {
+  year: number
+  month: number
+}
+
+function SessionAttendance({ year, month }: SessionAttendanceProps) {
   const ctx = useCurrentContext()
   const [classGroupId, setClassGroupId] = useState<string>("")
   const effective = classGroupId || ctx.classGroups[0]?.id || ""
   const cg = ctx.classGroups.find((c) => c.id === effective)
 
-  const studentsQuery = useCourseStudents(cg?.courseId, { offset: 1, limit: 200, sort: "asc" })
+  const studentsQuery = useCourseStudents(cg?.courseId, WHOLE_COURSE_PAGE)
   const session = useSessionAttendance()
 
   const students = useMemo<AttendanceStudentRow[]>(
@@ -145,7 +162,6 @@ function SessionAttendance({ year, month }: { year: number; month: number }) {
       (studentsQuery.data?.content ?? []).map((s) => ({
         courseEnrollmentId: s.courseEnrollmentId,
         fullName: s.fullName,
-        rudeCode: s.rudeCode,
       })),
     [studentsQuery.data],
   )
@@ -171,7 +187,12 @@ function SessionAttendance({ year, month }: { year: number; month: number }) {
           year={year}
           month={month}
           onMark={(ce, date, status) =>
-            session.mutate({ id_course_enrollment: ce, id_class_group: cg.id, date, status })
+            session.mutateAsync({
+              id_course_enrollment: ce,
+              id_class_group: cg.id,
+              date,
+              status,
+            })
           }
         />
       )}

@@ -5,54 +5,111 @@ export type PdcStatus =
   | "With Observations"
   | "Approved"
 
-export interface Pdc {
+/** One week's row of a subject's table. */
+export interface PdcEntry {
   id: string
-  classGroupId: string
-  subjectName: string
-  teacherName: string
-  createdById: string
-  updatedById: string | null
-  updatedByName: string | null
-  trimester: number
-  status: string
-  reviewObservations: string | null
-  title: string
-  holisticObjective: string | null
-  learningObjective: string | null
+  weekLabel: string
   contents: string | null
-  practiceActivities: string | null
-  theoryActivities: string | null
-  valuationActivities: string | null
-  productionActivities: string | null
+  practice: string | null
+  theory: string | null
+  valuation: string | null
+  production: string | null
   resources: string | null
-  startDate: string | null
-  endDate: string | null
+  periods: number | null
   criteriaBeing: string | null
   criteriaKnowing: string | null
   criteriaDoing: string | null
   criteriaDeciding: string | null
+  displayOrder: number
+}
+
+/** One subject's block: opened with the plan, filled in its own step of the form. */
+export interface PdcSubject {
+  id: string
+  classGroupId: string
+  subjectName: string
+  knowledgeArea: string | null
+  teacherId: string | null
+  teacherName: string | null
+  learningObjective: string | null
+  generalAdaptations: string | null
+  displayOrder: number
+  entries: PdcEntry[]
+}
+
+/**
+ * One month's plan for a course. The heading is shared by every subject, which is why the form
+ * asks for it once and then walks the blocks.
+ */
+export interface Pdc {
+  id: string
+  courseId: string
+  courseName: string | null
+  gradeName: string | null
+  parallelName: string | null
+  homeroomTeacherId: string | null
+  homeroomTeacherName: string | null
+  planNumber: number
+  trimester: number
+  periodStart: string
+  periodEnd: string
+  status: PdcStatus
+  reviewObservations: string | null
+  holisticObjective: string | null
+  finalProduct: string | null
+  bibliography: string | null
+  sourcePlanId: string | null
+  subjects: PdcSubject[]
+  createdById: string | null
+  updatedById: string | null
+  updatedByName: string | null
   createdAt: string
   updatedAt: string
 }
 
-export interface PdcFormPayload {
-  id_class_group: string
+/** Opens the plan. Omitting the class groups plans every subject of the course. */
+export interface CreatePdcPayload {
+  id_course: string
+  plan_number: number
   trimester: number
-  title: string
+  period_start: string
+  period_end: string
   holisticObjective?: string
-  learningObjective?: string
+  finalProduct?: string
+  bibliography?: string
+  id_class_groups?: string[]
+}
+
+/** Every field optional: each step of the form saves only what that step holds. */
+export interface UpdatePdcPayload {
+  plan_number?: number
+  period_start?: string
+  period_end?: string
+  holisticObjective?: string
+  finalProduct?: string
+  bibliography?: string
+}
+
+export interface PdcEntryPayload {
+  weekLabel: string
   contents?: string
-  practiceActivities?: string
-  theoryActivities?: string
-  valuationActivities?: string
-  productionActivities?: string
+  practice?: string
+  theory?: string
+  valuation?: string
+  production?: string
   resources?: string
-  startDate?: string
-  endDate?: string
+  periods?: number
   criteriaBeing?: string
   criteriaKnowing?: string
   criteriaDoing?: string
   criteriaDeciding?: string
+}
+
+/** Writes a subject's block whole: the rows sent replace the rows held. */
+export interface UpsertPdcSubjectPayload {
+  learningObjective?: string
+  generalAdaptations?: string
+  entries: PdcEntryPayload[]
 }
 
 export interface PdcProgress {
@@ -71,14 +128,4 @@ export interface AddProgressPayload {
   advancedContent?: string
   percentage?: number
   observations?: string
-}
-
-export const STATUS_BADGE: Record<string, string> = {
-  Draft: "bg-muted text-muted-foreground",
-  Published: "bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30",
-  "Under Review": "bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30",
-  "With Observations":
-    "bg-destructive/15 text-destructive border border-destructive/30",
-  Approved:
-    "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30",
 }

@@ -35,10 +35,17 @@ import { useAuthStore } from "@/features/auth/store/authStore"
 import { isRole } from "@/features/auth/types"
 import { useTeacherClassGroups } from "@/features/courses/hooks/useCourses"
 import { useSendNotification } from "@/features/notifications/hooks/useNotifications"
-import { PdcFormDialog } from "@/features/pdc/components/PdcFormDialog"
+import { PdcCreateDialog } from "@/features/pdc/components/PdcCreateDialog"
+import { PdcWizard } from "@/features/pdc/components/PdcWizard"
+import { planLabel, subjectSummary } from "@/features/pdc/utils/planLabel"
+import {
+  isEditable,
+  STATUS_BADGE,
+  STATUS_LABEL,
+} from "@/features/pdc/utils/status"
 import { PdcProgressDialog } from "@/features/pdc/components/PdcProgressDialog"
 import { usePdcAction, usePdcList } from "@/features/pdc/hooks/usePdc"
-import { STATUS_BADGE, type Pdc } from "@/features/pdc/types"
+import type { Pdc } from "@/features/pdc/types"
 
 export const Route = createFileRoute("/_app/pdc")({
   beforeLoad: () => {
@@ -58,8 +65,9 @@ function PdcPage() {
 
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
-  const [formOpen, setFormOpen] = useState(false)
-  const [editing, setEditing] = useState<Pdc | null>(null)
+  const [creating, setCreating] = useState(false)
+  // The plan being walked through step by step. Null closes the wizard back to the listing.
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState<Pdc | null>(null)
   const [observing, setObserving] = useState<Pdc | null>(null)
   const [observation, setObservation] = useState("")
@@ -82,22 +90,21 @@ function PdcPage() {
     if (isTeacher && userId) return all.filter((p) => p.createdById === userId)
     return all
   }, [data, isTeacher, userId])
-  const subjects = (classGroupsQuery.data ?? []).map((cg) => ({
-    subjectId: cg.subjectId,
-    subjectName: cg.subjectName,
-    classGroupId: cg.id,
-  }))
+  // The plan is opened for a course, not for a subject, so the picker offers the courses the
+  // teacher runs — deduplicated, because a teacher with several subjects in one course still
+  // plans that course once.
+  const courses = useMemo(() => {
+    const byId = new Map<string, string>()
+    for (const cg of classGroupsQuery.data ?? []) {
+      if (!byId.has(cg.courseId)) {
+        byId.set(cg.courseId, `${cg.gradeName} "${cg.parallelName}"`)
+      }
+    }
+    return [...byId].map(([id, name]) => ({ id, name }))
+  }, [classGroupsQuery.data])
 
-  const openCreate = () => {
-    setEditing(null)
-    setFormOpen(true)
-  }
-  const openEdit = (p: Pdc) => {
-    setEditing(p)
-    setFormOpen(true)
-  }
-
-  const canEdit = (s: string) => s === "Draft" || s === "With Observations"
+  const openCreate = () => setCreating(true)
+  const openEdit = (p: Pdc) => setEditingId(p.id)
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -125,7 +132,7 @@ function PdcPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Titulo</TableHead>
+              <TableHead>Título</TableHead>
               <TableHead>Materia</TableHead>
               <TableHead>Trim.</TableHead>
               <TableHead>Estado</TableHead>
@@ -148,18 +155,14 @@ function PdcPage() {
             ) : (
               rows.map((p) => (
                 <TableRow key={p.id}>
-                  <TableCell className="font-medium">{p.title}</TableCell>
+                  <TableCell className="font-medium">{planLabel(p)}</TableCell>
                   <TableCell className="text-muted-foreground">
-                    {p.subjectName}
+                    {subjectSummary(p)}
                   </TableCell>
                   <TableCell>{p.trimester}</TableCell>
                   <TableCell>
-                    <Badge
-                      className={cn(
-                        STATUS_BADGE[p.status] ?? "bg-muted text-muted-foreground",
-                      )}
-                    >
-                      {p.status}
+                    <Badge className={cn(STATUS_BADGE[p.status])}>
+                      {STATUS_LABEL[p.status]}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
@@ -175,7 +178,7 @@ function PdcPage() {
                           <TrendingUpIcon className="size-4" />
                         </Button>
                       ) : null}
-                      {isTeacher && canEdit(p.status) ? (
+                      {isTeacher && isEditable(p.status) ? (
                         <Button
                           size="icon"
                           variant="ghost"
@@ -186,7 +189,7 @@ function PdcPage() {
                           <PencilIcon className="size-4" />
                         </Button>
                       ) : null}
-                      {isTeacher && canEdit(p.status) ? (
+                      {isTeacher && isEditable(p.status) ? (
                         <Button
                           size="icon"
                           variant="ghost"
@@ -223,7 +226,7 @@ function PdcPage() {
                                 onSuccess: () =>
                                   notifyOwner(
                                     p,
-                                    `Tu PDC "${p.title}" fue aprobado.`,
+                                    `Tu PDC "${planLabel(p)}" fue aprobado.`,
                                   ),
                               })
                             }
@@ -268,20 +271,38 @@ function PdcPage() {
       />
 
       {isTeacher ? (
-        <PdcFormDialog
-          open={formOpen}
-          editing={editing}
-          subjects={subjects}
-          onClose={() => setFormOpen(false)}
+        <PdcCreateDialog
+          open={creating}
+          courses={courses}
+          onClose={() => setCreating(false)}
+          onCreated={(plan) => {
+            setCreating(false)
+            // Straight into the steps: the plan exists only so its subject blocks can be filled.
+            setEditingId(plan.id)
+          }}
         />
       ) : null}
+
+      <Dialog
+        open={Boolean(editingId)}
+        onOpenChange={(o) => !o && setEditingId(null)}
+      >
+        <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-[95vw]">
+          <DialogHeader>
+            <DialogTitle>Plan de Desarrollo Curricular</DialogTitle>
+          </DialogHeader>
+          {editingId ? (
+            <PdcWizard planId={editingId} onClose={() => setEditingId(null)} />
+          ) : null}
+        </DialogContent>
+      </Dialog>
 
       <PdcProgressDialog pdc={progress} onClose={() => setProgress(null)} />
 
       <ConfirmDialog
         open={Boolean(deleting)}
         title="Eliminar PDC"
-        description={deleting ? `"${deleting.title}" sera eliminado.` : undefined}
+        description={deleting ? `"${planLabel(deleting)}" será eliminado.` : undefined}
         confirmLabel="Eliminar"
         destructive
         loading={remove.isPending}
@@ -323,7 +344,7 @@ function PdcPage() {
                     onSuccess: () => {
                       notifyOwner(
                         target,
-                        `Tu PDC "${target.title}" fue observado: ${obs}`,
+                        `Tu PDC "${planLabel(target)}" fue observado: ${obs}`,
                       )
                       setObserving(null)
                     },
@@ -331,7 +352,7 @@ function PdcPage() {
                 )
               }}
             >
-              Enviar observacion
+              Enviar observación
             </Button>
           </DialogFooter>
         </DialogContent>

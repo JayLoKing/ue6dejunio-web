@@ -16,6 +16,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 
 import { useAddProgress, usePdcProgress } from "../hooks/usePdc"
+import { planLabel } from "../utils/planLabel"
 import type { Pdc } from "../types"
 
 export interface PdcProgressDialogProps {
@@ -57,7 +58,7 @@ export function PdcProgressDialog({ pdc, onClose }: PdcProgressDialogProps) {
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Avance del PDC</DialogTitle>
-          <DialogDescription>{pdc?.title}</DialogDescription>
+          <DialogDescription>{pdc ? planLabel(pdc) : null}</DialogDescription>
         </DialogHeader>
 
         {/* form */}

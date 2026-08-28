@@ -6,23 +6,20 @@ import type { PagedResponse } from "@/lib/types/pagination"
 import { PdcUrl } from "./pdcServicePath"
 import type {
   AddProgressPayload,
+  CreatePdcPayload,
   Pdc,
-  PdcFormPayload,
   PdcProgress,
+  UpdatePdcPayload,
+  UpsertPdcSubjectPayload,
 } from "../types"
 
 export interface PdcListParams {
-  classGroupId?: string
+  courseId?: string
   trimester?: number
   status?: string
   offset?: number
   limit?: number
 }
-
-export type PdcUpdatePayload = Omit<
-  PdcFormPayload,
-  "id_class_group" | "trimester"
->
 
 export default class PdcServiceHelper {
   listAsync(params: PdcListParams): UseApiCall<PagedResponse<Pdc>> {
@@ -31,7 +28,7 @@ export default class PdcServiceHelper {
       call: httpClient.get<PagedResponse<Pdc>>(PdcUrl.Base, {
         signal: controller.signal,
         params: {
-          id_class_group: params.classGroupId,
+          id_course: params.courseId,
           trimester: params.trimester,
           status: params.status,
           offset: params.offset ?? 1,
@@ -52,7 +49,7 @@ export default class PdcServiceHelper {
     }
   }
 
-  createAsync(payload: PdcFormPayload): UseApiCall<Pdc> {
+  createAsync(payload: CreatePdcPayload): UseApiCall<Pdc> {
     const controller = loadAbort()
     return {
       call: httpClient.post<Pdc>(PdcUrl.Base, payload, {
@@ -62,10 +59,35 @@ export default class PdcServiceHelper {
     }
   }
 
-  updateAsync(id: string, payload: PdcUpdatePayload): UseApiCall<Pdc> {
+  updateAsync(id: string, payload: UpdatePdcPayload): UseApiCall<Pdc> {
     const controller = loadAbort()
     return {
       call: httpClient.put<Pdc>(PdcUrl.ById(id), payload, {
+        signal: controller.signal,
+      }),
+      controller,
+    }
+  }
+
+  /** Saves one subject's block. Returns the whole plan, so the preview stays in step with it. */
+  writeSubjectAsync(
+    id: string,
+    planSubjectId: string,
+    payload: UpsertPdcSubjectPayload,
+  ): UseApiCall<Pdc> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.put<Pdc>(PdcUrl.Subject(id, planSubjectId), payload, {
+        signal: controller.signal,
+      }),
+      controller,
+    }
+  }
+
+  copyToParallelsAsync(id: string): UseApiCall<Pdc[]> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.post<Pdc[]>(PdcUrl.CopyToParallels(id), null, {
         signal: controller.signal,
       }),
       controller,

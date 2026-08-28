@@ -3,9 +3,11 @@ import PdcServiceHelper, {
 } from "../helpers/pdcServiceHelper"
 import type {
   AddProgressPayload,
+  CreatePdcPayload,
   Pdc,
-  PdcFormPayload,
   PdcProgress,
+  UpdatePdcPayload,
+  UpsertPdcSubjectPayload,
 } from "../types"
 import type { PagedResponse } from "@/lib/types/pagination"
 
@@ -22,15 +24,24 @@ export class PdcService {
     const { call } = helper.getByIdAsync(id)
     return (await call).data
   }
-  static async create(payload: PdcFormPayload): Promise<Pdc> {
+  static async create(payload: CreatePdcPayload): Promise<Pdc> {
     const { call } = helper.createAsync(payload)
     return (await call).data
   }
-  static async update(
-    id: string,
-    payload: Omit<PdcFormPayload, "id_class_group" | "trimester">,
-  ): Promise<Pdc> {
+  static async update(id: string, payload: UpdatePdcPayload): Promise<Pdc> {
     const { call } = helper.updateAsync(id, payload)
+    return (await call).data
+  }
+  static async writeSubject(
+    id: string,
+    planSubjectId: string,
+    payload: UpsertPdcSubjectPayload,
+  ): Promise<Pdc> {
+    const { call } = helper.writeSubjectAsync(id, planSubjectId, payload)
+    return (await call).data
+  }
+  static async copyToParallels(id: string): Promise<Pdc[]> {
+    const { call } = helper.copyToParallelsAsync(id)
     return (await call).data
   }
   static async publish(id: string): Promise<Pdc> {

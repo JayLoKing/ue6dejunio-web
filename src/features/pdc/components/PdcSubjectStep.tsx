@@ -2,7 +2,7 @@ import { useState } from "react"
 import { PlusIcon, Trash2Icon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Field, FieldLabel } from "@/components/ui/field"
+import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 
@@ -270,10 +270,17 @@ export function PdcSubjectStep({
         <FieldLabel htmlFor="pdc-general-adaptations">
           Adaptaciones curriculares
         </FieldLabel>
+        {/*
+          The wording the printed form carried between parentheses. It says who the row is for, so
+          it belongs where the row gets written rather than on the document itself.
+        */}
+        <FieldDescription>
+          Para estudiantes con dificultades en el aprendizaje (generales y específicas) o con ritmos
+          de aprendizaje distintos.
+        </FieldDescription>
         <Textarea
           id="pdc-general-adaptations"
           rows={4}
-          placeholder="Estrategias para dificultades de aprendizaje o ritmos distintos del curso."
           value={generalAdaptations}
           onChange={(e) => setGeneralAdaptations(e.target.value)}
         />

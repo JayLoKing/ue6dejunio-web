@@ -14,21 +14,9 @@ function orBlank(value: string | null | undefined) {
   return value && value.trim() !== "" ? value : ""
 }
 
-/**
- * Groups the blocks the way the form prints them: by area, keeping the plan's own order. An area
- * gets one group however scattered its subjects are — a block added after the plan was opened is
- * appended at the end, so the areas do not arrive in runs, and one group per run would print the
- * same heading twice.
- */
-function byKnowledgeArea(subjects: PdcSubject[]) {
-  const groups = new Map<string, PdcSubject[]>()
-  for (const subject of [...subjects].sort((a, b) => a.displayOrder - b.displayOrder)) {
-    const area = subject.knowledgeArea ?? "Sin área"
-    const group = groups.get(area)
-    if (group) group.push(subject)
-    else groups.set(area, [subject])
-  }
-  return [...groups].map(([area, grouped]) => ({ area, subjects: grouped }))
+/** The blocks in the order the form prints them. */
+function inPrintedOrder(subjects: PdcSubject[]) {
+  return [...subjects].sort((a, b) => a.displayOrder - b.displayOrder)
 }
 
 /*
@@ -145,10 +133,12 @@ function SubjectTable({ subject, active }: { subject: PdcSubject; active: boolea
         )}
         <tr>
           <td colSpan={6} className={CELL}>
-            <span className="pdc-strong font-bold">
-              ADAPTACIONES CURRICULARES (estudiantes con: dificultades en el aprendizaje (generales
-              y específicos), o ritmos de aprendizaje distinto y otros).
-            </span>
+            {/*
+              The title alone. What the template prints between parentheses tells the teacher who
+              the row is for, which is guidance for filling the form rather than part of the
+              document — it lives on the field in the wizard now.
+            */}
+            <span className="pdc-strong font-bold">ADAPTACIONES CURRICULARES</span>
             <span className="block whitespace-pre-wrap">
               {orBlank(subject.generalAdaptations)}
             </span>
@@ -180,7 +170,7 @@ export function PdcPreview({
   activeSubjectId,
   zoom = 1,
 }: PdcPreviewProps) {
-  const areas = byKnowledgeArea(plan.subjects)
+  const blocks = inPrintedOrder(plan.subjects)
 
   return (
     <article
@@ -237,8 +227,12 @@ export function PdcPreview({
           </tr>
           <tr>
             <td className={LABEL} />
+            {/* The template sets both labels in bold and spaces the dates off them. */}
             <td className={CELL} colSpan={3}>
-              Del: {spellDate(plan.periodStart)} al: {spellDate(plan.periodEnd)}
+              <span className="pdc-strong font-bold">Del:</span>
+              <span className="pdc-date ml-3 mr-12">{spellDate(plan.periodStart)}</span>
+              <span className="pdc-strong font-bold">al:</span>
+              <span className="pdc-date ml-3">{spellDate(plan.periodEnd)}</span>
             </td>
           </tr>
         </tbody>
@@ -250,17 +244,21 @@ export function PdcPreview({
         {orBlank(plan.holisticObjective)}
       </p>
 
-      {areas.map((group) => (
-        <section key={group.area} className="mb-5 flex flex-col gap-3">
-          <p className="pdc-band border border-black bg-[#E2EFD9] px-2 py-1 text-center font-bold">
-            Área de saberes y conocimiento: {group.area}
-          </p>
-          {group.subjects.map((subject) => (
-            <div key={subject.id} className="flex flex-col gap-1">
-              <p className="pdc-strong font-bold">{subject.subjectName}</p>
-              <SubjectTable subject={subject} active={subject.id === activeSubjectId} />
-            </div>
-          ))}
+      {/*
+        One band per block, not one per area. The form repeats the area over every subject it
+        covers and prints the subject inside that same shaded box — so a teacher running four
+        subjects of Comunidad y Sociedad hands in four headed tables, not one heading and four
+        tables under it.
+      */}
+      {blocks.map((subject) => (
+        <section key={subject.id} className="mb-5 flex flex-col gap-1">
+          <div className="pdc-band border border-black bg-[#E2EFD9] px-2 py-1 text-center">
+            <p className="pdc-strong font-bold">
+              Área de saberes y conocimiento: {subject.knowledgeArea ?? "Sin área"}
+            </p>
+            <p>{orBlank(subject.subjectName)}</p>
+          </div>
+          <SubjectTable subject={subject} active={subject.id === activeSubjectId} />
         </section>
       ))}
 

@@ -47,8 +47,12 @@ export interface Pdc {
   courseName: string | null
   gradeName: string | null
   parallelName: string | null
+  /** "Primaria Comunitaria Vocacional" — the "Nivel" row of the form. */
+  levelName: string | null
   homeroomTeacherId: string | null
   homeroomTeacherName: string | null
+  /** Who signs as "Maestro/a": the teachers of the blocks, each named once. */
+  teacherNames: string[]
   planNumber: number
   trimester: number
   periodStart: string

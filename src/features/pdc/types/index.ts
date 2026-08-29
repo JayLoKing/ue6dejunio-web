@@ -19,7 +19,6 @@ export interface PdcEntry {
   criteriaBeing: string | null
   criteriaKnowing: string | null
   criteriaDoing: string | null
-  criteriaDeciding: string | null
   displayOrder: number
 }
 
@@ -106,7 +105,6 @@ export interface PdcEntryPayload {
   criteriaBeing?: string
   criteriaKnowing?: string
   criteriaDoing?: string
-  criteriaDeciding?: string
 }
 
 /** Writes a subject's block whole: the rows sent replace the rows held. */

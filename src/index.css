@@ -177,3 +177,45 @@
     @apply font-sans;
     }
 }
+
+/*
+ * Printing an official document. The page holds the app around the document — dialog, wizard,
+ * sidebar — and none of it belongs on the paper, so the printed page is the document alone:
+ * everything is hidden and only the document's subtree is shown back, lifted to the top-left of
+ * the sheet. Landscape, because the weekly table is wider than a portrait page.
+ */
+@media print {
+  /* The template's own page setup: Letter, landscape, half-inch margins. */
+  @page {
+    size: letter landscape;
+    margin: 0.5in;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #pdc-document,
+  #pdc-document * {
+    visibility: visible;
+  }
+
+  /*
+   * On paper the margin belongs to @page, so the sheet drops its own padding and fills the page.
+   * The screen zoom is dropped too: what was reduced to fit a panel must print full size.
+   */
+  #pdc-document {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    min-height: 0;
+    padding: 0;
+    zoom: 1 !important;
+  }
+
+  /* A subject's table split across two sheets loses the header row that names its columns. */
+  #pdc-document table {
+    break-inside: avoid;
+  }
+}

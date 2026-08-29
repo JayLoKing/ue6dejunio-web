@@ -23,7 +23,6 @@ interface DraftEntry {
   criteriaBeing: string
   criteriaKnowing: string
   criteriaDoing: string
-  criteriaDeciding: string
 }
 
 let nextKey = 0
@@ -43,7 +42,6 @@ function emptyRow(weekNumber: number): DraftEntry {
     criteriaBeing: "",
     criteriaKnowing: "",
     criteriaDoing: "",
-    criteriaDeciding: "",
   }
 }
 
@@ -64,7 +62,6 @@ function toDraft(subject: PdcSubject): DraftEntry[] {
       criteriaBeing: e.criteriaBeing ?? "",
       criteriaKnowing: e.criteriaKnowing ?? "",
       criteriaDoing: e.criteriaDoing ?? "",
-      criteriaDeciding: e.criteriaDeciding ?? "",
     }))
 }
 
@@ -85,7 +82,6 @@ function toPayload(draft: DraftEntry[]): PdcEntryPayload[] {
       criteriaBeing: trimmed(r.criteriaBeing),
       criteriaKnowing: trimmed(r.criteriaKnowing),
       criteriaDoing: trimmed(r.criteriaDoing),
-      criteriaDeciding: trimmed(r.criteriaDeciding),
     }))
 }
 
@@ -243,13 +239,16 @@ export function PdcSubjectStep({
               />
             </Field>
 
+            {/*
+              The three the form evaluates on. Asking for a fourth would collect what the printed
+              plan has no column for, and the teacher would never see it again.
+            */}
             <div className="grid gap-3 md:grid-cols-2">
               {(
                 [
                   ["criteriaBeing", "SER"],
                   ["criteriaKnowing", "SABER"],
                   ["criteriaDoing", "HACER"],
-                  ["criteriaDeciding", "DECIDIR"],
                 ] as const
               ).map(([field, label]) => (
                 <Field key={field}>

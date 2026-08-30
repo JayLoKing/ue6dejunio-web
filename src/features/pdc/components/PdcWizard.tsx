@@ -14,6 +14,13 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import { useInstitution } from "@/features/institution/hooks/useInstitution"
+import { useCourseStudents } from "@/features/courses/hooks/useCourses"
+import { AdaptationsStep } from "@/features/adaptation/components/AdaptationsStep"
+import {
+  useAdaptationList,
+  useCreateAdaptation,
+  useDeleteAdaptation,
+} from "@/features/adaptation/hooks/useAdaptations"
 
 import {
   usePdcAction,
@@ -59,6 +66,7 @@ function downloadPdcAsWord(plan: Pdc) {
 type Step =
   | { kind: "general" }
   | { kind: "subject"; index: number }
+  | { kind: "adaptations" }
   | { kind: "closing" }
   | { kind: "review" }
 
@@ -66,6 +74,8 @@ function stepsOf(plan: Pdc): Step[] {
   return [
     { kind: "general" },
     ...plan.subjects.map((_, index) => ({ kind: "subject", index }) as const),
+    // Where the document puts them: after the subject tables and before what closes the month.
+    { kind: "adaptations" },
     { kind: "closing" },
     { kind: "review" },
   ]
@@ -77,12 +87,17 @@ function labelOf(step: Step, plan: Pdc): string {
       return "Datos generales"
     case "subject":
       return plan.subjects[step.index]?.subjectName ?? "Materia"
+    case "adaptations":
+      return "Adaptaciones"
     case "closing":
       return "Cierre"
     case "review":
       return "Revisar"
   }
 }
+
+/** The whole roster in one page: a course is thirty-odd children, and the step lists them all. */
+const WHOLE_ROSTER = { offset: 1, limit: 200, sort: "asc" } as const
 
 export interface PdcWizardProps {
   planId: string
@@ -95,10 +110,15 @@ export function PdcWizard({ planId, onClose }: PdcWizardProps) {
   const updatePlan = useUpdatePdc()
   const writeSubject = useWritePdcSubject()
   const { publish } = usePdcAction()
+  const adaptations = useAdaptationList(planId)
+  const addAdaptation = useCreateAdaptation(planId)
+  const removeAdaptation = useDeleteAdaptation(planId)
   const [current, setCurrent] = useState(0)
   const [zoom, setZoom] = useState<number>(DEFAULT_ZOOM)
 
   const plan = detail.data
+  const roster = useCourseStudents(plan?.courseId, WHOLE_ROSTER)
+  const written = adaptations.data?.content ?? []
   const steps = useMemo(() => (plan ? stepsOf(plan) : []), [plan])
 
   if (detail.isLoading || !plan) {
@@ -181,6 +201,19 @@ export function PdcWizard({ planId, onClose }: PdcWizardProps) {
                   { onSuccess: goNext },
                 )
               }
+            />
+          ) : null}
+
+          {step.kind === "adaptations" ? (
+            <AdaptationsStep
+              planId={plan.id}
+              students={roster.data?.content ?? []}
+              adaptations={written}
+              saving={addAdaptation.isPending || removeAdaptation.isPending}
+              onAdd={(payload) => addAdaptation.mutate(payload)}
+              onRemove={(id) => removeAdaptation.mutate(id)}
+              onBack={goBack}
+              onNext={goNext}
             />
           ) : null}
 
@@ -281,6 +314,7 @@ export function PdcWizard({ planId, onClose }: PdcWizardProps) {
             <PdcPreview
               plan={plan}
               institution={institution.data}
+              adaptations={written}
               zoom={zoom}
               activeSubjectId={
                 step.kind === "subject" ? plan.subjects[step.index].id : null

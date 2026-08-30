@@ -3,6 +3,24 @@ import { describe, expect, it } from "vitest"
 
 import { PdcPreview } from "./PdcPreview"
 import type { Pdc, PdcEntry, PdcSubject } from "../types"
+import type { Adaptation } from "@/features/adaptation/types"
+
+const adaptation = (over: Partial<Adaptation> = {}): Adaptation =>
+  ({
+    id: "a-1",
+    planId: "p-1",
+    studentId: "st-1",
+    studentName: "Juan Vargas",
+    conditionType: "TEA",
+    adaptedContents: "Números hasta el 20",
+    adaptedMethodology: "Material concreto",
+    adaptedCriteria: "Cuenta con apoyo",
+    createdById: null,
+    updatedById: null,
+    createdAt: "2026-08-03T00:00:00",
+    updatedAt: "2026-08-03T00:00:00",
+    ...over,
+  }) as Adaptation
 
 const week = (over: Partial<PdcEntry> = {}): PdcEntry =>
   ({
@@ -152,6 +170,78 @@ describe("PdcPreview", () => {
     expect(screen.getByText("al:")).toHaveClass("font-bold")
     expect(screen.getByText("03 de agosto")).toBeInTheDocument()
     expect(screen.getByText("04 de septiembre")).toBeInTheDocument()
+  })
+
+  // The columns are the template's, in the template's order: what was adapted, who it answers to,
+  // how it was adapted, how it is judged.
+  it("prints one row per significant adaptation, in the form's column order", () => {
+    render(<PdcPreview plan={plan()} adaptations={[adaptation()]} />)
+
+    const row = screen.getByText("Números hasta el 20").closest("tr")!
+
+    expect(Array.from(row.cells).map((cell) => cell.textContent)).toEqual([
+      "Números hasta el 20",
+      "TEA",
+      "Material concreto",
+      "Cuenta con apoyo",
+    ])
+  })
+
+  it("prints a row for every student the teacher adapted for", () => {
+    render(
+      <PdcPreview
+        plan={plan()}
+        adaptations={[
+          adaptation(),
+          adaptation({ id: "a-2", adaptedContents: "Lectura de sílabas" }),
+        ]}
+      />,
+    )
+
+    const table = screen.getByText("Adaptación").closest("table")!
+
+    expect(table.tBodies[0].rows).toHaveLength(2)
+  })
+
+  // The form is handed in on paper. A month with no adaptation still prints the empty row the
+  // teacher writes on by hand, which is what the blank template does.
+  it("keeps the blank row when no adaptation was written", () => {
+    render(<PdcPreview plan={plan()} adaptations={[]} />)
+
+    const table = screen.getByText("Adaptación").closest("table")!
+
+    expect(table.tBodies[0].rows).toHaveLength(1)
+    expect(table.tBodies[0].rows[0].textContent).toBe("")
+  })
+
+  // A teacher who filled only the content leaves the other columns empty. They print as the form's
+  // own blank cell — never as the word "null".
+  it("leaves an unfilled column blank rather than printing its absence", () => {
+    render(
+      <PdcPreview
+        plan={plan()}
+        adaptations={[adaptation({ conditionType: null, adaptedCriteria: null })]}
+      />,
+    )
+
+    const row = screen.getByText("Números hasta el 20").closest("tr")!
+
+    expect(Array.from(row.cells).map((cell) => cell.textContent)).toEqual([
+      "Números hasta el 20",
+      "",
+      "Material concreto",
+      "",
+    ])
+  })
+
+  // The preview is opened while the adaptations are still being fetched, and every plan written
+  // before this step existed has none at all.
+  it("renders the blank row when no adaptations were passed at all", () => {
+    render(<PdcPreview plan={plan()} />)
+
+    const table = screen.getByText("Adaptación").closest("table")!
+
+    expect(table.tBodies[0].rows).toHaveLength(1)
   })
 
   // The heading is filled in before a single subject is written, and a plan whose school has no

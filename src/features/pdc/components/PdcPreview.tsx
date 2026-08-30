@@ -2,6 +2,7 @@ import { Fragment } from "react"
 
 import { cn } from "@/lib/utils"
 import type { Institution } from "@/features/institution/types"
+import type { Adaptation } from "@/features/adaptation/types"
 
 import type { Pdc, PdcEntry, PdcSubject } from "../types"
 import { areaLine, spellDate, teacherLine, trimesterName } from "../utils/heading"
@@ -162,10 +163,42 @@ function SubjectTable({ subject, active }: { subject: PdcSubject; active: boolea
   )
 }
 
+/**
+ * The four columns the template prints, in its order: what was adapted, the condition it answers
+ * to, how it was adapted, and how it is judged. The student is not among them — the form names the
+ * case, not the child.
+ */
+function AdaptationRow({ adaptation }: { adaptation: Adaptation }) {
+  const columns = [
+    adaptation.adaptedContents,
+    adaptation.conditionType,
+    adaptation.adaptedMethodology,
+    adaptation.adaptedCriteria,
+  ]
+
+  return (
+    <tr>
+      {columns.map((value, column) => (
+        <td
+          key={column}
+          className={cn(CELL, "whitespace-pre-wrap", column === 0 && "h-8")}
+        >
+          {orBlank(value)}
+        </td>
+      ))}
+    </tr>
+  )
+}
+
 export interface PdcPreviewProps {
   plan: Pdc
   /** The school's heading. Absent while it is still being fetched. */
   institution?: Institution
+  /**
+   * The significant adaptations of this plan. Absent while they are being fetched, and empty for
+   * every plan whose teacher had no student in that case.
+   */
+  adaptations?: Adaptation[]
   /** Highlights the block being edited, so the teacher sees where their typing lands. */
   activeSubjectId?: string | null
   /** How much of the sheet fits on screen. Printing ignores it: paper is always full size. */
@@ -180,6 +213,7 @@ export interface PdcPreviewProps {
 export function PdcPreview({
   plan,
   institution,
+  adaptations = [],
   activeSubjectId,
   zoom = 1,
 }: PdcPreviewProps) {
@@ -283,12 +317,22 @@ export function PdcPreview({
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td className={`${CELL} h-8`} />
-            <td className={CELL} />
-            <td className={CELL} />
-            <td className={CELL} />
-          </tr>
+          {/*
+            A month with no adaptation still hands in the empty row the teacher writes on by hand,
+            the way the blank template does.
+          */}
+          {adaptations.length === 0 ? (
+            <tr>
+              <td className={`${CELL} h-8`} />
+              <td className={CELL} />
+              <td className={CELL} />
+              <td className={CELL} />
+            </tr>
+          ) : (
+            adaptations.map((adaptation) => (
+              <AdaptationRow key={adaptation.id} adaptation={adaptation} />
+            ))
+          )}
         </tbody>
       </table>
 

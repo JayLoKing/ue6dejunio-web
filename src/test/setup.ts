@@ -13,6 +13,15 @@ class NoopResizeObserver implements ResizeObserver {
 
 globalThis.ResizeObserver ??= NoopResizeObserver
 
+// The same gap, one layer down. jsdom implements no pointer capture and no scrolling, and Radix
+// Select calls both while opening: without these a test that clicks the trigger dies on
+// "hasPointerCapture is not a function" instead of showing the options. Neither does anything
+// observable in jsdom, so a no-op is the honest stub rather than a simulation.
+Element.prototype.hasPointerCapture ??= () => false
+Element.prototype.setPointerCapture ??= () => {}
+Element.prototype.releasePointerCapture ??= () => {}
+Element.prototype.scrollIntoView ??= () => {}
+
 afterEach(() => {
   cleanup()
 })

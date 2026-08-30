@@ -23,14 +23,13 @@ export function areaLine(plan: Pick<Pdc, "subjects">): string {
 }
 
 /**
- * The form's "Maestro/a" row. The backend derives the names from the blocks, so a plan copied to
- * a parallel names the teacher who runs it there. A plan whose blocks have not been read back yet
- * falls to the homeroom teacher rather than printing an empty row.
+ * The form's "Maestro/a" row: the teacher in charge of the course, and only them.
+ *
+ * <p>One teacher of the grade writes the month and hands it to the parallels. The copy belongs to
+ * whoever runs the course it lands in, so the name follows the course rather than the writing —
+ * which is why it is not read from the plan's author or from the teachers of its blocks.
  */
-export function teacherLine(
-  plan: Pick<Pdc, "teacherNames" | "homeroomTeacherName">,
-): string {
-  if (plan.teacherNames.length > 0) return plan.teacherNames.join(", ")
+export function teacherLine(plan: Pick<Pdc, "homeroomTeacherName">): string {
   return plan.homeroomTeacherName ?? ""
 }
 

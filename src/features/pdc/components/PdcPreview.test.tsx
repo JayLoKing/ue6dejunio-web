@@ -48,7 +48,6 @@ const plan = (over: Partial<Pdc> = {}): Pdc =>
     courseName: 'Quinto "B"',
     levelName: "Primaria Comunitaria Vocacional",
     homeroomTeacherName: "Ana Pérez",
-    teacherNames: ["Ana Pérez"],
     holisticObjective: "Fortalecemos la práctica de valores.",
     finalProduct: null,
     bibliography: null,
@@ -99,6 +98,22 @@ describe("PdcPreview", () => {
     expect(band).toBeDefined()
     expect(band).toHaveTextContent("Área de saberes y conocimiento: Comunidad y Sociedad")
     expect(band).toHaveClass("text-center")
+  })
+
+  // The band and the columns are one frame. As two elements they drew two borders with a gap
+  // between them; the band has to be a row of the very table it heads.
+  it("draws the band as a row of the block's own table", () => {
+    render(<PdcPreview plan={plan()} />)
+
+    const band = screen
+      .getAllByText("Comunicación y Lenguajes")
+      .map((node) => node.closest(".pdc-band"))
+      .find((node) => node !== null)!
+    const heading = screen.getByText("Objetivo de aprendizaje")
+
+    expect(band.tagName).toBe("TH")
+    expect(band).toHaveAttribute("colspan", "6")
+    expect(band.closest("table")).toBe(heading.closest("table"))
   })
 
   // Four subjects of one area are four headed tables, not one heading over four tables: the form

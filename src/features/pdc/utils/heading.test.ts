@@ -48,23 +48,15 @@ describe("areaLine", () => {
 })
 
 describe("teacherLine", () => {
-  // "Maestro/a" is whoever teaches what the plan covers. A copy carries the teacher of the
-  // receiving parallel, which is why the backend derives it from the blocks and not from the author.
-  it("joins the teachers of the blocks", () => {
-    expect(teacherLine(plan({ teacherNames: ["Ana Pérez", "Luis Rojas"] }))).toBe(
-      "Ana Pérez, Luis Rojas",
-    )
-  })
-
-  // A plan opened a second ago has no blocks read back yet, but the form still has to name someone.
-  it("falls back to the homeroom teacher while there are no blocks", () => {
-    expect(
-      teacherLine(plan({ teacherNames: [], homeroomTeacherName: "Ana Pérez" })),
-    ).toBe("Ana Pérez")
+  // "Maestro/a" is the teacher in charge of the course, and only them. One teacher of the grade
+  // writes the month and hands it to the parallels; the copy belongs to whoever runs the course it
+  // lands in, so the name follows the course rather than the writing.
+  it("names the teacher in charge of the course", () => {
+    expect(teacherLine(plan({ homeroomTeacherName: "Ana Pérez" }))).toBe("Ana Pérez")
   })
 
   it("leaves the line blank when there is nobody to name", () => {
-    expect(teacherLine(plan({ teacherNames: [], homeroomTeacherName: null }))).toBe("")
+    expect(teacherLine(plan({ homeroomTeacherName: null }))).toBe("")
   })
 })
 

@@ -26,8 +26,7 @@ th { text-align: left; }
 .pdc-small { font-size: 9pt; }
 .pdc-label { font-weight: bold; white-space: nowrap; }
 .pdc-head { background: #E2EFD9; font-weight: bold; }
-.pdc-band { background: #E2EFD9; text-align: center; border: 1px solid #000; padding: 4px 6px; }
-.pdc-band p { margin: 0; }
+.pdc-band { background: #E2EFD9; text-align: center; font-weight: normal; }
 .pdc-date { margin-left: 0.6em; margin-right: 3em; }
 .pdc-head-adapt { background: #A8D08D; font-weight: bold; }
 .pdc-band-adapt { background: #A8D08D; font-weight: bold; text-align: center; border: 1px solid #000; padding: 4px 6px; }

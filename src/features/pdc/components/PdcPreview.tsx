@@ -93,6 +93,19 @@ function SubjectTable({ subject, active }: { subject: PdcSubject; active: boolea
   return (
     <table className={cn("w-full table-fixed border-collapse", active && "outline outline-2 outline-univalle")}>
       <thead>
+        {/*
+          The band is a row of this table rather than a box above it. As two elements they were two
+          borders with a gap between them; as one table they share the grid, which is how the
+          template draws it — the heading and the columns are the same frame.
+        */}
+        <tr>
+          <th colSpan={6} className={`${CELL} pdc-band bg-[#E2EFD9] text-center font-normal`}>
+            <span className="pdc-strong block font-bold">
+              Área de saberes y conocimiento: {subject.knowledgeArea ?? "Sin área"}
+            </span>
+            <span className="block">{orBlank(subject.subjectName)}</span>
+          </th>
+        </tr>
         <tr>
           <th className={`${HEAD} w-[12%]`}>Objetivo de aprendizaje</th>
           <th className={`${HEAD} w-[18%]`}>Contenidos</th>
@@ -245,21 +258,14 @@ export function PdcPreview({
       </p>
 
       {/*
-        One band per block, not one per area. The form repeats the area over every subject it
-        covers and prints the subject inside that same shaded box — so a teacher running four
-        subjects of Comunidad y Sociedad hands in four headed tables, not one heading and four
-        tables under it.
+        One headed table per block, not one heading per area. The form repeats the area over every
+        subject it covers — a teacher running four subjects of Comunidad y Sociedad hands in four
+        headed tables, not one heading with four tables under it.
       */}
       {blocks.map((subject) => (
-        <section key={subject.id} className="mb-5 flex flex-col gap-1">
-          <div className="pdc-band border border-black bg-[#E2EFD9] px-2 py-1 text-center">
-            <p className="pdc-strong font-bold">
-              Área de saberes y conocimiento: {subject.knowledgeArea ?? "Sin área"}
-            </p>
-            <p>{orBlank(subject.subjectName)}</p>
-          </div>
+        <div key={subject.id} className="mb-5">
           <SubjectTable subject={subject} active={subject.id === activeSubjectId} />
-        </section>
+        </div>
       ))}
 
       <p className="pdc-band-adapt mb-1 border border-black bg-[#A8D08D] px-2 py-1 text-center font-bold">

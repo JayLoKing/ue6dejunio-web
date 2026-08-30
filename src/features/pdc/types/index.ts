@@ -50,8 +50,6 @@ export interface Pdc {
   levelName: string | null
   homeroomTeacherId: string | null
   homeroomTeacherName: string | null
-  /** Who signs as "Maestro/a": the teachers of the blocks, each named once. */
-  teacherNames: string[]
   planNumber: number
   trimester: number
   periodStart: string

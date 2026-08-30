@@ -35,6 +35,7 @@ import { useAuthStore } from "@/features/auth/store/authStore"
 import { isRole } from "@/features/auth/types"
 import { useTeacherClassGroups } from "@/features/courses/hooks/useCourses"
 import { useSendNotification } from "@/features/notifications/hooks/useNotifications"
+import type { NotificationType } from "@/features/notifications/types"
 import { PdcCreateDialog } from "@/features/pdc/components/PdcCreateDialog"
 import { PdcWizard } from "@/features/pdc/components/PdcWizard"
 import { planLabel } from "@/features/pdc/utils/planLabel"
@@ -79,9 +80,21 @@ function PdcPage() {
   const sendNotification = useSendNotification()
 
   // Director acts → notify the PDC owner (teacher), receiver = createdById.
-  const notifyOwner = (pdc: Pdc, message: string) => {
+  // The type is what the inbox heads the row with, and it carries the plan so the teacher can
+  // open the thing being talked about instead of going to look for it.
+  const notifyOwner = (
+    pdc: Pdc,
+    type: NotificationType,
+    message: string,
+  ) => {
     if (!pdc.createdById) return
-    sendNotification.mutate({ receiver_id: pdc.createdById, message })
+    sendNotification.mutate({
+      receiver_id: pdc.createdById,
+      type,
+      message,
+      resource_type: "CURRICULUM_PLAN",
+      resource_id: pdc.id,
+    })
   }
 
   // The backend already scopes a teacher to the plans they take part in — the course they run or a
@@ -236,6 +249,7 @@ function PdcPage() {
                                 onSuccess: () =>
                                   notifyOwner(
                                     p,
+                                    "PDC_APPROVED",
                                     `Tu PDC "${planLabel(p)}" fue aprobado.`,
                                   ),
                               })
@@ -354,6 +368,7 @@ function PdcPage() {
                     onSuccess: () => {
                       notifyOwner(
                         target,
+                        "PDC_OBSERVED",
                         `Tu PDC "${planLabel(target)}" fue observado: ${obs}`,
                       )
                       setObserving(null)

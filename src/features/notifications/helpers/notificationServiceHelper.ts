@@ -4,7 +4,7 @@ import { httpClient } from "@/lib/axios"
 import type { PagedResponse } from "@/lib/types/pagination"
 
 import { NotificationUrl } from "./notificationPath"
-import type { NotificationItem, UnreadCount } from "../types"
+import type { NotificationItem, NotificationType, UnreadCount } from "../types"
 
 export interface InboxParams {
   unreadOnly?: boolean
@@ -14,7 +14,12 @@ export interface InboxParams {
 
 export interface SendNotificationPayload {
   receiver_id: string
+  type: NotificationType
+  /** Required by the API when the type is CUSTOM, and meaningless otherwise. */
+  subject?: string
   message: string
+  resource_type?: string
+  resource_id?: string
 }
 
 export default class NotificationServiceHelper {

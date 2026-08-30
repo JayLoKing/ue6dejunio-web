@@ -37,7 +37,7 @@ import { useTeacherClassGroups } from "@/features/courses/hooks/useCourses"
 import { useSendNotification } from "@/features/notifications/hooks/useNotifications"
 import { PdcCreateDialog } from "@/features/pdc/components/PdcCreateDialog"
 import { PdcWizard } from "@/features/pdc/components/PdcWizard"
-import { planLabel, subjectSummary } from "@/features/pdc/utils/planLabel"
+import { planLabel } from "@/features/pdc/utils/planLabel"
 import {
   isEditable,
   STATUS_BADGE,
@@ -84,12 +84,11 @@ function PdcPage() {
     sendNotification.mutate({ receiver_id: pdc.createdById, message })
   }
 
-  // Backend list devuelve todos; el docente solo ve los suyos (createdById).
-  const rows = useMemo(() => {
-    const all = data?.content ?? []
-    if (isTeacher && userId) return all.filter((p) => p.createdById === userId)
-    return all
-  }, [data, isTeacher, userId])
+  // The backend already scopes a teacher to the plans they take part in — the course they run or a
+  // subject they teach in it. Filtering again on createdById here hid the rotation from the people
+  // it is for: a copy is authored by whoever triggered it, so every parallel's plan carried the
+  // first teacher's id and vanished from the list of the teacher it was handed to.
+  const rows = data?.content ?? []
   // The plan is opened for a course, not for a subject, so the picker offers the courses the
   // teacher runs — deduplicated, because a teacher with several subjects in one course still
   // plans that course once.
@@ -133,8 +132,13 @@ function PdcPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Título</TableHead>
-              <TableHead>Materia</TableHead>
+              {/* Only the Director reads other people's plans; a teacher's list is all their own. */}
+              {isDirector ? <TableHead>Docente</TableHead> : null}
               <TableHead>Trim.</TableHead>
+              {/* How wide the month is, and how much of it answers to a named student. Both say
+                  whether a plan is worth opening before it is opened. */}
+              <TableHead className="text-right">Áreas</TableHead>
+              <TableHead className="text-right">Adapt. signif.</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
@@ -142,13 +146,13 @@ function PdcPage() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                <TableCell colSpan={isDirector ? 7 : 6} className="text-center text-muted-foreground">
                   Cargando…
                 </TableCell>
               </TableRow>
             ) : rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                <TableCell colSpan={isDirector ? 7 : 6} className="text-center text-muted-foreground">
                   Sin PDC.
                 </TableCell>
               </TableRow>
@@ -156,10 +160,16 @@ function PdcPage() {
               rows.map((p) => (
                 <TableRow key={p.id}>
                   <TableCell className="font-medium">{planLabel(p)}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {subjectSummary(p)}
-                  </TableCell>
+                  {isDirector ? (
+                    <TableCell className="text-muted-foreground">
+                      {p.homeroomTeacherName ?? "—"}
+                    </TableCell>
+                  ) : null}
                   <TableCell>{p.trimester}</TableCell>
+                  <TableCell className="text-right tabular-nums">{p.areaCount}</TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {p.significantAdaptationCount}
+                  </TableCell>
                   <TableCell>
                     <Badge className={cn(STATUS_BADGE[p.status])}>
                       {STATUS_LABEL[p.status]}

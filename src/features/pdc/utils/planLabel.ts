@@ -10,12 +10,3 @@ export function planLabel(plan: Pick<Pdc, "planNumber" | "courseName">): string 
     ? `Plan Nº ${plan.planNumber} · ${course}`
     : `Plan Nº ${plan.planNumber}`
 }
-
-/** The subjects a plan covers, for a listing row that shows no blocks of its own. */
-export function subjectSummary(plan: Pick<Pdc, "subjects">): string {
-  if (plan.subjects.length === 0) return "—"
-  if (plan.subjects.length <= 2) {
-    return plan.subjects.map((s) => s.subjectName).join(", ")
-  }
-  return `${plan.subjects.length} materias`
-}

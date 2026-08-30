@@ -50,6 +50,9 @@ export interface Pdc {
   levelName: string | null
   homeroomTeacherId: string | null
   homeroomTeacherName: string | null
+  /** How many areas of knowledge the plan spans, and how many significant adaptations it holds. */
+  areaCount: number
+  significantAdaptationCount: number
   planNumber: number
   trimester: number
   periodStart: string

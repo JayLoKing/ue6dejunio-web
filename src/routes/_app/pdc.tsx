@@ -34,8 +34,6 @@ import { DataTablePagination } from "@/components/shared/DataTablePagination"
 import { useAuthStore } from "@/features/auth/store/authStore"
 import { isRole } from "@/features/auth/types"
 import { useTeacherClassGroups } from "@/features/courses/hooks/useCourses"
-import { useSendNotification } from "@/features/notifications/hooks/useNotifications"
-import type { NotificationType } from "@/features/notifications/types"
 import { PdcCreateDialog } from "@/features/pdc/components/PdcCreateDialog"
 import { PdcWizard } from "@/features/pdc/components/PdcWizard"
 import { planLabel } from "@/features/pdc/utils/planLabel"
@@ -77,25 +75,9 @@ function PdcPage() {
   const classGroupsQuery = useTeacherClassGroups(isTeacher ? userId : null)
   const { data, isLoading, isFetching, refetch } = usePdcList({ offset: page, limit })
   const { publish, approve, observe, remove } = usePdcAction()
-  const sendNotification = useSendNotification()
-
-  // Director acts → notify the PDC owner (teacher), receiver = createdById.
-  // The type is what the inbox heads the row with, and it carries the plan so the teacher can
-  // open the thing being talked about instead of going to look for it.
-  const notifyOwner = (
-    pdc: Pdc,
-    type: NotificationType,
-    message: string,
-  ) => {
-    if (!pdc.createdById) return
-    sendNotification.mutate({
-      receiver_id: pdc.createdById,
-      type,
-      message,
-      resource_type: "CURRICULUM_PLAN",
-      resource_id: pdc.id,
-    })
-  }
+  // The plan's own state change is what notifies its author now, on the server, after the write
+  // commits. Sending it from here as well would put two rows in the teacher's inbox for one
+  // approval — and a plan approved from anywhere but this screen used to notify nobody at all.
 
   // The backend already scopes a teacher to the plans they take part in — the course they run or a
   // subject they teach in it. Filtering again on createdById here hid the rotation from the people
@@ -245,14 +227,7 @@ function PdcPage() {
                             title="Aprobar"
                             disabled={approve.isPending}
                             onClick={() =>
-                              approve.mutate(p.id, {
-                                onSuccess: () =>
-                                  notifyOwner(
-                                    p,
-                                    "PDC_APPROVED",
-                                    `Tu PDC "${planLabel(p)}" fue aprobado.`,
-                                  ),
-                              })
+                              approve.mutate(p.id)
                             }
                           >
                             <CheckCircle2Icon className="size-4" />
@@ -365,14 +340,7 @@ function PdcPage() {
                 observe.mutate(
                   { id: target.id, observations: obs },
                   {
-                    onSuccess: () => {
-                      notifyOwner(
-                        target,
-                        "PDC_OBSERVED",
-                        `Tu PDC "${planLabel(target)}" fue observado: ${obs}`,
-                      )
-                      setObserving(null)
-                    },
+                    onSuccess: () => setObserving(null),
                   },
                 )
               }}

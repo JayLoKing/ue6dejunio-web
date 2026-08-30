@@ -20,6 +20,7 @@ import {
   useAdaptationList,
   useCreateAdaptation,
   useDeleteAdaptation,
+  useUpdateAdaptation,
 } from "@/features/adaptation/hooks/useAdaptations"
 
 import {
@@ -34,7 +35,7 @@ import type { Pdc, UpdatePdcPayload } from "../types"
 import { DEFAULT_HOLISTIC_OBJECTIVE } from "../utils/holisticObjective"
 import { planLabel } from "../utils/planLabel"
 import { isEditable } from "../utils/status"
-import { trimmed } from "../utils/trimmed"
+import { trimmed } from "@/lib/trimmed"
 import { wordDocumentOf } from "../utils/wordDocument"
 import { DEFAULT_ZOOM, ZOOM_STEPS, zoomIn, zoomOut } from "../utils/zoom"
 
@@ -112,6 +113,7 @@ export function PdcWizard({ planId, onClose }: PdcWizardProps) {
   const { publish } = usePdcAction()
   const adaptations = useAdaptationList(planId)
   const addAdaptation = useCreateAdaptation(planId)
+  const editAdaptation = useUpdateAdaptation(planId)
   const removeAdaptation = useDeleteAdaptation(planId)
   const [current, setCurrent] = useState(0)
   const [zoom, setZoom] = useState<number>(DEFAULT_ZOOM)
@@ -209,8 +211,13 @@ export function PdcWizard({ planId, onClose }: PdcWizardProps) {
               planId={plan.id}
               students={roster.data?.content ?? []}
               adaptations={written}
-              saving={addAdaptation.isPending || removeAdaptation.isPending}
+              saving={
+                addAdaptation.isPending ||
+                editAdaptation.isPending ||
+                removeAdaptation.isPending
+              }
               onAdd={(payload) => addAdaptation.mutate(payload)}
+              onUpdate={(change) => editAdaptation.mutate(change)}
               onRemove={(id) => removeAdaptation.mutate(id)}
               onBack={goBack}
               onNext={goNext}

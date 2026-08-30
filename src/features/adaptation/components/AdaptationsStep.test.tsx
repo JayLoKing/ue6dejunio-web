@@ -39,6 +39,7 @@ const props = (over: Partial<Parameters<typeof AdaptationsStep>[0]> = {}) => ({
   adaptations: [],
   saving: false,
   onAdd: vi.fn(),
+  onUpdate: vi.fn(),
   onRemove: vi.fn(),
   onBack: vi.fn(),
   onNext: vi.fn(),
@@ -127,6 +128,78 @@ describe("AdaptationsStep", () => {
     await userEvent.click(screen.getByRole("button", { name: /quitar/i }))
 
     expect(p.onRemove).toHaveBeenCalledWith("a-1")
+  })
+
+  // A diagnosis gets corrected after the plan is written. Without an edit the only way to fix a
+  // typo is to delete the row and type all four columns again.
+  it("opens a written row with what it already holds", async () => {
+    render(<AdaptationsStep {...props({ adaptations: [adaptation()] })} />)
+
+    await userEvent.click(screen.getByRole("button", { name: /editar/i }))
+
+    expect(screen.getByLabelText(/contenido/i)).toHaveValue("Números hasta el 20")
+    expect(screen.getByLabelText(/discapacidad/i)).toHaveValue("TEA")
+    expect(screen.getByLabelText(/^adaptación/i)).toHaveValue("Material concreto")
+    expect(screen.getByLabelText(/criterio/i)).toHaveValue("Cuenta con apoyo")
+  })
+
+  it("saves the corrected row", async () => {
+    const p = props({ adaptations: [adaptation()] })
+    render(<AdaptationsStep {...p} />)
+
+    await userEvent.click(screen.getByRole("button", { name: /editar/i }))
+    await userEvent.clear(screen.getByLabelText(/discapacidad/i))
+    await userEvent.type(screen.getByLabelText(/discapacidad/i), "TDH")
+    await userEvent.click(screen.getByRole("button", { name: /guardar/i }))
+
+    expect(p.onUpdate).toHaveBeenCalledWith({
+      id: "a-1",
+      payload: {
+        conditionType: "TDH",
+        adaptedContents: "Números hasta el 20",
+        adaptedMethodology: "Material concreto",
+        adaptedCriteria: "Cuenta con apoyo",
+      },
+    })
+  })
+
+  // An emptied box means the teacher wants the column gone. The API reads null as "leave it", so
+  // the edit sends the empty string instead — otherwise clearing a column silently does nothing.
+  it("clears a column the teacher emptied", async () => {
+    const p = props({ adaptations: [adaptation()] })
+    render(<AdaptationsStep {...p} />)
+
+    await userEvent.click(screen.getByRole("button", { name: /editar/i }))
+    await userEvent.clear(screen.getByLabelText(/criterio/i))
+    await userEvent.click(screen.getByRole("button", { name: /guardar/i }))
+
+    expect(p.onUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payload: expect.objectContaining({ adaptedCriteria: "" }),
+      }),
+    )
+  })
+
+  it("leaves the row alone when the edit is cancelled", async () => {
+    const p = props({ adaptations: [adaptation()] })
+    render(<AdaptationsStep {...p} />)
+
+    await userEvent.click(screen.getByRole("button", { name: /editar/i }))
+    await userEvent.clear(screen.getByLabelText(/discapacidad/i))
+    await userEvent.click(screen.getByRole("button", { name: /cancelar/i }))
+
+    expect(p.onUpdate).not.toHaveBeenCalled()
+    expect(screen.getByRole("button", { name: /editar/i })).toBeInTheDocument()
+  })
+
+  // Editing and adding at once would put two sets of the same four labels on screen, and the
+  // teacher would not know which one the buttons act on.
+  it("puts the new-adaptation form away while a row is being edited", async () => {
+    render(<AdaptationsStep {...props({ adaptations: [adaptation()] })} />)
+
+    await userEvent.click(screen.getByRole("button", { name: /editar/i }))
+
+    expect(screen.queryByRole("button", { name: /agregar/i })).not.toBeInTheDocument()
   })
 
   // Every student of the course already has a row: there is nothing left to add, and an empty

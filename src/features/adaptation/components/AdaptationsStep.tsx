@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { PlusIcon, Trash2Icon } from "lucide-react"
+import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
@@ -12,25 +12,36 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import type { CourseStudent } from "@/features/courses/types/course"
-import { trimmed } from "@/features/pdc/utils/trimmed"
+import { trimmed } from "@/lib/trimmed"
 
-import type { Adaptation, CreateAdaptationPayload } from "../types"
+import type {
+  Adaptation,
+  CreateAdaptationPayload,
+  UpdateAdaptationPayload,
+} from "../types"
 
-/** The columns of the printed form, and what an emptied box means: nothing written, not "". */
-interface Draft {
-  studentId: string
+/** The four columns of the printed form, as the teacher is typing them. */
+interface Columns {
   adaptedContents: string
   conditionType: string
   adaptedMethodology: string
   adaptedCriteria: string
 }
 
-const EMPTY: Draft = {
-  studentId: "",
+const EMPTY_COLUMNS: Columns = {
   adaptedContents: "",
   conditionType: "",
   adaptedMethodology: "",
   adaptedCriteria: "",
+}
+
+function columnsOf(adaptation: Adaptation): Columns {
+  return {
+    adaptedContents: adaptation.adaptedContents ?? "",
+    conditionType: adaptation.conditionType ?? "",
+    adaptedMethodology: adaptation.adaptedMethodology ?? "",
+    adaptedCriteria: adaptation.adaptedCriteria ?? "",
+  }
 }
 
 /**
@@ -45,12 +56,51 @@ function stillAvailable(students: CourseStudent[], adaptations: Adaptation[]) {
 
 /** What the printed row says, in the template's own order, skipping the columns left empty. */
 function writtenColumns(adaptation: Adaptation) {
-  return [
+  const columns: [string, string | null][] = [
     ["Contenido", adaptation.adaptedContents],
     ["Condición", adaptation.conditionType],
     ["Adaptación", adaptation.adaptedMethodology],
     ["Criterio", adaptation.adaptedCriteria],
-  ].filter(([, value]) => value && value.trim() !== "") as [string, string][]
+  ]
+  return columns.filter(
+    (column): column is [string, string] =>
+      column[1] !== null && column[1].trim() !== "",
+  )
+}
+
+/**
+ * The four boxes, shared by writing a row and correcting one. Only one of the two is ever on
+ * screen, so the field ids stay the same in both.
+ */
+function ColumnFields({
+  value,
+  onChange,
+}: {
+  value: Columns
+  onChange: (field: keyof Columns, next: string) => void
+}) {
+  const boxes = [
+    ["adaptedContents", "Contenido"],
+    ["conditionType", "Discapacidad/Talento extraordinario/TDH/TEA y otros"],
+    ["adaptedMethodology", "Adaptación"],
+    ["adaptedCriteria", "Criterio de evaluación"],
+  ] as const
+
+  return (
+    <>
+      {boxes.map(([field, label]) => (
+        <Field key={field}>
+          <FieldLabel htmlFor={`adaptation-${field}`}>{label}</FieldLabel>
+          <Textarea
+            id={`adaptation-${field}`}
+            rows={2}
+            value={value[field]}
+            onChange={(e) => onChange(field, e.target.value)}
+          />
+        </Field>
+      ))}
+    </>
+  )
 }
 
 export interface AdaptationsStepProps {
@@ -60,6 +110,7 @@ export interface AdaptationsStepProps {
   adaptations: Adaptation[]
   saving: boolean
   onAdd: (payload: CreateAdaptationPayload) => void
+  onUpdate: (change: { id: string; payload: UpdateAdaptationPayload }) => void
   onRemove: (id: string) => void
   onBack: () => void
   onNext: () => void
@@ -76,28 +127,61 @@ export function AdaptationsStep({
   adaptations,
   saving,
   onAdd,
+  onUpdate,
   onRemove,
   onBack,
   onNext,
 }: AdaptationsStepProps) {
-  const [draft, setDraft] = useState<Draft>(EMPTY)
+  const [studentId, setStudentId] = useState("")
+  const [draft, setDraft] = useState<Columns>(EMPTY_COLUMNS)
+  // The row being corrected, if any. Adding and editing never share the screen: two sets of the
+  // same four labels would leave the teacher guessing which one the buttons act on.
+  const [editing, setEditing] = useState<string | null>(null)
+
   const available = stillAvailable(students, adaptations)
-  const set = (field: keyof Draft) => (value: string) =>
-    setDraft((d) => ({ ...d, [field]: value }))
+  const change = (field: keyof Columns, next: string) =>
+    setDraft((d) => ({ ...d, [field]: next }))
+
+  const startEditing = (adaptation: Adaptation) => {
+    setEditing(adaptation.id)
+    setDraft(columnsOf(adaptation))
+  }
+
+  const stopEditing = () => {
+    setEditing(null)
+    setDraft(EMPTY_COLUMNS)
+  }
 
   const add = () => {
     // A row without a student belongs to nobody, and the server refuses it. Nothing is sent until
     // the teacher says who it is for.
-    if (draft.studentId === "") return
+    if (studentId === "") return
     onAdd({
       id_curriculum_plan: planId,
-      id_student: draft.studentId,
+      id_student: studentId,
+      // An empty box on a new row is a column never written, which is a null rather than a blank.
       adaptedContents: trimmed(draft.adaptedContents),
       conditionType: trimmed(draft.conditionType),
       adaptedMethodology: trimmed(draft.adaptedMethodology),
       adaptedCriteria: trimmed(draft.adaptedCriteria),
     })
-    setDraft(EMPTY)
+    setStudentId("")
+    setDraft(EMPTY_COLUMNS)
+  }
+
+  const save = (id: string) => {
+    onUpdate({
+      id,
+      // Emptied on purpose here, so the columns go as strings: the API reads a missing one as
+      // "leave it", and a teacher who cleared a box would watch the old text come back.
+      payload: {
+        adaptedContents: draft.adaptedContents.trim(),
+        conditionType: draft.conditionType.trim(),
+        adaptedMethodology: draft.adaptedMethodology.trim(),
+        adaptedCriteria: draft.adaptedCriteria.trim(),
+      },
+    })
+    stopEditing()
   }
 
   return (
@@ -113,35 +197,65 @@ export function AdaptationsStep({
       {adaptations.length > 0 ? (
         <ul className="flex flex-col gap-2">
           {adaptations.map((adaptation) => (
-            <li
-              key={adaptation.id}
-              className="flex items-start justify-between gap-3 rounded-md border p-3 text-sm"
-            >
-              <div className="flex min-w-0 flex-col gap-1">
-                <p className="font-medium">{adaptation.studentName ?? "Estudiante"}</p>
-                {writtenColumns(adaptation).map(([label, value]) => (
-                  <p key={label} className="text-muted-foreground">
-                    <span className="font-medium">{label}: </span>
-                    <span className="whitespace-pre-wrap">{value}</span>
-                  </p>
-                ))}
-              </div>
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                disabled={saving}
-                onClick={() => onRemove(adaptation.id)}
-              >
-                <Trash2Icon className="size-4" />
-                Quitar
-              </Button>
+            <li key={adaptation.id} className="rounded-md border p-3 text-sm">
+              {editing === adaptation.id ? (
+                <div className="flex flex-col gap-4">
+                  <p className="font-medium">{adaptation.studentName ?? "Estudiante"}</p>
+                  <ColumnFields value={draft} onChange={change} />
+                  <div className="flex justify-end gap-2">
+                    <Button type="button" variant="outline" onClick={stopEditing}>
+                      Cancelar
+                    </Button>
+                    <Button
+                      type="button"
+                      disabled={saving}
+                      onClick={() => save(adaptation.id)}
+                    >
+                      {saving ? "Guardando…" : "Guardar"}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <p className="font-medium">{adaptation.studentName ?? "Estudiante"}</p>
+                    {writtenColumns(adaptation).map(([label, value]) => (
+                      <p key={label} className="text-muted-foreground">
+                        <span className="font-medium">{label}: </span>
+                        <span className="whitespace-pre-wrap">{value}</span>
+                      </p>
+                    ))}
+                  </div>
+                  <div className="flex shrink-0 gap-1">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      disabled={saving}
+                      onClick={() => startEditing(adaptation)}
+                    >
+                      <PencilIcon className="size-4" />
+                      Editar
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      disabled={saving}
+                      onClick={() => onRemove(adaptation.id)}
+                    >
+                      <Trash2Icon className="size-4" />
+                      Quitar
+                    </Button>
+                  </div>
+                </div>
+              )}
             </li>
           ))}
         </ul>
       ) : null}
 
-      {available.length === 0 ? (
+      {editing !== null ? null : available.length === 0 ? (
         <p className="rounded-md border bg-muted/30 p-3 text-sm text-muted-foreground">
           {students.length === 0
             ? "Todavía no hay estudiantes inscritos en el curso."
@@ -151,7 +265,7 @@ export function AdaptationsStep({
         <div className="flex flex-col gap-4 rounded-md border p-4">
           <Field>
             <FieldLabel htmlFor="adaptation-student">Estudiante</FieldLabel>
-            <Select value={draft.studentId} onValueChange={set("studentId")}>
+            <Select value={studentId} onValueChange={setStudentId}>
               <SelectTrigger id="adaptation-student">
                 <SelectValue placeholder="Selecciona al estudiante" />
               </SelectTrigger>
@@ -168,47 +282,7 @@ export function AdaptationsStep({
             </FieldDescription>
           </Field>
 
-          <Field>
-            <FieldLabel htmlFor="adaptation-contents">Contenido</FieldLabel>
-            <Textarea
-              id="adaptation-contents"
-              rows={2}
-              value={draft.adaptedContents}
-              onChange={(e) => set("adaptedContents")(e.target.value)}
-            />
-          </Field>
-
-          <Field>
-            <FieldLabel htmlFor="adaptation-condition">
-              Discapacidad/Talento extraordinario/TDH/TEA y otros
-            </FieldLabel>
-            <Textarea
-              id="adaptation-condition"
-              rows={2}
-              value={draft.conditionType}
-              onChange={(e) => set("conditionType")(e.target.value)}
-            />
-          </Field>
-
-          <Field>
-            <FieldLabel htmlFor="adaptation-methodology">Adaptación</FieldLabel>
-            <Textarea
-              id="adaptation-methodology"
-              rows={2}
-              value={draft.adaptedMethodology}
-              onChange={(e) => set("adaptedMethodology")(e.target.value)}
-            />
-          </Field>
-
-          <Field>
-            <FieldLabel htmlFor="adaptation-criteria">Criterio de evaluación</FieldLabel>
-            <Textarea
-              id="adaptation-criteria"
-              rows={2}
-              value={draft.adaptedCriteria}
-              onChange={(e) => set("adaptedCriteria")(e.target.value)}
-            />
-          </Field>
+          <ColumnFields value={draft} onChange={change} />
 
           <div className="flex justify-end">
             <Button type="button" variant="outline" disabled={saving} onClick={add}>

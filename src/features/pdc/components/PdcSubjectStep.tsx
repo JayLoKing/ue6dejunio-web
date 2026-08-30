@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 
 import type { PdcEntryPayload, PdcSubject, UpsertPdcSubjectPayload } from "../types"
-import { trimmed } from "../utils/trimmed"
+import { trimmed } from "@/lib/trimmed"
 
 /** A row while it is being typed: periods is text so an emptied box is not read as zero. */
 interface DraftEntry {

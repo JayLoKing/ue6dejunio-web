@@ -1,32 +1,32 @@
-"use client";
+"use client"
 
-import { createContext, type ReactNode, useContext, useMemo } from "react";
+import { createContext, type ReactNode, useContext, useMemo } from "react"
 
 export interface SpringConfig {
-  stiffness: number;
-  damping: number;
+  stiffness: number
+  damping: number
 }
 
 export interface ChartConfigValue {
   /** Crosshair indicator, tooltip dot, date pill. */
-  tooltipSpring: SpringConfig;
+  tooltipSpring: SpringConfig
   /** Floating tooltip panel. */
-  tooltipBoxSpring: SpringConfig;
+  tooltipBoxSpring: SpringConfig
   /** Line/area hover-highlight band (x + width). */
-  highlightSpring: SpringConfig;
+  highlightSpring: SpringConfig
 }
 
 export const DEFAULT_CHART_CONFIG: ChartConfigValue = {
   tooltipSpring: { stiffness: 300, damping: 30 },
   tooltipBoxSpring: { stiffness: 100, damping: 20 },
   highlightSpring: { stiffness: 180, damping: 28 },
-};
+}
 
-const ChartConfigContext = createContext<ChartConfigValue | null>(null);
+const ChartConfigContext = createContext<ChartConfigValue | null>(null)
 
 export interface ChartConfigProviderProps {
-  value?: Partial<ChartConfigValue>;
-  children: ReactNode;
+  value?: Partial<ChartConfigValue>
+  children: ReactNode
 }
 
 export function ChartConfigProvider({
@@ -39,15 +39,15 @@ export function ChartConfigProvider({
       ...value,
     }),
     [value]
-  );
+  )
 
   return (
     <ChartConfigContext.Provider value={merged}>
       {children}
     </ChartConfigContext.Provider>
-  );
+  )
 }
 
 export function useChartConfig(): ChartConfigValue {
-  return useContext(ChartConfigContext) ?? DEFAULT_CHART_CONFIG;
+  return useContext(ChartConfigContext) ?? DEFAULT_CHART_CONFIG
 }

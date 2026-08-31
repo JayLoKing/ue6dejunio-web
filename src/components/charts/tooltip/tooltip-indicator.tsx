@@ -1,65 +1,65 @@
-"use client";
+"use client"
 
-import { motion, useSpring } from "motion/react";
-import { useEffect } from "react";
-import { type SpringConfig, useChartConfig } from "../chart-config-context";
-import { chartCssVars } from "../chart-context";
+import { motion, useSpring } from "motion/react"
+import { useEffect } from "react"
+import { type SpringConfig, useChartConfig } from "../chart-config-context"
+import { chartCssVars } from "../chart-context"
 
 export type IndicatorWidth =
   | number // Pixel width
   | "line" // 1px line (default)
   | "thin" // 2px
   | "medium" // 4px
-  | "thick"; // 8px
+  | "thick" // 8px
 
 export interface TooltipIndicatorProps {
   /** X position in pixels (center of the indicator) */
-  x: number;
+  x: number
   /** Height of the indicator */
-  height: number;
+  height: number
   /** Whether the indicator is visible */
-  visible: boolean;
+  visible: boolean
   /**
    * Width of the indicator - number (pixels) or preset.
    * Ignored if `span` is provided.
    */
-  width?: IndicatorWidth;
+  width?: IndicatorWidth
   /**
    * Number of columns/days to span, with current point centered.
    * Requires `columnWidth` to be set.
    */
-  span?: number;
+  span?: number
   /** Width of a single column/day in pixels. Required when using `span`. */
-  columnWidth?: number;
+  columnWidth?: number
   /** Primary color at edges (10% and 90%) */
-  colorEdge?: string;
+  colorEdge?: string
   /** Secondary color at center (50%) */
-  colorMid?: string;
+  colorMid?: string
   /** Whether to fade to transparent at 0% and 100% */
-  fadeEdges?: boolean;
+  fadeEdges?: boolean
   /** Animate position with a spring. Default: true */
-  animate?: boolean;
+  animate?: boolean
   /** Unique ID for the gradient */
-  gradientId?: string;
+  gradientId?: string
   /** Per-chart override; falls back to `ChartConfigProvider.tooltipSpring`. */
-  springConfig?: SpringConfig;
+  springConfig?: SpringConfig
 }
 
 function resolveWidth(width: IndicatorWidth): number {
   if (typeof width === "number") {
-    return width;
+    return width
   }
   switch (width) {
     case "line":
-      return 1;
+      return 1
     case "thin":
-      return 2;
+      return 2
     case "medium":
-      return 4;
+      return 4
     case "thick":
-      return 8;
+      return 8
     default:
-      return 1;
+      return 1
   }
 }
 
@@ -67,9 +67,9 @@ function resolveWidth(width: IndicatorWidth): number {
 // instead of 0 on first hover.
 export function TooltipIndicator(props: TooltipIndicatorProps) {
   if (!props.visible) {
-    return null;
+    return null
   }
-  return <TooltipIndicatorInner {...props} />;
+  return <TooltipIndicatorInner {...props} />
 }
 
 function TooltipIndicatorInner({
@@ -86,27 +86,27 @@ function TooltipIndicatorInner({
   gradientId = "tooltip-indicator-gradient",
   springConfig,
 }: TooltipIndicatorProps) {
-  const { tooltipSpring } = useChartConfig();
-  const effectiveSpring = springConfig ?? tooltipSpring;
+  const { tooltipSpring } = useChartConfig()
+  const effectiveSpring = springConfig ?? tooltipSpring
 
   const pixelWidth =
     span !== undefined && columnWidth !== undefined
       ? span * columnWidth
-      : resolveWidth(width);
+      : resolveWidth(width)
 
-  const rectX = x - pixelWidth / 2;
-  const animatedX = useSpring(rectX, effectiveSpring);
+  const rectX = x - pixelWidth / 2
+  const animatedX = useSpring(rectX, effectiveSpring)
 
   if (animate) {
-    animatedX.set(rectX);
+    animatedX.set(rectX)
   }
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: we need to jump the animatedX when the visible prop changes
   useEffect(() => {
-    animatedX.set(rectX);
-  }, [animatedX, visible]);
+    animatedX.set(rectX)
+  }, [animatedX, visible])
 
-  const edgeOpacity = fadeEdges ? 0 : 1;
+  const edgeOpacity = fadeEdges ? 0 : 1
 
   return (
     <g>
@@ -143,9 +143,9 @@ function TooltipIndicatorInner({
         />
       )}
     </g>
-  );
+  )
 }
 
-TooltipIndicator.displayName = "TooltipIndicator";
+TooltipIndicator.displayName = "TooltipIndicator"
 
-export default TooltipIndicator;
+export default TooltipIndicator

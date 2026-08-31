@@ -140,7 +140,9 @@ export function PdcWizard({ planId, onClose }: PdcWizardProps) {
     <div className="flex min-w-0 flex-col gap-4">
       {plan.reviewObservations ? (
         <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm">
-          <p className="font-semibold text-destructive">Observaciones del Director</p>
+          <p className="font-semibold text-destructive">
+            Observaciones del Director
+          </p>
           <p className="whitespace-pre-wrap">{plan.reviewObservations}</p>
         </div>
       ) : null}
@@ -155,7 +157,7 @@ export function PdcWizard({ planId, onClose }: PdcWizardProps) {
                 "rounded-full border px-3 py-1 text-xs transition-colors",
                 index === current
                   ? "border-univalle bg-univalle text-univalle-foreground"
-                  : "text-muted-foreground hover:border-univalle/40",
+                  : "text-muted-foreground hover:border-univalle/40"
               )}
             >
               {index + 1}. {labelOf(s, plan)}
@@ -173,7 +175,7 @@ export function PdcWizard({ planId, onClose }: PdcWizardProps) {
               onSave={(payload) =>
                 updatePlan.mutate(
                   { id: plan.id, payload },
-                  { onSuccess: goNext },
+                  { onSuccess: goNext }
                 )
               }
               onCancel={onClose}
@@ -200,7 +202,7 @@ export function PdcWizard({ planId, onClose }: PdcWizardProps) {
                     planSubjectId: plan.subjects[step.index].id,
                     payload,
                   },
-                  { onSuccess: goNext },
+                  { onSuccess: goNext }
                 )
               }
             />
@@ -232,7 +234,7 @@ export function PdcWizard({ planId, onClose }: PdcWizardProps) {
               onSave={(payload) =>
                 updatePlan.mutate(
                   { id: plan.id, payload },
-                  { onSuccess: goNext },
+                  { onSuccess: goNext }
                 )
               }
             />
@@ -242,8 +244,8 @@ export function PdcWizard({ planId, onClose }: PdcWizardProps) {
             <div className="flex flex-col gap-4">
               <h3 className="text-lg font-semibold">Revisar y enviar</h3>
               <p className="text-sm text-muted-foreground">
-                Revisa el documento de la derecha. Al publicarlo pasa al Director y
-                deja de ser editable hasta que lo apruebe u observe.
+                Revisa el documento de la derecha. Al publicarlo pasa al
+                Director y deja de ser editable hasta que lo apruebe u observe.
               </p>
               <div className="flex justify-between gap-3">
                 <Button type="button" variant="outline" onClick={goBack}>
@@ -253,7 +255,9 @@ export function PdcWizard({ planId, onClose }: PdcWizardProps) {
                   type="button"
                   className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
                   disabled={!editable || publish.isPending}
-                  onClick={() => publish.mutate(plan.id, { onSuccess: onClose })}
+                  onClick={() =>
+                    publish.mutate(plan.id, { onSuccess: onClose })
+                  }
                 >
                   <CheckIcon className="size-4" />
                   {publish.isPending ? "Publicando…" : "Publicar para revisión"}
@@ -281,7 +285,7 @@ export function PdcWizard({ planId, onClose }: PdcWizardProps) {
               >
                 <ZoomOutIcon className="size-4" />
               </Button>
-              <span className="w-10 text-center text-xs tabular-nums text-muted-foreground">
+              <span className="w-10 text-center text-xs text-muted-foreground tabular-nums">
                 {Math.round(zoom * 100)}%
               </span>
               <Button
@@ -341,7 +345,7 @@ interface GeneralStepProps {
     payload: Pick<
       UpdatePdcPayload,
       "period_start" | "period_end" | "holisticObjective"
-    >,
+    >
   ) => void
   onCancel: () => void
 }
@@ -352,7 +356,7 @@ function GeneralStep({ plan, saving, onSave, onCancel }: GeneralStepProps) {
   // A plan that has not been given an objective starts from the template's own, which is the level's
   // objective and reads the same on every plan of the year.
   const [holisticObjective, setHolisticObjective] = useState(
-    plan.holisticObjective ?? DEFAULT_HOLISTIC_OBJECTIVE,
+    plan.holisticObjective ?? DEFAULT_HOLISTIC_OBJECTIVE
   )
 
   return (
@@ -360,7 +364,8 @@ function GeneralStep({ plan, saving, onSave, onCancel }: GeneralStepProps) {
       <header className="flex flex-col gap-1">
         <h3 className="text-lg font-semibold">Datos generales</h3>
         <p className="text-sm text-muted-foreground">
-          Estos datos valen para todas las materias del plan. Se cargan una sola vez.
+          Estos datos valen para todas las materias del plan. Se cargan una sola
+          vez.
         </p>
       </header>
 
@@ -397,7 +402,9 @@ function GeneralStep({ plan, saving, onSave, onCancel }: GeneralStepProps) {
       </div>
 
       <Field>
-        <FieldLabel htmlFor="pdc-holistic">Objetivo holístico de nivel</FieldLabel>
+        <FieldLabel htmlFor="pdc-holistic">
+          Objetivo holístico de nivel
+        </FieldLabel>
         <Textarea
           id="pdc-holistic"
           rows={6}
@@ -434,7 +441,9 @@ function GeneralStep({ plan, saving, onSave, onCancel }: GeneralStepProps) {
 interface ClosingStepProps {
   plan: Pdc
   saving: boolean
-  onSave: (payload: Pick<UpdatePdcPayload, "finalProduct" | "bibliography">) => void
+  onSave: (
+    payload: Pick<UpdatePdcPayload, "finalProduct" | "bibliography">
+  ) => void
   onBack: () => void
 }
 
@@ -452,7 +461,9 @@ function ClosingStep({ plan, saving, onSave, onBack }: ClosingStepProps) {
       </header>
 
       <Field>
-        <FieldLabel htmlFor="pdc-final-product">Producto final del mes</FieldLabel>
+        <FieldLabel htmlFor="pdc-final-product">
+          Producto final del mes
+        </FieldLabel>
         <Textarea
           id="pdc-final-product"
           rows={4}

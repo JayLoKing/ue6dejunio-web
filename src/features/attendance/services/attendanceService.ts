@@ -9,17 +9,17 @@ const helper = new AttendanceServiceHelper()
 
 export class AttendanceService {
   static async daily(
-    payload: DailyAttendancePayload,
+    payload: DailyAttendancePayload
   ): Promise<AttendanceResponse> {
     return (await helper.dailyAsync(payload).call).data
   }
   static async session(
-    payload: SessionAttendancePayload,
+    payload: SessionAttendancePayload
   ): Promise<AttendanceResponse> {
     return (await helper.sessionAsync(payload).call).data
   }
   static async byCourseEnrollment(
-    courseEnrollmentId: string,
+    courseEnrollmentId: string
   ): Promise<AttendanceResponse[]> {
     return (await helper.byCourseEnrollmentAsync(courseEnrollmentId).call).data
   }

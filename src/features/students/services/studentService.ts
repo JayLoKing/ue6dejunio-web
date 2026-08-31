@@ -9,7 +9,7 @@ const helper = new StudentServiceHelper()
 
 export class StudentService {
   static async enrollSingle(
-    payload: EnrollSingleRequest,
+    payload: EnrollSingleRequest
   ): Promise<EnrollResponse> {
     const { call } = helper.enrollSingleAsync(payload)
     const { data } = await call
@@ -17,7 +17,7 @@ export class StudentService {
   }
 
   static async enrollBatch(
-    payload: EnrollBatchRequest,
+    payload: EnrollBatchRequest
   ): Promise<EnrollResponse> {
     const { call } = helper.enrollBatchAsync(payload)
     const { data } = await call

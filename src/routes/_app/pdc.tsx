@@ -73,7 +73,10 @@ function PdcPage() {
   const [progress, setProgress] = useState<Pdc | null>(null)
 
   const classGroupsQuery = useTeacherClassGroups(isTeacher ? userId : null)
-  const { data, isLoading, isFetching, refetch } = usePdcList({ offset: page, limit })
+  const { data, isLoading, isFetching, refetch } = usePdcList({
+    offset: page,
+    limit,
+  })
   const { publish, approve, observe, remove } = usePdcAction()
   // The plan's own state change is what notifies its author now, on the server, after the write
   // commits. Sending it from here as well would put two rows in the teacher's inbox for one
@@ -104,7 +107,9 @@ function PdcPage() {
     <div className="flex min-w-0 flex-col gap-6">
       <div className="flex items-end justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold">Plan de Desarrollo Curricular</h1>
+          <h1 className="text-2xl font-semibold">
+            Plan de Desarrollo Curricular
+          </h1>
           <p className="text-sm text-muted-foreground">
             {isDirector
               ? "Revisa, aprueba u observa los PDC de los docentes."
@@ -141,13 +146,19 @@ function PdcPage() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={isDirector ? 7 : 6} className="text-center text-muted-foreground">
+                <TableCell
+                  colSpan={isDirector ? 7 : 6}
+                  className="text-center text-muted-foreground"
+                >
                   Cargando…
                 </TableCell>
               </TableRow>
             ) : rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={isDirector ? 7 : 6} className="text-center text-muted-foreground">
+                <TableCell
+                  colSpan={isDirector ? 7 : 6}
+                  className="text-center text-muted-foreground"
+                >
                   Sin PDC.
                 </TableCell>
               </TableRow>
@@ -161,7 +172,9 @@ function PdcPage() {
                     </TableCell>
                   ) : null}
                   <TableCell>{p.trimester}</TableCell>
-                  <TableCell className="text-right tabular-nums">{p.areaCount}</TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {p.areaCount}
+                  </TableCell>
                   <TableCell className="text-right tabular-nums">
                     {p.significantAdaptationCount}
                   </TableCell>
@@ -218,7 +231,8 @@ function PdcPage() {
                         </Button>
                       ) : null}
                       {isDirector &&
-                      (p.status === "Published" || p.status === "Under Review") ? (
+                      (p.status === "Published" ||
+                        p.status === "Under Review") ? (
                         <>
                           <Button
                             size="icon"
@@ -226,9 +240,7 @@ function PdcPage() {
                             className="size-8 text-emerald-600"
                             title="Aprobar"
                             disabled={approve.isPending}
-                            onClick={() =>
-                              approve.mutate(p.id)
-                            }
+                            onClick={() => approve.mutate(p.id)}
                           >
                             <CheckCircle2Icon className="size-4" />
                           </Button>
@@ -301,7 +313,9 @@ function PdcPage() {
       <ConfirmDialog
         open={Boolean(deleting)}
         title="Eliminar PDC"
-        description={deleting ? `"${planLabel(deleting)}" será eliminado.` : undefined}
+        description={
+          deleting ? `"${planLabel(deleting)}" será eliminado.` : undefined
+        }
         confirmLabel="Eliminar"
         destructive
         loading={remove.isPending}
@@ -341,7 +355,7 @@ function PdcPage() {
                   { id: target.id, observations: obs },
                   {
                     onSuccess: () => setObserving(null),
-                  },
+                  }
                 )
               }}
             >

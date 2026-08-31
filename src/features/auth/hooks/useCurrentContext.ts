@@ -35,7 +35,7 @@ export function useCurrentContext(): CurrentContext {
 
   const classGroups = useMemo(
     () => classGroupsQuery.data ?? [],
-    [classGroupsQuery.data],
+    [classGroupsQuery.data]
   )
 
   // Curso de aula fijo: viene del login (claim courseId). Solo aula lo tiene.

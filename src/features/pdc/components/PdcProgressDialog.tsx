@@ -49,7 +49,7 @@ export function PdcProgressDialog({ pdc, onClose }: PdcProgressDialogProps) {
         percentage: percentage ? Number(percentage) : undefined,
         observations: observations || undefined,
       },
-      { onSuccess: reset },
+      { onSuccess: reset }
     )
   }
 
@@ -66,20 +66,43 @@ export function PdcProgressDialog({ pdc, onClose }: PdcProgressDialogProps) {
           <div className="grid grid-cols-2 gap-3">
             <Field>
               <FieldLabel htmlFor="pr-date">Fecha</FieldLabel>
-              <Input id="pr-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+              <Input
+                id="pr-date"
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
             </Field>
             <Field>
               <FieldLabel htmlFor="pr-pct">% Avance</FieldLabel>
-              <Input id="pr-pct" type="number" min={0} max={100} step={1} value={percentage} onChange={(e) => setPercentage(e.target.value)} />
+              <Input
+                id="pr-pct"
+                type="number"
+                min={0}
+                max={100}
+                step={1}
+                value={percentage}
+                onChange={(e) => setPercentage(e.target.value)}
+              />
             </Field>
           </div>
           <Field>
             <FieldLabel htmlFor="pr-content">Contenido avanzado</FieldLabel>
-            <Textarea id="pr-content" rows={2} value={content} onChange={(e) => setContent(e.target.value)} />
+            <Textarea
+              id="pr-content"
+              rows={2}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+            />
           </Field>
           <Field>
             <FieldLabel htmlFor="pr-obs">Observaciones</FieldLabel>
-            <Textarea id="pr-obs" rows={2} value={observations} onChange={(e) => setObservations(e.target.value)} />
+            <Textarea
+              id="pr-obs"
+              rows={2}
+              value={observations}
+              onChange={(e) => setObservations(e.target.value)}
+            />
           </Field>
           <div className="flex justify-end">
             <Button
@@ -100,18 +123,30 @@ export function PdcProgressDialog({ pdc, onClose }: PdcProgressDialogProps) {
               <Loader2Icon className="size-4 animate-spin" /> Cargando…
             </div>
           ) : (list.data ?? []).length === 0 ? (
-            <p className="text-sm text-muted-foreground">Sin avances registrados.</p>
+            <p className="text-sm text-muted-foreground">
+              Sin avances registrados.
+            </p>
           ) : (
             <ScrollArea className="max-h-56">
               <ul className="flex flex-col gap-2">
                 {(list.data ?? []).map((p) => (
                   <li key={p.id} className="rounded-md border p-2 text-sm">
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">{p.progressDate ?? "—"}</span>
-                      {p.percentage != null ? <Badge variant="secondary">{Number(p.percentage)}%</Badge> : null}
+                      <span className="text-muted-foreground">
+                        {p.progressDate ?? "—"}
+                      </span>
+                      {p.percentage != null ? (
+                        <Badge variant="secondary">
+                          {Number(p.percentage)}%
+                        </Badge>
+                      ) : null}
                     </div>
                     {p.advancedContent ? <p>{p.advancedContent}</p> : null}
-                    {p.observations ? <p className="text-xs text-muted-foreground">{p.observations}</p> : null}
+                    {p.observations ? (
+                      <p className="text-xs text-muted-foreground">
+                        {p.observations}
+                      </p>
+                    ) : null}
                   </li>
                 ))}
               </ul>

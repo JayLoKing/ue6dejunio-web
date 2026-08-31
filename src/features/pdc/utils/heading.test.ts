@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest"
 import type { Pdc, PdcSubject } from "../types"
 import { areaLine, spellDate, teacherLine, trimesterName } from "./heading"
 
-const subject = (subjectName: string, knowledgeArea: string | null): PdcSubject =>
-  ({ subjectName, knowledgeArea }) as PdcSubject
+const subject = (
+  subjectName: string,
+  knowledgeArea: string | null
+): PdcSubject => ({ subjectName, knowledgeArea }) as PdcSubject
 
 const plan = (over: Partial<Pdc>): Pdc => ({ subjects: [], ...over }) as Pdc
 
@@ -20,8 +22,8 @@ describe("areaLine", () => {
             subject("Ciencias Sociales", "Comunidad y Sociedad"),
             subject("Matemática", "Ciencia Tecnología y Producción"),
           ],
-        }),
-      ),
+        })
+      )
     ).toBe("Comunicación y Lenguajes / Ciencias Sociales / Matemática")
   })
 
@@ -33,9 +35,12 @@ describe("areaLine", () => {
         subjects: [
           subject("Matemática", "Ciencia Tecnología y Producción"),
           subject("Educación Musical", "Comunidad y Sociedad"),
-          subject("Valores, Espiritualidad y Religiones", "Cosmos y Pensamiento"),
+          subject(
+            "Valores, Espiritualidad y Religiones",
+            "Cosmos y Pensamiento"
+          ),
         ],
-      }),
+      })
     )
 
     expect(line).toContain("Educación Musical")
@@ -52,7 +57,9 @@ describe("teacherLine", () => {
   // writes the month and hands it to the parallels; the copy belongs to whoever runs the course it
   // lands in, so the name follows the course rather than the writing.
   it("names the teacher in charge of the course", () => {
-    expect(teacherLine(plan({ homeroomTeacherName: "Ana Pérez" }))).toBe("Ana Pérez")
+    expect(teacherLine(plan({ homeroomTeacherName: "Ana Pérez" }))).toBe(
+      "Ana Pérez"
+    )
   })
 
   it("leaves the line blank when there is nobody to name", () => {

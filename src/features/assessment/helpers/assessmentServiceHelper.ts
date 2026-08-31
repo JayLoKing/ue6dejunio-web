@@ -24,7 +24,7 @@ export default class CriterionHelper {
   listAsync(
     classGroupId: string,
     trimester: number,
-    dimension?: Dimension,
+    dimension?: Dimension
   ): UseApiCall<Criterion[]> {
     const controller = loadAbort()
     return {
@@ -46,7 +46,7 @@ export default class CriterionHelper {
   }
   updateAsync(
     id: string,
-    payload: UpdateCriterionPayload,
+    payload: UpdateCriterionPayload
   ): UseApiCall<Criterion> {
     const controller = loadAbort()
     return {
@@ -90,14 +90,14 @@ export class AssessmentEventHelper {
   }
   updateAsync(
     id: string,
-    payload: UpdateEventPayload,
+    payload: UpdateEventPayload
   ): UseApiCall<AssessmentEvent> {
     const controller = loadAbort()
     return {
       call: httpClient.put<AssessmentEvent>(
         AssessmentEventUrl.ById(id),
         payload,
-        { signal: controller.signal },
+        { signal: controller.signal }
       ),
       controller,
     }
@@ -129,7 +129,7 @@ export class AssessmentScoreHelper {
     return {
       call: httpClient.get<AssessmentScore[]>(
         AssessmentScoreUrl.ByEvent(eventId),
-        { signal: controller.signal },
+        { signal: controller.signal }
       ),
       controller,
     }
@@ -139,13 +139,13 @@ export class AssessmentScoreHelper {
     return {
       call: httpClient.get<AssessmentScore[]>(
         AssessmentScoreUrl.ByCriterion(criterionId),
-        { signal: controller.signal },
+        { signal: controller.signal }
       ),
       controller,
     }
   }
   byCourseEnrollmentAsync(
-    courseEnrollmentId: string,
+    courseEnrollmentId: string
   ): UseApiCall<AssessmentScore[]> {
     const controller = loadAbort()
     return {

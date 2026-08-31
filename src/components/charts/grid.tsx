@@ -1,44 +1,44 @@
-"use client";
+"use client"
 
-import { GridColumns, GridRows } from "@visx/grid";
-import { useId } from "react";
-import { chartCssVars, useChartStable, useYScale } from "./chart-context";
+import { GridColumns, GridRows } from "@visx/grid"
+import { useId } from "react"
+import { chartCssVars, useChartStable, useYScale } from "./chart-context"
 
 export interface GridProps {
   /** Show horizontal grid lines. Default: true */
-  horizontal?: boolean;
+  horizontal?: boolean
   /** Show vertical grid lines. Default: false */
-  vertical?: boolean;
+  vertical?: boolean
   /** Number of horizontal grid lines. Default: 5 */
-  numTicksRows?: number;
+  numTicksRows?: number
   /** Number of vertical grid lines. Default: 10 */
-  numTicksColumns?: number;
+  numTicksColumns?: number
   /** Explicit tick values for horizontal grid lines. Overrides numTicksRows. */
-  rowTickValues?: number[];
+  rowTickValues?: number[]
   /** Grid line stroke color. Default: var(--chart-grid) */
-  stroke?: string;
+  stroke?: string
   /** Grid line stroke opacity. Default: 1 */
-  strokeOpacity?: number;
+  strokeOpacity?: number
   /** Grid line stroke width. Default: 1 */
-  strokeWidth?: number;
+  strokeWidth?: number
   /** Grid line dash array. Default: "4,4" for dashed lines */
-  strokeDasharray?: string;
+  strokeDasharray?: string
   /** Horizontal row values rendered with alternate styling (e.g. zero baseline). */
-  highlightRowValues?: number[];
+  highlightRowValues?: number[]
   /** Stroke for highlighted rows. Default: var(--chart-foreground-muted) */
-  highlightRowStroke?: string;
+  highlightRowStroke?: string
   /** Stroke opacity for highlighted rows. Default: 1 */
-  highlightRowStrokeOpacity?: number;
+  highlightRowStrokeOpacity?: number
   /** Stroke width for highlighted rows. Default: 1 */
-  highlightRowStrokeWidth?: number;
+  highlightRowStrokeWidth?: number
   /** Dash array for highlighted rows. Default: solid line */
-  highlightRowStrokeDasharray?: string;
+  highlightRowStrokeDasharray?: string
   /** Enable horizontal fade effect on grid rows (fades at left/right). Default: true */
-  fadeHorizontal?: boolean;
+  fadeHorizontal?: boolean
   /** Enable vertical fade effect on grid columns (fades at top/bottom). Default: false */
-  fadeVertical?: boolean;
+  fadeVertical?: boolean
   /** Y-scale for horizontal grid lines. Default: primary (`"left"`) axis. */
-  yAxisId?: string | number;
+  yAxisId?: string | number
 }
 
 export function Grid({
@@ -61,26 +61,26 @@ export function Grid({
   yAxisId,
 }: GridProps) {
   const { xScale, innerWidth, innerHeight, orientation, barScale } =
-    useChartStable();
-  const yScale = useYScale(yAxisId);
+    useChartStable()
+  const yScale = useYScale(yAxisId)
 
   // For bar charts, determine which scale to use for grid lines
   // Horizontal bar charts: vertical grid should use yScale (value scale)
   // Vertical bar charts: horizontal grid uses yScale (value scale)
-  const isHorizontalBarChart = orientation === "horizontal" && barScale;
+  const isHorizontalBarChart = orientation === "horizontal" && barScale
 
   // For vertical grid lines in horizontal bar charts, use yScale (the value scale)
   // For time-based charts, use xScale
-  const columnScale = isHorizontalBarChart ? yScale : xScale;
-  const uniqueId = useId();
+  const columnScale = isHorizontalBarChart ? yScale : xScale
+  const uniqueId = useId()
 
   // Horizontal fade mask (for grid rows - fades left/right)
-  const hMaskId = `grid-rows-fade-${uniqueId}`;
-  const hGradientId = `${hMaskId}-gradient`;
+  const hMaskId = `grid-rows-fade-${uniqueId}`
+  const hGradientId = `${hMaskId}-gradient`
 
   // Vertical fade mask (for grid columns - fades top/bottom)
-  const vMaskId = `grid-cols-fade-${uniqueId}`;
-  const vGradientId = `${vMaskId}-gradient`;
+  const vMaskId = `grid-cols-fade-${uniqueId}`
+  const vGradientId = `${vMaskId}-gradient`
 
   return (
     <g className="chart-grid">
@@ -149,9 +149,9 @@ export function Grid({
       {horizontal && highlightRowValues && highlightRowValues.length > 0 ? (
         <g className="chart-grid-highlight-rows">
           {highlightRowValues.map((value) => {
-            const y = yScale(value);
+            const y = yScale(value)
             if (y == null || !Number.isFinite(y)) {
-              return null;
+              return null
             }
 
             return (
@@ -166,7 +166,7 @@ export function Grid({
                 y1={y}
                 y2={y}
               />
-            );
+            )
           })}
         </g>
       ) : null}
@@ -184,9 +184,9 @@ export function Grid({
         </g>
       )}
     </g>
-  );
+  )
 }
 
-Grid.displayName = "Grid";
+Grid.displayName = "Grid"
 
-export default Grid;
+export default Grid

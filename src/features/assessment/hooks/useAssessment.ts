@@ -257,7 +257,7 @@ export function useCriterionScores(criterionId: string | null) {
 /** Invalida la lista del destino que corresponda; la nota vive en uno solo de los dos. */
 function invalidateScoreTarget(
   qc: ReturnType<typeof useQueryClient>,
-  target: { eventId?: string | null; criterionId?: string | null },
+  target: { eventId?: string | null; criterionId?: string | null }
 ) {
   if (target.eventId) {
     void qc.invalidateQueries({

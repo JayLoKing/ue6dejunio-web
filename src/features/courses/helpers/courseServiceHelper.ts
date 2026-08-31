@@ -21,7 +21,7 @@ import type {
 export default class CourseServiceHelper {
   listAsync(
     query: PageQuery,
-    academicYearId?: number,
+    academicYearId?: number
   ): UseApiCall<PagedResponse<Course>> {
     const controller = loadAbort()
     return {
@@ -35,7 +35,7 @@ export default class CourseServiceHelper {
   overviewAsync(
     id: string,
     trimester: number,
-    query: PageQuery,
+    query: PageQuery
   ): UseApiCall<CourseOverview> {
     const controller = loadAbort()
     return {
@@ -65,16 +65,13 @@ export default class CourseServiceHelper {
       controller,
     }
   }
-  setHomeroomAsync(
-    id: string,
-    teacherId: string,
-  ): UseApiCall<Course> {
+  setHomeroomAsync(id: string, teacherId: string): UseApiCall<Course> {
     const controller = loadAbort()
     return {
       call: httpClient.put<Course>(
         CourseUrl.Homeroom(id),
         { id_homeroom_teacher: teacherId },
-        { signal: controller.signal },
+        { signal: controller.signal }
       ),
       controller,
     }
@@ -91,7 +88,7 @@ export default class CourseServiceHelper {
 
   studentsAsync(
     courseId: string,
-    query: PageQuery,
+    query: PageQuery
   ): UseApiCall<PagedResponse<CourseStudent>> {
     const controller = loadAbort()
     return {
@@ -100,7 +97,7 @@ export default class CourseServiceHelper {
         {
           signal: controller.signal,
           params: toPageParams(query, { id_course: courseId }),
-        },
+        }
       ),
       controller,
     }

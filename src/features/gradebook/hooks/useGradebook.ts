@@ -7,7 +7,7 @@ import { GradebookService } from "../services/gradebookService"
 export function useCentralizer(
   courseId: string | null | undefined,
   trimester: number,
-  query: PageQuery,
+  query: PageQuery
 ) {
   return useQuery({
     queryKey: ["gradebook", "centralizer", courseId ?? "", trimester, query],
@@ -21,7 +21,7 @@ export function useCentralizer(
 export function useCourseAttendance(
   courseId: string | null | undefined,
   query: PageQuery,
-  date?: string,
+  date?: string
 ) {
   return useQuery({
     queryKey: ["gradebook", "attendance", courseId ?? "", query, date ?? null],
@@ -34,10 +34,15 @@ export function useCourseAttendance(
 
 export function useStudentSummary(
   courseEnrollmentId: string | null | undefined,
-  trimester: number,
+  trimester: number
 ) {
   return useQuery({
-    queryKey: ["gradebook", "student-summary", courseEnrollmentId ?? "", trimester],
+    queryKey: [
+      "gradebook",
+      "student-summary",
+      courseEnrollmentId ?? "",
+      trimester,
+    ],
     queryFn: courseEnrollmentId
       ? () => GradebookService.studentSummary(courseEnrollmentId, trimester)
       : skipToken,
@@ -47,10 +52,15 @@ export function useStudentSummary(
 /** Estadísticas de asistencia del curso (KPIs %). trimester opcional. */
 export function useCourseAttendanceStats(
   courseId: string | null | undefined,
-  trimester?: number,
+  trimester?: number
 ) {
   return useQuery({
-    queryKey: ["gradebook", "attendance-stats", courseId ?? "", trimester ?? "all"],
+    queryKey: [
+      "gradebook",
+      "attendance-stats",
+      courseId ?? "",
+      trimester ?? "all",
+    ],
     queryFn: courseId
       ? () => GradebookService.attendanceStats(courseId, trimester)
       : skipToken,
@@ -59,7 +69,7 @@ export function useCourseAttendanceStats(
 
 /** Consolidado por dimensión (todas las materias) de un course_enrollment. */
 export function useEnrollmentScores(
-  courseEnrollmentId: string | null | undefined,
+  courseEnrollmentId: string | null | undefined
 ) {
   return useQuery({
     queryKey: ["scores", "enrollment", courseEnrollmentId ?? ""],

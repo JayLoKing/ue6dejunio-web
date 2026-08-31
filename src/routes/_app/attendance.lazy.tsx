@@ -27,7 +27,20 @@ export const Route = createLazyFileRoute("/_app/attendance")({
   component: AttendancePage,
 })
 
-const MONTHS = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
+const MONTHS = [
+  "Enero",
+  "Febrero",
+  "Marzo",
+  "Abril",
+  "Mayo",
+  "Junio",
+  "Julio",
+  "Agosto",
+  "Septiembre",
+  "Octubre",
+  "Noviembre",
+  "Diciembre",
+]
 
 function AttendancePage() {
   const ctx = useCurrentContext()
@@ -59,19 +72,33 @@ function AttendancePage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-            <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+          <Select
+            value={String(month)}
+            onValueChange={(v) => setMonth(Number(v))}
+          >
+            <SelectTrigger className="w-36">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               {MONTHS.map((m, i) => (
-                <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>
+                <SelectItem key={m} value={String(i + 1)}>
+                  {m}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-            <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
+          <Select
+            value={String(year)}
+            onValueChange={(v) => setYear(Number(v))}
+          >
+            <SelectTrigger className="w-28">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               {[year - 1, year, year + 1].map((y) => (
-                <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                <SelectItem key={y} value={String(y)}>
+                  {y}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -79,7 +106,11 @@ function AttendancePage() {
       </div>
 
       {ctx.homeroomCourseId ? (
-        <DailyCourseAttendance courseId={ctx.homeroomCourseId} year={year} month={month} />
+        <DailyCourseAttendance
+          courseId={ctx.homeroomCourseId}
+          year={year}
+          month={month}
+        />
       ) : (
         <SessionAttendance year={year} month={month} />
       )}
@@ -98,7 +129,11 @@ interface DailyCourseAttendanceProps {
   month: number
 }
 
-function DailyCourseAttendance({ courseId, year, month }: DailyCourseAttendanceProps) {
+function DailyCourseAttendance({
+  courseId,
+  year,
+  month,
+}: DailyCourseAttendanceProps) {
   const studentsQuery = useCourseStudents(courseId, WHOLE_COURSE_PAGE)
   const attQuery = useCourseAttendance(courseId, WHOLE_COURSE_PAGE)
   const daily = useDailyAttendance()
@@ -109,7 +144,7 @@ function DailyCourseAttendance({ courseId, year, month }: DailyCourseAttendanceP
         courseEnrollmentId: s.courseEnrollmentId,
         fullName: s.fullName,
       })),
-    [studentsQuery.data],
+    [studentsQuery.data]
   )
 
   const initialData = useMemo(() => {
@@ -126,7 +161,11 @@ function DailyCourseAttendance({ courseId, year, month }: DailyCourseAttendanceP
   }, [attQuery.data, year, month])
 
   if (studentsQuery.isLoading) {
-    return <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2Icon className="size-4 animate-spin" /> Cargando estudiantes…</div>
+    return (
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Loader2Icon className="size-4 animate-spin" /> Cargando estudiantes…
+      </div>
+    )
   }
 
   return (
@@ -163,13 +202,19 @@ function SessionAttendance({ year, month }: SessionAttendanceProps) {
         courseEnrollmentId: s.courseEnrollmentId,
         fullName: s.fullName,
       })),
-    [studentsQuery.data],
+    [studentsQuery.data]
   )
 
   return (
     <div className="flex flex-col gap-4">
-      <Select value={effective} onValueChange={setClassGroupId} disabled={ctx.classGroups.length === 0}>
-        <SelectTrigger className="w-72"><SelectValue placeholder="Materia" /></SelectTrigger>
+      <Select
+        value={effective}
+        onValueChange={setClassGroupId}
+        disabled={ctx.classGroups.length === 0}
+      >
+        <SelectTrigger className="w-72">
+          <SelectValue placeholder="Materia" />
+        </SelectTrigger>
         <SelectContent>
           {ctx.classGroups.map((c) => (
             <SelectItem key={c.id} value={c.id}>

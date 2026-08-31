@@ -1,6 +1,6 @@
-import type { AxiosResponse } from "axios";
+import type { AxiosResponse } from "axios"
 
 export interface UseApiCall<T> {
-    call: Promise<AxiosResponse<T>>,
-    controller: AbortController
+  call: Promise<AxiosResponse<T>>
+  controller: AbortController
 }

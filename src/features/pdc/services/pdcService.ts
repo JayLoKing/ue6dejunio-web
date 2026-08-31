@@ -35,7 +35,7 @@ export class PdcService {
   static async writeSubject(
     id: string,
     planSubjectId: string,
-    payload: UpsertPdcSubjectPayload,
+    payload: UpsertPdcSubjectPayload
   ): Promise<Pdc> {
     const { call } = helper.writeSubjectAsync(id, planSubjectId, payload)
     return (await call).data
@@ -61,7 +61,7 @@ export class PdcService {
   }
   static async addProgress(
     id: string,
-    payload: AddProgressPayload,
+    payload: AddProgressPayload
   ): Promise<PdcProgress> {
     return (await helper.addProgressAsync(id, payload).call).data
   }

@@ -6,7 +6,11 @@ import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 
-import type { PdcEntryPayload, PdcSubject, UpsertPdcSubjectPayload } from "../types"
+import type {
+  PdcEntryPayload,
+  PdcSubject,
+  UpsertPdcSubjectPayload,
+} from "../types"
 import { trimmed } from "@/lib/trimmed"
 
 /** A row while it is being typed: periods is text so an emptied box is not read as zero. */
@@ -66,23 +70,25 @@ function toDraft(subject: PdcSubject): DraftEntry[] {
 }
 
 function toPayload(draft: DraftEntry[]): PdcEntryPayload[] {
-  return draft
-    // A row says which week it is or it is not a row: the API refuses one without a label, and
-    // emptying the box is how the teacher removes a week they had added.
-    .filter((r) => r.weekLabel.trim() !== "")
-    .map((r) => ({
-      weekLabel: r.weekLabel.trim(),
-      contents: trimmed(r.contents),
-      practice: trimmed(r.practice),
-      theory: trimmed(r.theory),
-      valuation: trimmed(r.valuation),
-      production: trimmed(r.production),
-      resources: trimmed(r.resources),
-      periods: r.periods.trim() === "" ? undefined : Number(r.periods),
-      criteriaBeing: trimmed(r.criteriaBeing),
-      criteriaKnowing: trimmed(r.criteriaKnowing),
-      criteriaDoing: trimmed(r.criteriaDoing),
-    }))
+  return (
+    draft
+      // A row says which week it is or it is not a row: the API refuses one without a label, and
+      // emptying the box is how the teacher removes a week they had added.
+      .filter((r) => r.weekLabel.trim() !== "")
+      .map((r) => ({
+        weekLabel: r.weekLabel.trim(),
+        contents: trimmed(r.contents),
+        practice: trimmed(r.practice),
+        theory: trimmed(r.theory),
+        valuation: trimmed(r.valuation),
+        production: trimmed(r.production),
+        resources: trimmed(r.resources),
+        periods: r.periods.trim() === "" ? undefined : Number(r.periods),
+        criteriaBeing: trimmed(r.criteriaBeing),
+        criteriaKnowing: trimmed(r.criteriaKnowing),
+        criteriaDoing: trimmed(r.criteriaDoing),
+      }))
+  )
 }
 
 export interface PdcSubjectStepProps {
@@ -107,16 +113,16 @@ export function PdcSubjectStep({
   nextLabel,
 }: PdcSubjectStepProps) {
   const [learningObjective, setLearningObjective] = useState(
-    subject.learningObjective ?? "",
+    subject.learningObjective ?? ""
   )
   const [generalAdaptations, setGeneralAdaptations] = useState(
-    subject.generalAdaptations ?? "",
+    subject.generalAdaptations ?? ""
   )
   const [rows, setRows] = useState<DraftEntry[]>(() => toDraft(subject))
 
   const patch = (key: string, field: keyof DraftEntry, value: string) =>
     setRows((prev) =>
-      prev.map((r) => (r.key === key ? { ...r, [field]: value } : r)),
+      prev.map((r) => (r.key === key ? { ...r, [field]: value } : r))
     )
 
   const submit = () =>
@@ -155,14 +161,19 @@ export function PdcSubjectStep({
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => setRows((prev) => [...prev, emptyRow(prev.length + 1)])}
+            onClick={() =>
+              setRows((prev) => [...prev, emptyRow(prev.length + 1)])
+            }
           >
             <PlusIcon className="size-4" /> Agregar semana
           </Button>
         </div>
 
         {rows.map((row, index) => (
-          <div key={row.key} className="flex flex-col gap-3 rounded-md border p-4">
+          <div
+            key={row.key}
+            className="flex flex-col gap-3 rounded-md border p-4"
+          >
             <div className="flex items-end gap-3">
               <Field className="flex-1">
                 <FieldLabel htmlFor={`week-${row.key}`}>Semana</FieldLabel>
@@ -199,7 +210,9 @@ export function PdcSubjectStep({
             </div>
 
             <Field>
-              <FieldLabel htmlFor={`contents-${row.key}`}>Contenidos</FieldLabel>
+              <FieldLabel htmlFor={`contents-${row.key}`}>
+                Contenidos
+              </FieldLabel>
               <Textarea
                 id={`contents-${row.key}`}
                 rows={2}
@@ -218,7 +231,9 @@ export function PdcSubjectStep({
                 ] as const
               ).map(([field, label]) => (
                 <Field key={field}>
-                  <FieldLabel htmlFor={`${field}-${row.key}`}>{label}</FieldLabel>
+                  <FieldLabel htmlFor={`${field}-${row.key}`}>
+                    {label}
+                  </FieldLabel>
                   <Textarea
                     id={`${field}-${row.key}`}
                     rows={2}
@@ -252,7 +267,9 @@ export function PdcSubjectStep({
                 ] as const
               ).map(([field, label]) => (
                 <Field key={field}>
-                  <FieldLabel htmlFor={`${field}-${row.key}`}>{label}</FieldLabel>
+                  <FieldLabel htmlFor={`${field}-${row.key}`}>
+                    {label}
+                  </FieldLabel>
                   <Textarea
                     id={`${field}-${row.key}`}
                     rows={2}
@@ -275,8 +292,8 @@ export function PdcSubjectStep({
           it belongs where the row gets written rather than on the document itself.
         */}
         <FieldDescription>
-          Para estudiantes con dificultades en el aprendizaje (generales y específicas) o con ritmos
-          de aprendizaje distintos.
+          Para estudiantes con dificultades en el aprendizaje (generales y
+          específicas) o con ritmos de aprendizaje distintos.
         </FieldDescription>
         <Textarea
           id="pdc-general-adaptations"

@@ -21,10 +21,10 @@ import type {
   UpdateTrimesterPeriodPayload,
 } from "../types"
 
-const useResourceList = <T,>(
+const useResourceList = <T>(
   key: string,
   fn: (q: PageQuery) => Promise<T>,
-  q: PageQuery,
+  q: PageQuery
 ) =>
   useQuery({
     queryKey: [key, q],
@@ -44,7 +44,7 @@ export const useSubjectsAdmin = (q: PageQuery) =>
 function mutationFactory<V>(
   key: string,
   fn: (v: V) => Promise<unknown>,
-  successMsg: string,
+  successMsg: string
 ) {
   return function useResourceMutation() {
     const qc = useQueryClient()
@@ -62,71 +62,72 @@ function mutationFactory<V>(
 export const useCreateLevel = mutationFactory(
   "levels",
   (p: { name: string }) => LevelService.create(p),
-  "Nivel creado.",
+  "Nivel creado."
 )
 export const useUpdateLevel = mutationFactory(
   "levels",
-  (v: { id: number; name: string }) => LevelService.update(v.id, { name: v.name }),
-  "Nivel actualizado.",
+  (v: { id: number; name: string }) =>
+    LevelService.update(v.id, { name: v.name }),
+  "Nivel actualizado."
 )
 export const useDeleteLevel = mutationFactory(
   "levels",
   (id: number) => LevelService.remove(id),
-  "Nivel eliminado.",
+  "Nivel eliminado."
 )
 
 // Parallels
 export const useCreateParallel = mutationFactory(
   "parallels",
   (p: { name: string }) => ParallelService.create(p),
-  "Paralelo creado.",
+  "Paralelo creado."
 )
 export const useUpdateParallel = mutationFactory(
   "parallels",
   (v: { id: number; name: string }) =>
     ParallelService.update(v.id, { name: v.name }),
-  "Paralelo actualizado.",
+  "Paralelo actualizado."
 )
 export const useDeleteParallel = mutationFactory(
   "parallels",
   (id: number) => ParallelService.remove(id),
-  "Paralelo eliminado.",
+  "Paralelo eliminado."
 )
 
 // Grades
 export const useCreateGrade = mutationFactory(
   "grades",
   (p: { name: string; id_level: number }) => GradeAdminService.create(p),
-  "Grado creado.",
+  "Grado creado."
 )
 export const useUpdateGrade = mutationFactory(
   "grades",
   (v: { id: number; name: string; id_level: number }) =>
     GradeAdminService.update(v.id, { name: v.name, id_level: v.id_level }),
-  "Grado actualizado.",
+  "Grado actualizado."
 )
 export const useDeleteGrade = mutationFactory(
   "grades",
   (id: number) => GradeAdminService.remove(id),
-  "Grado eliminado.",
+  "Grado eliminado."
 )
 
 // Subjects
 export const useCreateSubject = mutationFactory(
   "subjects",
   (p: { name: string; technical: boolean }) => SubjectAdminService.create(p),
-  "Materia creada.",
+  "Materia creada."
 )
 export const useUpdateSubject = mutationFactory(
   "subjects",
   (v: { id: string; name: string; technical: boolean }) =>
     SubjectAdminService.update(v.id, { name: v.name, technical: v.technical }),
-  "Materia actualizada.",
+  "Materia actualizada."
 )
 export const useDeleteSubject = mutationFactory(
   "subjects",
   (id: string) => SubjectAdminService.remove(id),
-  "Materia eliminada.",
+  "Materia eliminada."
 )
 
 // Trimester periods (fechas por trimestre del año académico)

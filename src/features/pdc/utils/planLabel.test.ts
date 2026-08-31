@@ -5,7 +5,7 @@ import { planLabel } from "./planLabel"
 describe("planLabel", () => {
   it("names the plan by its number and course", () => {
     expect(planLabel({ planNumber: 4, courseName: 'Quinto "B"' })).toBe(
-      'Plan Nº 4 · Quinto "B"',
+      'Plan Nº 4 · Quinto "B"'
     )
   })
 

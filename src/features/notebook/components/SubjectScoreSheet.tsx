@@ -74,10 +74,7 @@ export function SubjectScoreSheet({
   const critLoading = criteriaQuery.isLoading
   // Ref estable: sin esto columns/eventIds/directIds se recrean en cada render y las
   // queries por id se vuelven a disparar.
-  const criteria = useMemo(
-    () => criteriaQuery.data ?? [],
-    [criteriaQuery.data],
-  )
+  const criteria = useMemo(() => criteriaQuery.data ?? [], [criteriaQuery.data])
   const { byCriterion, isLoading: evLoading } = useCriteriaEvents(criteria)
 
   const studentsQuery = useCourseStudents(classGroup.courseId, {
@@ -87,7 +84,7 @@ export function SubjectScoreSheet({
   })
   const students = useMemo(
     () => studentsQuery.data?.content ?? [],
-    [studentsQuery.data],
+    [studentsQuery.data]
   )
 
   // Columnas planas en orden dimensión→criterio. Todo criterio da una columna, tenga
@@ -96,7 +93,11 @@ export function SubjectScoreSheet({
     const cols: Column[] = []
     for (const dim of DIMENSIONS) {
       for (const c of criteria.filter((x) => x.dimension === dim.key)) {
-        cols.push({ dimKey: dim.key, criterion: c, events: byCriterion[c.id] ?? [] })
+        cols.push({
+          dimKey: dim.key,
+          criterion: c,
+          events: byCriterion[c.id] ?? [],
+        })
       }
     }
     return cols
@@ -112,14 +113,16 @@ export function SubjectScoreSheet({
   // sus ítems. Es la misma guarda que aplica CriterionScoreSheet.
   const eventIds = useMemo(
     () => (evLoading ? [] : columns.flatMap((c) => c.events.map((e) => e.id))),
-    [evLoading, columns],
+    [evLoading, columns]
   )
   const directIds = useMemo(
     () =>
       evLoading
         ? []
-        : columns.filter((c) => c.events.length === 0).map((c) => c.criterion.id),
-    [evLoading, columns],
+        : columns
+            .filter((c) => c.events.length === 0)
+            .map((c) => c.criterion.id),
+    [evLoading, columns]
   )
   const { matrix, isLoading: eventScoresLoading } = useEventScores(eventIds)
   const { matrix: directMatrix, isLoading: directScoresLoading } =
@@ -139,7 +142,7 @@ export function SubjectScoreSheet({
     return mean(
       col.events
         .map((e) => matrix[e.id]?.[ce]?.score)
-        .filter((n): n is number => n !== undefined),
+        .filter((n): n is number => n !== undefined)
     )
   }
 
@@ -148,7 +151,7 @@ export function SubjectScoreSheet({
     draftText(
       draft,
       `${ce}:${col.criterion.id}`,
-      directMatrix[col.criterion.id]?.[ce]?.score,
+      directMatrix[col.criterion.id]?.[ce]?.score
     )
 
   const commit = (ce: string, col: Column, raw: string) => {
@@ -215,7 +218,7 @@ export function SubjectScoreSheet({
     DIMENSIONS.reduce((acc, d) => acc + (dimensionAverage(ce, d.key) ?? 0), 0)
 
   const visibleDims = DIMENSIONS.filter((d) =>
-    columns.some((c) => c.dimKey === d.key),
+    columns.some((c) => c.dimKey === d.key)
   )
   const bodyColSpan = columns.length + visibleDims.length + 2
 
@@ -261,7 +264,9 @@ export function SubjectScoreSheet({
           ) : !hasCriteria ? (
             <div className="flex flex-col items-center gap-2 rounded-md border border-dashed border-amber-500/40 bg-amber-500/5 p-8 text-center text-sm">
               <AlertTriangleIcon className="size-6 text-amber-600" />
-              <p className="font-medium">Define criterios antes de cargar notas.</p>
+              <p className="font-medium">
+                Define criterios antes de cargar notas.
+              </p>
               <p className="text-muted-foreground">
                 Ve a la pestaña <strong>Criterios</strong> y agrega al menos un
                 criterio para este trimestre.
@@ -280,14 +285,16 @@ export function SubjectScoreSheet({
                         Estudiante
                       </th>
                       {visibleDims.map((dim) => {
-                        const count = columns.filter((c) => c.dimKey === dim.key).length
+                        const count = columns.filter(
+                          (c) => c.dimKey === dim.key
+                        ).length
                         return (
                           <th
                             key={dim.key}
                             colSpan={count + 1}
                             className={cn(
                               "border-r border-b px-2 py-1.5 text-center font-semibold",
-                              dim.color.soft,
+                              dim.color.soft
                             )}
                           >
                             {dim.label}{" "}
@@ -301,7 +308,9 @@ export function SubjectScoreSheet({
                         rowSpan={2}
                         className="w-10 border-b bg-muted p-1 align-bottom font-semibold"
                       >
-                        <div className={VERTICAL_HEAD}>PROMEDIO TRIMESTRAL · /100</div>
+                        <div className={VERTICAL_HEAD}>
+                          PROMEDIO TRIMESTRAL · /100
+                        </div>
                       </th>
                     </tr>
                     <tr>
@@ -315,7 +324,9 @@ export function SubjectScoreSheet({
                                 title={
                                   col.events.length > 0
                                     ? `${col.criterion.name} · promedio de ${col.events.length} ${
-                                        col.events.length === 1 ? "criterio" : "criterios"
+                                        col.events.length === 1
+                                          ? "criterio"
+                                          : "criterios"
                                       } de la actividad${
                                         col.criterion.activityName
                                           ? ` "${col.criterion.activityName}"`
@@ -325,10 +336,17 @@ export function SubjectScoreSheet({
                                 }
                                 className="w-10 border-r border-b bg-muted/40 p-1 align-bottom text-xs font-normal"
                               >
-                                <div className={cn("flex items-center gap-1", VERTICAL_HEAD)}>
+                                <div
+                                  className={cn(
+                                    "flex items-center gap-1",
+                                    VERTICAL_HEAD
+                                  )}
+                                >
                                   <span>{col.criterion.name}</span>
                                   <span className="text-[10px] text-muted-foreground">
-                                    {col.events.length > 0 ? "prom. actividad" : `/${dim.weight}`}
+                                    {col.events.length > 0
+                                      ? "prom. actividad"
+                                      : `/${dim.weight}`}
                                   </span>
                                 </div>
                               </th>
@@ -336,7 +354,7 @@ export function SubjectScoreSheet({
                           <th
                             className={cn(
                               "w-10 border-r border-b p-1 align-bottom text-xs font-semibold",
-                              dim.color.soft,
+                              dim.color.soft
                             )}
                           >
                             <div className={VERTICAL_HEAD}>
@@ -350,13 +368,19 @@ export function SubjectScoreSheet({
                   <tbody>
                     {studentsQuery.isLoading ? (
                       <tr>
-                        <td colSpan={bodyColSpan} className="px-3 py-6 text-center text-muted-foreground">
+                        <td
+                          colSpan={bodyColSpan}
+                          className="px-3 py-6 text-center text-muted-foreground"
+                        >
                           <Loader2Icon className="mx-auto size-4 animate-spin" />
                         </td>
                       </tr>
                     ) : students.length === 0 ? (
                       <tr>
-                        <td colSpan={bodyColSpan} className="px-3 py-6 text-center text-muted-foreground">
+                        <td
+                          colSpan={bodyColSpan}
+                          className="px-3 py-6 text-center text-muted-foreground"
+                        >
                           Sin estudiantes en el curso.
                         </td>
                       </tr>
@@ -369,7 +393,7 @@ export function SubjectScoreSheet({
                             <td
                               className={cn(
                                 "sticky left-0 z-10 min-w-[16rem] border-r px-3 py-2 font-medium shadow-[2px_0_0_0_var(--border)]",
-                                rowBg,
+                                rowBg
                               )}
                             >
                               {s.fullName}
@@ -382,15 +406,21 @@ export function SubjectScoreSheet({
                                     .filter((c) => c.dimKey === dim.key)
                                     .map((col) => {
                                       const k = `${ce}:${col.criterion.id}`
-                                      const cell = directMatrix[col.criterion.id]?.[ce]
+                                      const cell =
+                                        directMatrix[col.criterion.id]?.[ce]
                                       // Con ítems la nota no se escribe aquí: es el promedio
                                       // de la grilla de la actividad, y se entra a esa grilla.
                                       const activityAvg =
-                                        col.events.length > 0 ? valueOf(col, ce) : null
+                                        col.events.length > 0
+                                          ? valueOf(col, ce)
+                                          : null
                                       return (
                                         <td
                                           key={col.criterion.id}
-                                          className={cn("border-r px-1 py-1 text-center", rowBg)}
+                                          className={cn(
+                                            "border-r px-1 py-1 text-center",
+                                            rowBg
+                                          )}
                                         >
                                           {col.events.length > 0 ? (
                                             <Link
@@ -403,11 +433,13 @@ export function SubjectScoreSheet({
                                               // de su trimestre: sin esto cae al 1 y no lo halla.
                                               search={{ trimester }}
                                               title={`Calificar los criterios de "${
-                                                col.criterion.activityName ?? col.criterion.name
+                                                col.criterion.activityName ??
+                                                col.criterion.name
                                               }"`}
                                               className="inline-block w-16 py-1 font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
                                             >
-                                              {scoresLoading && activityAvg === null
+                                              {scoresLoading &&
+                                              activityAvg === null
                                                 ? "…"
                                                 : activityAvg === null
                                                   ? "—"
@@ -431,11 +463,18 @@ export function SubjectScoreSheet({
                                               title={cellTitle(cell)}
                                               value={directText(col, ce)}
                                               disabled={scoresLoading}
-                                              placeholder={scoresLoading ? "…" : undefined}
-                                              onChange={(e) =>
-                                                setDraft((d) => ({ ...d, [k]: e.target.value }))
+                                              placeholder={
+                                                scoresLoading ? "…" : undefined
                                               }
-                                              onBlur={(e) => commit(ce, col, e.target.value)}
+                                              onChange={(e) =>
+                                                setDraft((d) => ({
+                                                  ...d,
+                                                  [k]: e.target.value,
+                                                }))
+                                              }
+                                              onBlur={(e) =>
+                                                commit(ce, col, e.target.value)
+                                              }
                                               className="h-9 w-16 text-center"
                                             />
                                           )}
@@ -445,7 +484,7 @@ export function SubjectScoreSheet({
                                   <td
                                     className={cn(
                                       "border-r px-2 py-1 text-center font-medium text-muted-foreground",
-                                      rowBg,
+                                      rowBg
                                     )}
                                   >
                                     {avg === null ? "—" : round1(avg)}
@@ -453,7 +492,12 @@ export function SubjectScoreSheet({
                                 </Fragment>
                               )
                             })}
-                            <td className={cn("px-2 py-1 text-center font-semibold", rowBg)}>
+                            <td
+                              className={cn(
+                                "px-2 py-1 text-center font-semibold",
+                                rowBg
+                              )}
+                            >
                               {round1(totalOf(ce))}
                             </td>
                           </tr>

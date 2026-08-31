@@ -12,7 +12,7 @@ const helper = new NotificationServiceHelper()
 
 export class NotificationService {
   static async inbox(
-    params: InboxParams = {},
+    params: InboxParams = {}
   ): Promise<PagedResponse<NotificationItem>> {
     const { call } = helper.inboxAsync(params)
     return (await call).data
@@ -37,7 +37,7 @@ export class NotificationService {
   }
 
   static async send(
-    payload: SendNotificationPayload,
+    payload: SendNotificationPayload
   ): Promise<NotificationItem> {
     const { call } = helper.sendAsync(payload)
     return (await call).data

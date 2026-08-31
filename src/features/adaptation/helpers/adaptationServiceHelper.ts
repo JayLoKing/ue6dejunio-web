@@ -18,7 +18,9 @@ export interface AdaptationListParams {
 
 export default class AdaptationServiceHelper {
   /** Always scoped to a plan: the server has no listing that spans every course. */
-  listAsync(params: AdaptationListParams): UseApiCall<PagedResponse<Adaptation>> {
+  listAsync(
+    params: AdaptationListParams
+  ): UseApiCall<PagedResponse<Adaptation>> {
     const controller = loadAbort()
     return {
       call: httpClient.get<PagedResponse<Adaptation>>(AdaptationUrl.Base, {
@@ -55,7 +57,7 @@ export default class AdaptationServiceHelper {
 
   updateAsync(
     id: string,
-    payload: UpdateAdaptationPayload,
+    payload: UpdateAdaptationPayload
   ): UseApiCall<Adaptation> {
     const controller = loadAbort()
     return {

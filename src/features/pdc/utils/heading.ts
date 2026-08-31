@@ -1,11 +1,25 @@
 import type { Pdc } from "../types"
 
 const MONTHS = [
-  "enero", "febrero", "marzo", "abril", "mayo", "junio",
-  "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+  "enero",
+  "febrero",
+  "marzo",
+  "abril",
+  "mayo",
+  "junio",
+  "julio",
+  "agosto",
+  "septiembre",
+  "octubre",
+  "noviembre",
+  "diciembre",
 ]
 
-const ORDINAL: Record<number, string> = { 1: "Primer", 2: "Segundo", 3: "Tercer" }
+const ORDINAL: Record<number, string> = {
+  1: "Primer",
+  2: "Segundo",
+  3: "Tercer",
+}
 
 /**
  * The form's "Áreas" row: the subjects the teacher runs in the course, separated the way the

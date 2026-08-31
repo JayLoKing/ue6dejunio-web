@@ -20,18 +20,22 @@ export default class AttendanceServiceHelper {
     }
   }
   sessionAsync(
-    payload: SessionAttendancePayload,
+    payload: SessionAttendancePayload
   ): UseApiCall<AttendanceResponse> {
     const controller = loadAbort()
     return {
-      call: httpClient.post<AttendanceResponse>(AttendanceUrl.Session, payload, {
-        signal: controller.signal,
-      }),
+      call: httpClient.post<AttendanceResponse>(
+        AttendanceUrl.Session,
+        payload,
+        {
+          signal: controller.signal,
+        }
+      ),
       controller,
     }
   }
   byCourseEnrollmentAsync(
-    courseEnrollmentId: string,
+    courseEnrollmentId: string
   ): UseApiCall<AttendanceResponse[]> {
     const controller = loadAbort()
     return {

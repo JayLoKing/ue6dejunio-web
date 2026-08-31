@@ -74,10 +74,7 @@ export class GradeServiceHelper {
       controller,
     }
   }
-  createAsync(payload: {
-    name: string
-    id_level: number
-  }): UseApiCall<Grade> {
+  createAsync(payload: { name: string; id_level: number }): UseApiCall<Grade> {
     const controller = loadAbort()
     return {
       call: httpClient.post<Grade>(GradeUrl.Base, payload, {
@@ -88,7 +85,7 @@ export class GradeServiceHelper {
   }
   updateAsync(
     id: number,
-    payload: { name: string; id_level: number },
+    payload: { name: string; id_level: number }
   ): UseApiCall<Grade> {
     const controller = loadAbort()
     return {
@@ -176,7 +173,7 @@ export class SubjectServiceHelper {
   }
   updateAsync(
     id: string,
-    payload: { name?: string; technical?: boolean; active?: boolean },
+    payload: { name?: string; technical?: boolean; active?: boolean }
   ): UseApiCall<Subject> {
     const controller = loadAbort()
     return {
@@ -210,7 +207,7 @@ export class TrimesterPeriodServiceHelper {
     }
   }
   createAsync(
-    payload: CreateTrimesterPeriodPayload,
+    payload: CreateTrimesterPeriodPayload
   ): UseApiCall<TrimesterPeriod> {
     const controller = loadAbort()
     return {
@@ -222,14 +219,14 @@ export class TrimesterPeriodServiceHelper {
   }
   updateAsync(
     id: string,
-    payload: UpdateTrimesterPeriodPayload,
+    payload: UpdateTrimesterPeriodPayload
   ): UseApiCall<TrimesterPeriod> {
     const controller = loadAbort()
     return {
       call: httpClient.put<TrimesterPeriod>(
         TrimesterPeriodUrl.ById(id),
         payload,
-        { signal: controller.signal },
+        { signal: controller.signal }
       ),
       controller,
     }

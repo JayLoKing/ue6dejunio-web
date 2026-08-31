@@ -22,16 +22,18 @@ export class CriterionService {
   static async list(
     classGroupId: string,
     trimester: number,
-    dimension?: Dimension,
+    dimension?: Dimension
   ): Promise<Criterion[]> {
-    return (await criterionHelper.listAsync(classGroupId, trimester, dimension).call).data
+    return (
+      await criterionHelper.listAsync(classGroupId, trimester, dimension).call
+    ).data
   }
   static async create(payload: CreateCriterionPayload): Promise<Criterion> {
     return (await criterionHelper.createAsync(payload).call).data
   }
   static async update(
     id: string,
-    payload: UpdateCriterionPayload,
+    payload: UpdateCriterionPayload
   ): Promise<Criterion> {
     return (await criterionHelper.updateAsync(id, payload).call).data
   }
@@ -49,7 +51,7 @@ export class AssessmentEventService {
   }
   static async update(
     id: string,
-    payload: UpdateEventPayload,
+    payload: UpdateEventPayload
   ): Promise<AssessmentEvent> {
     return (await eventHelper.updateAsync(id, payload).call).data
   }
@@ -69,7 +71,7 @@ export class AssessmentScoreService {
     return (await scoreHelper.byCriterionAsync(criterionId).call).data
   }
   static async byCourseEnrollment(
-    courseEnrollmentId: string,
+    courseEnrollmentId: string
   ): Promise<AssessmentScore[]> {
     return (await scoreHelper.byCourseEnrollmentAsync(courseEnrollmentId).call)
       .data

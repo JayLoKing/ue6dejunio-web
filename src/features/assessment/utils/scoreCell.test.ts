@@ -23,7 +23,10 @@ describe("cellTitle", () => {
   })
 
   it("announces when the score was recorded", () => {
-    const title = cellTitle({ recordedAt: "2026-08-20T10:00:00Z", updatedAt: null })
+    const title = cellTitle({
+      recordedAt: "2026-08-20T10:00:00Z",
+      updatedAt: null,
+    })
     expect(title).toMatch(/^registrada /)
   })
 
@@ -43,6 +46,8 @@ describe("cellTitle", () => {
   })
 
   it("ignores a date the browser cannot read", () => {
-    expect(cellTitle({ recordedAt: "no-es-fecha", updatedAt: null })).toBeUndefined()
+    expect(
+      cellTitle({ recordedAt: "no-es-fecha", updatedAt: null })
+    ).toBeUndefined()
   })
 })

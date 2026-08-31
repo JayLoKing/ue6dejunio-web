@@ -15,7 +15,7 @@ import type {
 export default class GradebookServiceHelper {
   studentSummaryAsync(
     courseEnrollmentId: string,
-    trimester: number,
+    trimester: number
   ): UseApiCall<StudentSummary> {
     const controller = loadAbort()
     return {
@@ -30,7 +30,7 @@ export default class GradebookServiceHelper {
   centralizerAsync(
     courseId: string,
     trimester: number,
-    query: PageQuery,
+    query: PageQuery
   ): UseApiCall<PagedResponse<StudentSummary>> {
     const controller = loadAbort()
     return {
@@ -39,7 +39,7 @@ export default class GradebookServiceHelper {
         {
           signal: controller.signal,
           params: toPageParams(query, { id_course: courseId, trimester }),
-        },
+        }
       ),
       controller,
     }
@@ -47,7 +47,7 @@ export default class GradebookServiceHelper {
 
   attendanceStatsAsync(
     courseId: string,
-    trimester?: number,
+    trimester?: number
   ): UseApiCall<CourseAttendanceStats> {
     const controller = loadAbort()
     return {
@@ -56,14 +56,14 @@ export default class GradebookServiceHelper {
         {
           signal: controller.signal,
           params: trimester === undefined ? undefined : { trimester },
-        },
+        }
       ),
       controller,
     }
   }
 
   enrollmentScoresAsync(
-    courseEnrollmentId: string,
+    courseEnrollmentId: string
   ): UseApiCall<EnrollmentScore[]> {
     const controller = loadAbort()
     return {
@@ -78,7 +78,7 @@ export default class GradebookServiceHelper {
   attendanceAsync(
     courseId: string,
     query: PageQuery,
-    date?: string,
+    date?: string
   ): UseApiCall<PagedResponse<CourseAttendanceRow>> {
     const controller = loadAbort()
     return {
@@ -87,7 +87,7 @@ export default class GradebookServiceHelper {
         {
           signal: controller.signal,
           params: toPageParams(query, { id_course: courseId, date }),
-        },
+        }
       ),
       controller,
     }

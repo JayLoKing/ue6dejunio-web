@@ -28,7 +28,8 @@ const extractMessage = (error: AxiosError<ApiErrorPayload>): string => {
       "Ocurrió un error inesperado."
     )
   }
-  if (error.code === "ERR_NETWORK") return "No se pudo conectar con el servidor."
+  if (error.code === "ERR_NETWORK")
+    return "No se pudo conectar con el servidor."
   return error.message || "Ocurrió un error inesperado."
 }
 
@@ -44,7 +45,7 @@ const setupInterceptors = (httpClient: AxiosInstance) => {
       }
       return config
     },
-    (error: AxiosError) => Promise.reject(error),
+    (error: AxiosError) => Promise.reject(error)
   )
 
   httpClient.interceptors.response.use(
@@ -65,7 +66,7 @@ const setupInterceptors = (httpClient: AxiosInstance) => {
       }
 
       return Promise.reject(error)
-    },
+    }
   )
 }
 

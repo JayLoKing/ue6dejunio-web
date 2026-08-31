@@ -4,7 +4,7 @@ import { ArrowLeftIcon } from "lucide-react"
 import { StudentGradesDetail } from "@/features/gradebook/components/StudentGradesDetail"
 
 export const Route = createFileRoute(
-  "/_app/cursos/$parallelId/curso/$courseId/estudiante/$enrollmentId",
+  "/_app/cursos/$parallelId/curso/$courseId/estudiante/$enrollmentId"
 )({
   component: StudentDetailPage,
 })

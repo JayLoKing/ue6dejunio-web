@@ -8,10 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import {
-  Avatar,
-  AvatarFallback,
-} from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 import { useMe } from "../hooks/useMe"
 import { useAuthStore } from "../store/authStore"
@@ -50,7 +47,9 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Mi perfil</DialogTitle>
-          <DialogDescription>Datos de tu cuenta institucional.</DialogDescription>
+          <DialogDescription>
+            Datos de tu cuenta institucional.
+          </DialogDescription>
         </DialogHeader>
 
         {isLoading ? (
@@ -66,32 +65,32 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
           (() => {
             const displayName = me.name?.trim() || storeFullName || "Usuario"
             return (
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-3">
-              <Avatar className="size-12">
-                <AvatarFallback className="bg-univalle text-univalle-foreground">
-                  {displayName.slice(0, 1).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col">
-                <span className="font-semibold">{displayName}</span>
-                <Badge variant="secondary" className="w-fit">
-                  {me.role}
-                </Badge>
-              </div>
-            </div>
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-3">
+                  <Avatar className="size-12">
+                    <AvatarFallback className="bg-univalle text-univalle-foreground">
+                      {displayName.slice(0, 1).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <span className="font-semibold">{displayName}</span>
+                    <Badge variant="secondary" className="w-fit">
+                      {me.role}
+                    </Badge>
+                  </div>
+                </div>
 
-            <Row icon={UserIcon} label="Nombre" value={displayName} />
-            <Row icon={MailIcon} label="Correo" value={me.email} />
-            <Row icon={ShieldIcon} label="Rol" value={me.role} />
-            {me.gradeName ? (
-              <Row
-                icon={UserIcon}
-                label="Curso"
-                value={`${me.gradeName}${me.parallelName ? ` "${me.parallelName}"` : ""}`}
-              />
-            ) : null}
-          </div>
+                <Row icon={UserIcon} label="Nombre" value={displayName} />
+                <Row icon={MailIcon} label="Correo" value={me.email} />
+                <Row icon={ShieldIcon} label="Rol" value={me.role} />
+                {me.gradeName ? (
+                  <Row
+                    icon={UserIcon}
+                    label="Curso"
+                    value={`${me.gradeName}${me.parallelName ? ` "${me.parallelName}"` : ""}`}
+                  />
+                ) : null}
+              </div>
             )
           })()
         )}

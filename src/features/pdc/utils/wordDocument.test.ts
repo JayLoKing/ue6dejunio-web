@@ -10,7 +10,7 @@ describe("wordDocumentOf", () => {
   it("wraps the markup in a document Word will open", () => {
     const doc = wordDocumentOf(html, "Plan Nº 4")
 
-    expect(doc).toContain("xmlns:w=\"urn:schemas-microsoft-com:office:word\"")
+    expect(doc).toContain('xmlns:w="urn:schemas-microsoft-com:office:word"')
     expect(doc).toContain("<title>Plan Nº 4</title>")
     expect(doc).toContain(html)
   })
@@ -39,6 +39,8 @@ describe("wordDocumentOf", () => {
   })
 
   it("escapes a title that carries markup", () => {
-    expect(wordDocumentOf(html, 'Plan <script>alert("x")</script>')).not.toContain("<script>")
+    expect(
+      wordDocumentOf(html, 'Plan <script>alert("x")</script>')
+    ).not.toContain("<script>")
   })
 })

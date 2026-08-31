@@ -20,7 +20,7 @@ export class UserService {
   }
 
   static async list(
-    query: ListUsersQuery = {},
+    query: ListUsersQuery = {}
   ): Promise<PagedResponse<UsersListItem>> {
     const { call } = helper.listAsync(query)
     const response = await call
@@ -35,7 +35,7 @@ export class UserService {
 
   static async update(
     id: string,
-    payload: UpdateUserRequest,
+    payload: UpdateUserRequest
   ): Promise<UserResponse> {
     const { call } = helper.updateAsync(id, payload)
     const response = await call

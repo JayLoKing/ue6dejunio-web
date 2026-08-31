@@ -11,7 +11,8 @@ const TODAY = new Date(2026, 7, 27)
 const TODAY_ISO = "2026-08-27"
 
 const students = [{ courseEnrollmentId: "ce-1", fullName: "Ana Quispe" }]
-const noData = () => ({}) as Record<string, Record<string, AttendanceCellStatus>>
+const noData = () =>
+  ({}) as Record<string, Record<string, AttendanceCellStatus>>
 
 /** The cell for the one student on the current day, reached the way a screen reader would. */
 const editableCell = () =>
@@ -36,7 +37,7 @@ describe("AttendanceMatrix", () => {
         month={8}
         initialData={noData()}
         onMark={vi.fn()}
-      />,
+      />
     )
 
     await user.click(editableCell())
@@ -51,7 +52,7 @@ describe("AttendanceMatrix", () => {
     const user = userEvent.setup()
     const props = { students, year: 2026, month: 8, onMark: vi.fn() }
     const { rerender } = render(
-      <AttendanceMatrix {...props} initialData={noData()} />,
+      <AttendanceMatrix {...props} initialData={noData()} />
     )
 
     await user.click(editableCell())
@@ -73,7 +74,7 @@ describe("AttendanceMatrix", () => {
         month={8}
         initialData={noData()}
         onMark={onMark}
-      />,
+      />
     )
 
     await user.click(editableCell())
@@ -93,7 +94,7 @@ describe("AttendanceMatrix", () => {
         month={8}
         initialData={noData()}
         onMark={onMark}
-      />,
+      />
     )
 
     await user.click(editableCell())
@@ -111,7 +112,7 @@ describe("AttendanceMatrix", () => {
         month={8}
         initialData={{ "ce-1": { [TODAY_ISO]: "A" } }}
         onMark={onMark}
-      />,
+      />
     )
 
     await user.click(editableCell())
@@ -131,7 +132,7 @@ describe("AttendanceMatrix", () => {
         () =>
           new Promise((_resolve, reject) => {
             rejectFirst = reject
-          }),
+          })
       )
       .mockResolvedValueOnce(undefined)
 
@@ -142,7 +143,7 @@ describe("AttendanceMatrix", () => {
         month={8}
         initialData={noData()}
         onMark={onMark}
-      />,
+      />
     )
 
     await user.click(editableCell()) // P, save still in flight
@@ -163,7 +164,7 @@ describe("AttendanceMatrix", () => {
         month={8}
         initialData={{ "ce-1": { [TODAY_ISO]: "A" } }}
         onMark={vi.fn()}
-      />,
+      />
     )
 
     expect(editableCell()).toHaveTextContent("A")

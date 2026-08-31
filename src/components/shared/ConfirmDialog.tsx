@@ -43,7 +43,9 @@ export function ConfirmDialog({
           ) : null}
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={loading}>{cancelLabel}</AlertDialogCancel>
+          <AlertDialogCancel disabled={loading}>
+            {cancelLabel}
+          </AlertDialogCancel>
           <AlertDialogAction
             disabled={loading}
             onClick={(e) => {
@@ -51,8 +53,7 @@ export function ConfirmDialog({
               onConfirm()
             }}
             className={cn(
-              destructive &&
-                "bg-destructive text-white hover:bg-destructive/90",
+              destructive && "bg-destructive text-white hover:bg-destructive/90"
             )}
           >
             {loading ? "Procesando…" : confirmLabel}

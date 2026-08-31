@@ -46,14 +46,14 @@ export default class AuthServiceHelper {
   }
 
   forgotPasswordAsync(
-    payload: ForgotPasswordRequest,
+    payload: ForgotPasswordRequest
   ): UseApiCall<ForgotPasswordResponse> {
     const controller = loadAbort()
     return {
       call: httpClient.post<ForgotPasswordResponse>(
         AuthUrl.ForgotPassword,
         payload,
-        { signal: controller.signal },
+        { signal: controller.signal }
       ),
       controller,
     }

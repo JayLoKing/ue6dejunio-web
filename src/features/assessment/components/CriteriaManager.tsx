@@ -110,7 +110,7 @@ function DimensionBlock({
           setItems([])
           setItemDraft("")
         },
-      },
+      }
     )
   }
 
@@ -119,7 +119,7 @@ function DimensionBlock({
       <div
         className={cn(
           "flex items-center justify-between gap-2 border-b px-3 py-2",
-          dim.color.soft,
+          dim.color.soft
         )}
       >
         <span className="flex items-center gap-2 font-semibold">
@@ -132,7 +132,9 @@ function DimensionBlock({
 
       <ul className="divide-y">
         {criteria.length === 0 ? (
-          <li className="px-3 py-2 text-sm text-muted-foreground">Sin criterios.</li>
+          <li className="px-3 py-2 text-sm text-muted-foreground">
+            Sin criterios.
+          </li>
         ) : (
           criteria.map((c) => {
             const evs = eventsByCriterion[c.id] ?? []
@@ -200,28 +202,33 @@ function DimensionBlock({
                 ) : activityBased ? (
                   <div className="mt-1.5 flex flex-wrap items-center gap-1.5 pl-2">
                     {evs.map((e) => (
-                        <Badge key={e.id} variant="outline" className="gap-1">
-                          {e.title}
-                          {/* El último item no se puede quitar: dejaría la actividad sin nada
+                      <Badge key={e.id} variant="outline" className="gap-1">
+                        {e.title}
+                        {/* El último item no se puede quitar: dejaría la actividad sin nada
                               que promediar y sin poder recibir nota directa. El backend
                               responde 409; aquí se desactiva antes de llegar. */}
-                          {readOnly || evs.length === 1 ? null : (
-                            <button
-                              type="button"
-                              className="text-destructive"
-                              aria-label={`Quitar criterio ${e.title}`}
-                              onClick={() => removeEvent.mutate(e.id)}
-                            >
-                              ×
-                            </button>
-                          )}
-                        </Badge>
+                        {readOnly || evs.length === 1 ? null : (
+                          <button
+                            type="button"
+                            className="text-destructive"
+                            aria-label={`Quitar criterio ${e.title}`}
+                            onClick={() => removeEvent.mutate(e.id)}
+                          >
+                            ×
+                          </button>
+                        )}
+                      </Badge>
                     ))}
                     {readOnly ? null : (
                       <div className="flex items-center gap-1">
                         <Input
                           value={draft}
-                          onChange={(ev) => setActivityDraft((d) => ({ ...d, [c.id]: ev.target.value }))}
+                          onChange={(ev) =>
+                            setActivityDraft((d) => ({
+                              ...d,
+                              [c.id]: ev.target.value,
+                            }))
+                          }
                           placeholder="Nuevo criterio"
                           className="h-7 w-40 text-xs"
                         />
@@ -234,7 +241,13 @@ function DimensionBlock({
                           onClick={() =>
                             createEvent.mutate(
                               { id_criterion: c.id, title: draft.trim() },
-                              { onSuccess: () => setActivityDraft((d) => ({ ...d, [c.id]: "" })) },
+                              {
+                                onSuccess: () =>
+                                  setActivityDraft((d) => ({
+                                    ...d,
+                                    [c.id]: "",
+                                  })),
+                              }
                             )
                           }
                         >
@@ -299,7 +312,9 @@ function DimensionBlock({
                       type="button"
                       className="text-destructive"
                       aria-label={`Quitar ${it}`}
-                      onClick={() => setItems((prev) => prev.filter((x) => x !== it))}
+                      onClick={() =>
+                        setItems((prev) => prev.filter((x) => x !== it))
+                      }
                     >
                       ×
                     </button>
@@ -330,8 +345,8 @@ function DimensionBlock({
                 </div>
               </div>
               <p className="text-[11px] text-muted-foreground">
-                La nota del criterio será el promedio de estos criterios. Se necesita al
-                menos uno.
+                La nota del criterio será el promedio de estos criterios. Se
+                necesita al menos uno.
               </p>
             </div>
           ) : null}
@@ -345,7 +360,10 @@ function DimensionBlock({
           onClose={() => setEditing(null)}
           saving={update.isPending}
           onSave={(payload) =>
-            update.mutate({ id: editing.id, payload }, { onSuccess: () => setEditing(null) })
+            update.mutate(
+              { id: editing.id, payload },
+              { onSuccess: () => setEditing(null) }
+            )
           }
         />
       ) : null}
@@ -353,7 +371,11 @@ function DimensionBlock({
       <ConfirmDialog
         open={Boolean(deleting)}
         title="Eliminar criterio"
-        description={deleting ? `"${deleting.name}" y sus actividades/notas serán eliminados.` : undefined}
+        description={
+          deleting
+            ? `"${deleting.name}" y sus actividades/notas serán eliminados.`
+            : undefined
+        }
         confirmLabel="Eliminar"
         destructive
         loading={remove.isPending}
@@ -383,11 +405,19 @@ function EditCriterionInline({
   const [name, setName] = useState(criterion.name)
   return (
     <div className="flex items-center gap-2 border-t bg-muted/20 p-2">
-      <Input value={name} onChange={(e) => setName(e.target.value)} className="h-8 flex-1" />
+      <Input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        className="h-8 flex-1"
+      />
       <Button size="sm" variant="outline" onClick={onClose}>
         Cancelar
       </Button>
-      <Button size="sm" disabled={saving || !name.trim()} onClick={() => onSave({ name: name.trim() })}>
+      <Button
+        size="sm"
+        disabled={saving || !name.trim()}
+        onClick={() => onSave({ name: name.trim() })}
+      >
         Guardar
       </Button>
     </div>
@@ -402,10 +432,7 @@ export function CriteriaManager({
   const criteriaQuery = useCriteria(classGroupId, trimester)
   const isLoading = criteriaQuery.isLoading
   // Ref estable: evita recrear la cadena de memos cada render.
-  const criteria = useMemo(
-    () => criteriaQuery.data ?? [],
-    [criteriaQuery.data],
-  )
+  const criteria = useMemo(() => criteriaQuery.data ?? [], [criteriaQuery.data])
   const { byCriterion, isLoading: evLoading } = useCriteriaEvents(criteria)
 
   // Agrupa una sola vez por dimensión (evita filtrar por cada dimensión en cada render).

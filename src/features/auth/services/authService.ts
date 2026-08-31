@@ -32,7 +32,7 @@ export class AuthService {
   }
 
   static async forgotPassword(
-    payload: ForgotPasswordRequest,
+    payload: ForgotPasswordRequest
   ): Promise<ForgotPasswordResponse> {
     const { call } = helper.forgotPasswordAsync(payload)
     return (await call).data

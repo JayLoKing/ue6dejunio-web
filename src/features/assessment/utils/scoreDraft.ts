@@ -10,7 +10,7 @@
 export function draftText(
   draft: Record<string, string>,
   key: string,
-  saved: number | undefined,
+  saved: number | undefined
 ): string {
   const typed = draft[key]
   // Vaciar la casilla es intencional: "" no cae de vuelta a la nota guardada.

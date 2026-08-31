@@ -1,21 +1,18 @@
 import { describe, expect, it } from "vitest"
 
-import {
-  forgotPasswordSchema,
-  resetPasswordSchema,
-} from "./credentials-schema"
+import { forgotPasswordSchema, resetPasswordSchema } from "./credentials-schema"
 
 describe("forgotPasswordSchema", () => {
   it("accepts a valid email", () => {
     expect(forgotPasswordSchema.safeParse({ email: "a@ue6.bo" }).success).toBe(
-      true,
+      true
     )
   })
 
   it("rejects a malformed email", () => {
-    expect(forgotPasswordSchema.safeParse({ email: "not-an-email" }).success).toBe(
-      false,
-    )
+    expect(
+      forgotPasswordSchema.safeParse({ email: "not-an-email" }).success
+    ).toBe(false)
   })
 })
 
@@ -37,9 +34,9 @@ describe("resetPasswordSchema", () => {
     })
     expect(r.success).toBe(false)
     if (!r.success) {
-      expect(r.error.issues.some((i) => i.path.includes("confirmPassword"))).toBe(
-        true,
-      )
+      expect(
+        r.error.issues.some((i) => i.path.includes("confirmPassword"))
+      ).toBe(true)
     }
   })
 

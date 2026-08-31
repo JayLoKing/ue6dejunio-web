@@ -101,7 +101,7 @@ export function useCopyPdcToParallels() {
       toast.success(
         copies.length === 0
           ? "Los otros paralelos ya tenían su plan de este mes."
-          : `Copiado a ${copies.length} paralelo${copies.length === 1 ? "" : "s"}.`,
+          : `Copiado a ${copies.length} paralelo${copies.length === 1 ? "" : "s"}.`
       )
       invalidate()
     },

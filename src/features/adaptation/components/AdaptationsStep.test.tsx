@@ -70,13 +70,17 @@ describe("AdaptationsStep", () => {
     render(
       <AdaptationsStep
         {...props({ adaptations: [adaptation({ studentId: "st-1" })] })}
-      />,
+      />
     )
 
     await userEvent.click(screen.getByRole("combobox", { name: /estudiante/i }))
 
-    expect(screen.getByRole("option", { name: "Rosa Quispe" })).toBeInTheDocument()
-    expect(screen.queryByRole("option", { name: "Juan Vargas" })).not.toBeInTheDocument()
+    expect(
+      screen.getByRole("option", { name: "Rosa Quispe" })
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole("option", { name: "Juan Vargas" })
+    ).not.toBeInTheDocument()
   })
 
   it("sends the chosen student with the four columns of the form", async () => {
@@ -85,9 +89,15 @@ describe("AdaptationsStep", () => {
 
     await userEvent.click(screen.getByRole("combobox", { name: /estudiante/i }))
     await userEvent.click(screen.getByRole("option", { name: "Rosa Quispe" }))
-    await userEvent.type(screen.getByLabelText(/contenido/i), "Números hasta el 20")
+    await userEvent.type(
+      screen.getByLabelText(/contenido/i),
+      "Números hasta el 20"
+    )
     await userEvent.type(screen.getByLabelText(/discapacidad/i), "TEA")
-    await userEvent.type(screen.getByLabelText(/^adaptación/i), "Material concreto")
+    await userEvent.type(
+      screen.getByLabelText(/^adaptación/i),
+      "Material concreto"
+    )
     await userEvent.type(screen.getByLabelText(/criterio/i), "Cuenta con apoyo")
     await userEvent.click(screen.getByRole("button", { name: /agregar/i }))
 
@@ -106,7 +116,10 @@ describe("AdaptationsStep", () => {
     const p = props()
     render(<AdaptationsStep {...p} />)
 
-    await userEvent.type(screen.getByLabelText(/contenido/i), "Números hasta el 20")
+    await userEvent.type(
+      screen.getByLabelText(/contenido/i),
+      "Números hasta el 20"
+    )
     await userEvent.click(screen.getByRole("button", { name: /agregar/i }))
 
     expect(p.onAdd).not.toHaveBeenCalled()
@@ -137,9 +150,13 @@ describe("AdaptationsStep", () => {
 
     await userEvent.click(screen.getByRole("button", { name: /editar/i }))
 
-    expect(screen.getByLabelText(/contenido/i)).toHaveValue("Números hasta el 20")
+    expect(screen.getByLabelText(/contenido/i)).toHaveValue(
+      "Números hasta el 20"
+    )
     expect(screen.getByLabelText(/discapacidad/i)).toHaveValue("TEA")
-    expect(screen.getByLabelText(/^adaptación/i)).toHaveValue("Material concreto")
+    expect(screen.getByLabelText(/^adaptación/i)).toHaveValue(
+      "Material concreto"
+    )
     expect(screen.getByLabelText(/criterio/i)).toHaveValue("Cuenta con apoyo")
   })
 
@@ -176,7 +193,7 @@ describe("AdaptationsStep", () => {
     expect(p.onUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         payload: expect.objectContaining({ adaptedCriteria: "" }),
-      }),
+      })
     )
   })
 
@@ -199,7 +216,9 @@ describe("AdaptationsStep", () => {
 
     await userEvent.click(screen.getByRole("button", { name: /editar/i }))
 
-    expect(screen.queryByRole("button", { name: /agregar/i })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole("button", { name: /agregar/i })
+    ).not.toBeInTheDocument()
   })
 
   // Every student of the course already has a row: there is nothing left to add, and an empty
@@ -210,12 +229,18 @@ describe("AdaptationsStep", () => {
         {...props({
           adaptations: [
             adaptation({ studentId: "st-1" }),
-            adaptation({ id: "a-2", studentId: "st-2", studentName: "Rosa Quispe" }),
+            adaptation({
+              id: "a-2",
+              studentId: "st-2",
+              studentName: "Rosa Quispe",
+            }),
           ],
         })}
-      />,
+      />
     )
 
-    expect(screen.getByText(/todos los estudiantes del curso/i)).toBeInTheDocument()
+    expect(
+      screen.getByText(/todos los estudiantes del curso/i)
+    ).toBeInTheDocument()
   })
 })

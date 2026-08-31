@@ -25,7 +25,7 @@ export interface AttendanceMatrixProps {
   onMark: (
     courseEnrollmentId: string,
     isoDate: string,
-    status: AttendanceApiStatus,
+    status: AttendanceApiStatus
   ) => void | Promise<unknown>
 }
 
@@ -33,7 +33,10 @@ const STATUS_STYLE: Record<
   Exclude<AttendanceCellStatus, null>,
   { label: string; cls: string }
 > = {
-  P: { label: "Presente", cls: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" },
+  P: {
+    label: "Presente",
+    cls: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+  },
   A: { label: "Ausente", cls: "bg-destructive/15 text-destructive" },
   L: { label: "Licencia", cls: "bg-univalle/15 text-univalle" },
 }
@@ -48,7 +51,11 @@ const weekdaysOfMonth = (year: number, month: number) => {
   for (let d = 1; d <= total; d++) {
     const dow = new Date(year, month - 1, d).getDay()
     if (dow >= 1 && dow <= 5)
-      cols.push({ iso: isoOf(year, month, d), day: d, letter: WEEKDAY_LETTER[dow] })
+      cols.push({
+        iso: isoOf(year, month, d),
+        day: d,
+        letter: WEEKDAY_LETTER[dow],
+      })
   }
   return cols
 }
@@ -79,7 +86,10 @@ export function AttendanceMatrix({
     marked[ceId]?.[iso] ?? initialData?.[ceId]?.[iso] ?? null
 
   const write = (ceId: string, iso: string, status: AttendanceCellStatus) =>
-    setMarked((prev) => ({ ...prev, [ceId]: { ...(prev[ceId] ?? {}), [iso]: status } }))
+    setMarked((prev) => ({
+      ...prev,
+      [ceId]: { ...(prev[ceId] ?? {}), [iso]: status },
+    }))
 
   const click = (ceId: string, iso: string) => {
     if (iso !== today) return
@@ -122,9 +132,17 @@ export function AttendanceMatrix({
                 {cols.map((c) => {
                   const isToday = c.iso === today
                   return (
-                    <th key={c.iso} className={cn("min-w-11 border-r border-b px-2 py-1.5 text-center font-medium last:border-r-0", isToday ? "bg-univalle/15 text-univalle" : "bg-muted/50")}>
+                    <th
+                      key={c.iso}
+                      className={cn(
+                        "min-w-11 border-r border-b px-2 py-1.5 text-center font-medium last:border-r-0",
+                        isToday ? "bg-univalle/15 text-univalle" : "bg-muted/50"
+                      )}
+                    >
                       <div className="flex flex-col leading-tight">
-                        <span className="text-[10px] font-normal text-muted-foreground">{c.letter}</span>
+                        <span className="text-[10px] font-normal text-muted-foreground">
+                          {c.letter}
+                        </span>
                         <span>{c.day}</span>
                       </div>
                     </th>
@@ -134,13 +152,25 @@ export function AttendanceMatrix({
             </thead>
             <tbody>
               {students.length === 0 ? (
-                <tr><td colSpan={cols.length + 1} className="px-3 py-6 text-center text-muted-foreground">Sin estudiantes.</td></tr>
+                <tr>
+                  <td
+                    colSpan={cols.length + 1}
+                    className="px-3 py-6 text-center text-muted-foreground"
+                  >
+                    Sin estudiantes.
+                  </td>
+                </tr>
               ) : (
                 students.map((s, idx) => {
                   const rowBg = idx % 2 === 0 ? "bg-card" : "bg-muted"
                   return (
                     <tr key={s.courseEnrollmentId} className="border-t">
-                      <td className={cn("sticky left-0 z-10 min-w-[16rem] border-r px-3 py-2 shadow-[2px_0_0_0_var(--border)]", rowBg)}>
+                      <td
+                        className={cn(
+                          "sticky left-0 z-10 min-w-[16rem] border-r px-3 py-2 shadow-[2px_0_0_0_var(--border)]",
+                          rowBg
+                        )}
+                      >
                         <span className="font-medium">{s.fullName}</span>
                       </td>
                       {cols.map((c) => {
@@ -148,7 +178,13 @@ export function AttendanceMatrix({
                         const style = status ? STATUS_STYLE[status] : null
                         const editable = c.iso === today
                         return (
-                          <td key={c.iso} className={cn("border-r px-1 py-1 text-center last:border-r-0", rowBg)}>
+                          <td
+                            key={c.iso}
+                            className={cn(
+                              "border-r px-1 py-1 text-center last:border-r-0",
+                              rowBg
+                            )}
+                          >
                             <button
                               type="button"
                               disabled={!editable}
@@ -157,8 +193,19 @@ export function AttendanceMatrix({
                               // nothing. Saying whose day this is makes each cell reachable by
                               // name, out loud and from a test.
                               aria-label={`${s.fullName}, ${c.iso}: ${style?.label ?? "sin registrar"}`}
-                              title={editable ? (style?.label ?? "Registrar") : "Solo lectura"}
-                              className={cn("size-8 rounded-md text-xs font-semibold transition-colors", editable && "hover:ring-2 hover:ring-univalle/40", !editable && "cursor-default", style?.cls ?? "bg-muted/60 text-muted-foreground")}
+                              title={
+                                editable
+                                  ? (style?.label ?? "Registrar")
+                                  : "Solo lectura"
+                              }
+                              className={cn(
+                                "size-8 rounded-md text-xs font-semibold transition-colors",
+                                editable &&
+                                  "hover:ring-2 hover:ring-univalle/40",
+                                !editable && "cursor-default",
+                                style?.cls ??
+                                  "bg-muted/60 text-muted-foreground"
+                              )}
                             >
                               {status ?? "·"}
                             </button>

@@ -32,7 +32,12 @@ interface FormValues {
 
 interface NameMutations {
   create: UseMutationResult<unknown, Error, { name: string }, unknown>
-  update: UseMutationResult<unknown, Error, { id: number; name: string }, unknown>
+  update: UseMutationResult<
+    unknown,
+    Error,
+    { id: number; name: string },
+    unknown
+  >
   remove: UseMutationResult<unknown, Error, number, unknown>
 }
 
@@ -65,12 +70,13 @@ export function NameCrudPage<T extends NameEntity>({
   const [deleting, setDeleting] = useState<T | null>(null)
 
   const schema = useMemo(
-    () => z.object({ name: trimmedString({ min: 1, max: maxLen, field: label }) }),
-    [maxLen, label],
+    () =>
+      z.object({ name: trimmedString({ min: 1, max: maxLen, field: label }) }),
+    [maxLen, label]
   )
   const query = useMemo<PageQuery>(
     () => ({ offset: page, limit, sort: "asc" }),
-    [page, limit],
+    [page, limit]
   )
   const { data, isLoading, isFetching, refetch } = useList(query)
   const rows = data?.content ?? []
@@ -129,11 +135,17 @@ export function NameCrudPage<T extends NameEntity>({
               <DialogTitle>Nuevo {label.toLowerCase()}</DialogTitle>
             </DialogHeader>
             <form onSubmit={onCreate} noValidate>
-              <Field data-invalid={Boolean(createForm.formState.errors.name) || undefined}>
+              <Field
+                data-invalid={
+                  Boolean(createForm.formState.errors.name) || undefined
+                }
+              >
                 <FieldLabel htmlFor="create-name">{label}</FieldLabel>
                 <Input id="create-name" {...createForm.register("name")} />
                 {createForm.formState.errors.name ? (
-                  <FieldError>{createForm.formState.errors.name.message}</FieldError>
+                  <FieldError>
+                    {createForm.formState.errors.name.message}
+                  </FieldError>
                 ) : null}
               </Field>
               <DialogFooter className="mt-6">
@@ -205,17 +217,26 @@ export function NameCrudPage<T extends NameEntity>({
         }}
       />
 
-      <Dialog open={Boolean(editing)} onOpenChange={(o) => !o && setEditing(null)}>
+      <Dialog
+        open={Boolean(editing)}
+        onOpenChange={(o) => !o && setEditing(null)}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Editar {label.toLowerCase()}</DialogTitle>
           </DialogHeader>
           <form onSubmit={onEdit} noValidate>
-            <Field data-invalid={Boolean(editForm.formState.errors.name) || undefined}>
+            <Field
+              data-invalid={
+                Boolean(editForm.formState.errors.name) || undefined
+              }
+            >
               <FieldLabel htmlFor="edit-name">{label}</FieldLabel>
               <Input id="edit-name" {...editForm.register("name")} />
               {editForm.formState.errors.name ? (
-                <FieldError>{editForm.formState.errors.name.message}</FieldError>
+                <FieldError>
+                  {editForm.formState.errors.name.message}
+                </FieldError>
               ) : null}
             </Field>
             <DialogFooter className="mt-6">
@@ -241,7 +262,9 @@ export function NameCrudPage<T extends NameEntity>({
       <ConfirmDialog
         open={Boolean(deleting)}
         title={`Eliminar ${label.toLowerCase()}`}
-        description={deleting ? `"${deleting.name}" será eliminado.` : undefined}
+        description={
+          deleting ? `"${deleting.name}" será eliminado.` : undefined
+        }
         confirmLabel="Eliminar"
         destructive
         loading={mutations.remove.isPending}

@@ -32,7 +32,7 @@ export const cellFromApi = (status: string): AttendanceCellStatus => {
 
 /** The cycle a cell walks on each click. Every status leads somewhere, so a cell is never stuck. */
 export const nextStatus = (
-  current: AttendanceCellStatus,
+  current: AttendanceCellStatus
 ): Exclude<AttendanceCellStatus, null> => {
   switch (current) {
     case null:

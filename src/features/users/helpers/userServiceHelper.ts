@@ -48,7 +48,7 @@ export default class UserServiceHelper {
 
   updateAsync(
     id: string,
-    payload: UpdateUserRequest,
+    payload: UpdateUserRequest
   ): UseApiCall<UserResponse> {
     const controller = loadAbort()
     return {

@@ -94,11 +94,13 @@ describe("PdcPreview", () => {
           school: 'Unidad Educativa "6 de Junio"',
           directorName: "Luis Rojas",
         }}
-      />,
+      />
     )
 
     expect(screen.getByText("Sacaba")).toBeInTheDocument()
-    expect(screen.getByText('Unidad Educativa "6 de Junio"')).toBeInTheDocument()
+    expect(
+      screen.getByText('Unidad Educativa "6 de Junio"')
+    ).toBeInTheDocument()
     expect(screen.getByText("Luis Rojas")).toBeInTheDocument()
   })
 
@@ -114,7 +116,9 @@ describe("PdcPreview", () => {
       .find((node) => node !== null)
 
     expect(band).toBeDefined()
-    expect(band).toHaveTextContent("Área de saberes y conocimiento: Comunidad y Sociedad")
+    expect(band).toHaveTextContent(
+      "Área de saberes y conocimiento: Comunidad y Sociedad"
+    )
     expect(band).toHaveClass("text-center")
   })
 
@@ -142,14 +146,20 @@ describe("PdcPreview", () => {
         plan={plan({
           subjects: [
             subject(),
-            subject({ id: "s-2", subjectName: "Ciencias Sociales", displayOrder: 1 }),
+            subject({
+              id: "s-2",
+              subjectName: "Ciencias Sociales",
+              displayOrder: 1,
+            }),
           ],
         })}
-      />,
+      />
     )
 
     expect(
-      screen.getAllByText("Área de saberes y conocimiento: Comunidad y Sociedad"),
+      screen.getAllByText(
+        "Área de saberes y conocimiento: Comunidad y Sociedad"
+      )
     ).toHaveLength(2)
   })
 
@@ -159,7 +169,9 @@ describe("PdcPreview", () => {
     render(<PdcPreview plan={plan()} />)
 
     expect(screen.getByText("ADAPTACIONES CURRICULARES")).toBeInTheDocument()
-    expect(screen.queryByText(/dificultades en el aprendizaje/)).not.toBeInTheDocument()
+    expect(
+      screen.queryByText(/dificultades en el aprendizaje/)
+    ).not.toBeInTheDocument()
   })
 
   // The template sets both labels in bold; they read as labels rather than as part of the date.
@@ -195,7 +207,7 @@ describe("PdcPreview", () => {
           adaptation(),
           adaptation({ id: "a-2", adaptedContents: "Lectura de sílabas" }),
         ]}
-      />,
+      />
     )
 
     const table = screen.getByText("Adaptación").closest("table")!
@@ -220,8 +232,10 @@ describe("PdcPreview", () => {
     render(
       <PdcPreview
         plan={plan()}
-        adaptations={[adaptation({ conditionType: null, adaptedCriteria: null })]}
-      />,
+        adaptations={[
+          adaptation({ conditionType: null, adaptedCriteria: null }),
+        ]}
+      />
     )
 
     const row = screen.getByText("Números hasta el 20").closest("tr")!
@@ -249,6 +263,8 @@ describe("PdcPreview", () => {
   it("renders before the school's heading has arrived", () => {
     render(<PdcPreview plan={plan({ subjects: [] })} />)
 
-    expect(screen.getByText(/PLAN DE DESARROLLO CURRICULAR Nº 4/)).toBeInTheDocument()
+    expect(
+      screen.getByText(/PLAN DE DESARROLLO CURRICULAR Nº 4/)
+    ).toBeInTheDocument()
   })
 })

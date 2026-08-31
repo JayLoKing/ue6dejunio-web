@@ -20,7 +20,7 @@ function ClassGroupScorePage() {
   // Docente de aula: además de sus materias, puede ver las técnicas del curso (solo lectura).
   const overviewQuery = useCourseOverview(
     isTechnical ? null : homeroomCourseId,
-    1,
+    1
   )
 
   if (ownQuery.isLoading || overviewQuery.isLoading) {
@@ -34,7 +34,7 @@ function ClassGroupScorePage() {
   // Materia propia → editable. Materia del curso pero de otro docente (técnico) → solo lectura.
   const own = ownQuery.data?.find((c) => c.id === classGroupId)
   const fromCourse = overviewQuery.data?.classGroups.find(
-    (c) => c.id === classGroupId,
+    (c) => c.id === classGroupId
   )
   const classGroup = own ?? fromCourse
 

@@ -39,7 +39,10 @@ type ScoreColumn =
   | { kind: "criterion"; id: string; title: string }
 
 /** Grilla de notas de un criterio: columnas = ítems de su actividad, o el criterio solo. */
-export function CriterionScoreSheet({ classGroup, criterion }: CriterionScoreSheetProps) {
+export function CriterionScoreSheet({
+  classGroup,
+  criterion,
+}: CriterionScoreSheetProps) {
   const meta = dimensionMeta(criterion.dimension)
   const cap = meta.weight
 
@@ -48,7 +51,7 @@ export function CriterionScoreSheet({ classGroup, criterion }: CriterionScoreShe
   const { byCriterion, isLoading: evLoading } = useCriteriaEvents(criteriaArr)
   const events = useMemo(
     () => byCriterion[criterion.id] ?? [],
-    [byCriterion, criterion.id],
+    [byCriterion, criterion.id]
   )
 
   /**
@@ -68,16 +71,16 @@ export function CriterionScoreSheet({ classGroup, criterion }: CriterionScoreShe
   })
   const students = useMemo(
     () => studentsQuery.data?.content ?? [],
-    [studentsQuery.data],
+    [studentsQuery.data]
   )
 
   const eventIds = useMemo(
     () => (!evLoading && activityBased ? events.map((e) => e.id) : []),
-    [evLoading, activityBased, events],
+    [evLoading, activityBased, events]
   )
   const { matrix, isLoading: eventScoresLoading } = useEventScores(eventIds)
   const { byEnrollment, isLoading: directScoresLoading } = useCriterionScores(
-    !evLoading && !activityBased ? criterion.id : null,
+    !evLoading && !activityBased ? criterion.id : null
   )
   // Sin esto la casilla que todavía carga se ve igual que la no calificada.
   const scoresLoading = evLoading || eventScoresLoading || directScoresLoading
@@ -88,9 +91,19 @@ export function CriterionScoreSheet({ classGroup, criterion }: CriterionScoreShe
   const columns = useMemo<ScoreColumn[]>(
     () =>
       activityBased
-        ? events.map((e) => ({ kind: "event" as const, id: e.id, title: e.title }))
-        : [{ kind: "criterion" as const, id: criterion.id, title: criterion.name }],
-    [activityBased, events, criterion.id, criterion.name],
+        ? events.map((e) => ({
+            kind: "event" as const,
+            id: e.id,
+            title: e.title,
+          }))
+        : [
+            {
+              kind: "criterion" as const,
+              id: criterion.id,
+              title: criterion.name,
+            },
+          ],
+    [activityBased, events, criterion.id, criterion.name]
   )
 
   const cellOf = (col: ScoreColumn, ce: string): ScoreCell | undefined =>
@@ -137,7 +150,7 @@ export function CriterionScoreSheet({ classGroup, criterion }: CriterionScoreShe
     setScore.mutate(
       col.kind === "event"
         ? { id_course_enrollment: ce, id_assessment_event: col.id, score: val }
-        : { id_course_enrollment: ce, id_criterion: col.id, score: val },
+        : { id_course_enrollment: ce, id_criterion: col.id, score: val }
     )
   }
 
@@ -147,7 +160,7 @@ export function CriterionScoreSheet({ classGroup, criterion }: CriterionScoreShe
       columns
         // Sigue al tecleo, no al último refetch: cellText prefiere lo tecleado.
         .map((col) => scoreFromText(cellText(col, ce), cap))
-        .filter((n): n is number => n !== null),
+        .filter((n): n is number => n !== null)
     )
 
   // El criterio directo no promedia nada: su única casilla ES la nota del criterio.
@@ -185,7 +198,8 @@ export function CriterionScoreSheet({ classGroup, criterion }: CriterionScoreShe
         </div>
       ) : emptyActivity ? (
         <div className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-          Esta actividad aún no tiene criterios. Agrégalos en la pestaña Criterios.
+          Esta actividad aún no tiene criterios. Agrégalos en la pestaña
+          Criterios.
         </div>
       ) : (
         <div className="min-w-0 overflow-hidden rounded-md border bg-card">
@@ -203,13 +217,17 @@ export function CriterionScoreSheet({ classGroup, criterion }: CriterionScoreShe
                       className="min-w-24 border-r border-b bg-muted/40 px-2 py-1 text-center text-xs font-normal"
                     >
                       <div className="truncate">{col.title}</div>
-                      <div className="text-[10px] text-muted-foreground">/{cap}</div>
+                      <div className="text-[10px] text-muted-foreground">
+                        /{cap}
+                      </div>
                     </th>
                   ))}
                   {showAverage ? (
                     <th className="min-w-20 border-b bg-muted/70 px-2 py-1 text-center text-xs font-semibold">
                       Prom.
-                      <div className="text-[10px] font-normal text-muted-foreground">/{cap}</div>
+                      <div className="text-[10px] font-normal text-muted-foreground">
+                        /{cap}
+                      </div>
                     </th>
                   ) : null}
                 </tr>
@@ -217,13 +235,19 @@ export function CriterionScoreSheet({ classGroup, criterion }: CriterionScoreShe
               <tbody>
                 {studentsQuery.isLoading ? (
                   <tr>
-                    <td colSpan={colSpan} className="px-3 py-6 text-center text-muted-foreground">
+                    <td
+                      colSpan={colSpan}
+                      className="px-3 py-6 text-center text-muted-foreground"
+                    >
                       <Loader2Icon className="mx-auto size-4 animate-spin" />
                     </td>
                   </tr>
                 ) : students.length === 0 ? (
                   <tr>
-                    <td colSpan={colSpan} className="px-3 py-6 text-center text-muted-foreground">
+                    <td
+                      colSpan={colSpan}
+                      className="px-3 py-6 text-center text-muted-foreground"
+                    >
                       Sin estudiantes en el curso.
                     </td>
                   </tr>
@@ -237,7 +261,7 @@ export function CriterionScoreSheet({ classGroup, criterion }: CriterionScoreShe
                         <td
                           className={cn(
                             "sticky left-0 z-10 min-w-[16rem] border-r px-3 py-2 font-medium shadow-[2px_0_0_0_var(--border)]",
-                            rowBg,
+                            rowBg
                           )}
                         >
                           {s.fullName}
@@ -245,7 +269,13 @@ export function CriterionScoreSheet({ classGroup, criterion }: CriterionScoreShe
                         {columns.map((col) => {
                           const k = `${ce}:${col.id}`
                           return (
-                            <td key={col.id} className={cn("border-r px-1 py-1 text-center", rowBg)}>
+                            <td
+                              key={col.id}
+                              className={cn(
+                                "border-r px-1 py-1 text-center",
+                                rowBg
+                              )}
+                            >
                               <Input
                                 type="number"
                                 inputMode="decimal"
@@ -257,16 +287,26 @@ export function CriterionScoreSheet({ classGroup, criterion }: CriterionScoreShe
                                 disabled={scoresLoading}
                                 placeholder={scoresLoading ? "…" : undefined}
                                 onChange={(ev) =>
-                                  setDraft((d) => ({ ...d, [k]: ev.target.value }))
+                                  setDraft((d) => ({
+                                    ...d,
+                                    [k]: ev.target.value,
+                                  }))
                                 }
-                                onBlur={(ev) => commit(ce, col, ev.target.value)}
+                                onBlur={(ev) =>
+                                  commit(ce, col, ev.target.value)
+                                }
                                 className="h-9 w-16 text-center"
                               />
                             </td>
                           )
                         })}
                         {showAverage ? (
-                          <td className={cn("px-2 py-1 text-center font-semibold", rowBg)}>
+                          <td
+                            className={cn(
+                              "px-2 py-1 text-center font-semibold",
+                              rowBg
+                            )}
+                          >
                             {avg === null ? "—" : round1(avg)}
                           </td>
                         ) : null}
@@ -282,8 +322,8 @@ export function CriterionScoreSheet({ classGroup, criterion }: CriterionScoreShe
       )}
 
       <p className="text-xs text-muted-foreground">
-        Cada casilla admite hasta {cap} (tope de {meta.label}). Casilla vacía = no calificado
-        (distinto de 0).{" "}
+        Cada casilla admite hasta {cap} (tope de {meta.label}). Casilla vacía =
+        no calificado (distinto de 0).{" "}
         {activityBased
           ? "El promedio de los criterios de la actividad es la nota de este criterio, y es de solo lectura."
           : "Esta casilla es directamente la nota del criterio."}

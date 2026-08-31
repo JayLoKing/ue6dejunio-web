@@ -43,6 +43,6 @@ export const useAuthStore = create<AuthState>()(
     {
       name: "ue6dejunio-auth-storage",
       storage: createJSONStorage(() => localStorage),
-    },
-  ),
+    }
+  )
 )

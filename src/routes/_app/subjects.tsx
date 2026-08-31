@@ -56,7 +56,7 @@ function SubjectsPage() {
 
   const query = useMemo<PageQuery>(
     () => ({ offset: page, limit, sort: "asc" }),
-    [page, limit],
+    [page, limit]
   )
   const { data, isLoading, isFetching, refetch } = useSubjectsAdmin(query)
   const create = useCreateSubject()
@@ -160,7 +160,7 @@ function SubjectsPage() {
                   className={cn(
                     s.technical
                       ? "bg-amber-500/20 text-amber-700 dark:text-amber-300"
-                      : "bg-muted text-muted-foreground",
+                      : "bg-muted text-muted-foreground"
                   )}
                 >
                   {s.technical ? "Técnica" : "Aula"}
@@ -191,10 +191,14 @@ function SubjectsPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{editing ? "Editar materia" : "Nueva materia"}</DialogTitle>
+            <DialogTitle>
+              {editing ? "Editar materia" : "Nueva materia"}
+            </DialogTitle>
           </DialogHeader>
           <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
-            <Field data-invalid={Boolean(form.formState.errors.name) || undefined}>
+            <Field
+              data-invalid={Boolean(form.formState.errors.name) || undefined}
+            >
               <FieldLabel htmlFor="subject-name">Nombre</FieldLabel>
               <Input id="subject-name" {...form.register("name")} />
               {form.formState.errors.name ? (
@@ -205,16 +209,19 @@ function SubjectsPage() {
               <Checkbox
                 id="subject-technical"
                 checked={form.watch("technical")}
-                onCheckedChange={(v) =>
-                  form.setValue("technical", Boolean(v))
-                }
+                onCheckedChange={(v) => form.setValue("technical", Boolean(v))}
               />
               <FieldLabel htmlFor="subject-technical" className="font-normal">
-                Materia técnica (Música / Religión — la dicta un docente técnico)
+                Materia técnica (Música / Religión — la dicta un docente
+                técnico)
               </FieldLabel>
             </Field>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDialogOpen(false)}
+              >
                 Cancelar
               </Button>
               <Button
@@ -232,7 +239,9 @@ function SubjectsPage() {
       <ConfirmDialog
         open={Boolean(deleting)}
         title="Eliminar materia"
-        description={deleting ? `"${deleting.name}" será desactivada.` : undefined}
+        description={
+          deleting ? `"${deleting.name}" será desactivada.` : undefined
+        }
         confirmLabel="Eliminar"
         destructive
         loading={remove.isPending}

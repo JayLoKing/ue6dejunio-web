@@ -51,7 +51,7 @@ function SetHomeroomForm({ course, onClose }: SetHomeroomFormProps) {
   const aulaTeachers = useTeachers(false)
   const setHomeroom = useSetHomeroom()
   const [teacherId, setTeacherId] = useState<string | undefined>(
-    course.homeroomTeacherId ?? undefined,
+    course.homeroomTeacherId ?? undefined
   )
 
   const submit = async () => {

@@ -18,7 +18,9 @@ export function PasswordRequirements({ value }: PasswordRequirementsProps) {
             key={rule.id}
             className={cn(
               "flex items-center gap-1.5 transition-colors",
-              ok ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground",
+              ok
+                ? "text-emerald-600 dark:text-emerald-400"
+                : "text-muted-foreground"
             )}
           >
             {ok ? (

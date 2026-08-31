@@ -7,7 +7,7 @@ import { CentralizerTable } from "@/features/gradebook/components/CentralizerTab
 import { CourseAttendancePanel } from "@/features/gradebook/components/CourseAttendancePanel"
 
 export const Route = createFileRoute(
-  "/_app/cursos/$parallelId/curso/$courseId/",
+  "/_app/cursos/$parallelId/curso/$courseId/"
 )({
   component: CourseGradebookPage,
 })

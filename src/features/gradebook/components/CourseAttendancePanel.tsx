@@ -15,8 +15,18 @@ export interface CourseAttendancePanelProps {
 }
 
 const MONTHS = [
-  "Ene", "Feb", "Mar", "Abr", "May", "Jun",
-  "Jul", "Ago", "Sep", "Oct", "Nov", "Dic",
+  "Ene",
+  "Feb",
+  "Mar",
+  "Abr",
+  "May",
+  "Jun",
+  "Jul",
+  "Ago",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dic",
 ]
 
 // Estado crudo del backend (4 estados, no la versión colapsada P/A/L).
@@ -24,10 +34,26 @@ const STATUS_META: Record<
   string,
   { short: string; label: string; cls: string }
 > = {
-  Present: { short: "P", label: "Presente", cls: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" },
-  Absent: { short: "F", label: "Falta", cls: "bg-destructive/15 text-destructive" },
-  Late: { short: "R", label: "Retraso", cls: "bg-amber-500/15 text-amber-700 dark:text-amber-300" },
-  Excused: { short: "L", label: "Licencia", cls: "bg-univalle/15 text-univalle" },
+  Present: {
+    short: "P",
+    label: "Presente",
+    cls: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+  },
+  Absent: {
+    short: "F",
+    label: "Falta",
+    cls: "bg-destructive/15 text-destructive",
+  },
+  Late: {
+    short: "R",
+    label: "Retraso",
+    cls: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+  },
+  Excused: {
+    short: "L",
+    label: "Licencia",
+    cls: "bg-univalle/15 text-univalle",
+  },
 }
 
 const pct = (p: number | null): string =>
@@ -64,7 +90,9 @@ function Kpi({ label, counts }: { label: string; counts: AttendanceCounts }) {
 }
 
 /** Asistencia diaria del curso: KPIs de % + lista por fecha (solo lectura). */
-export function CourseAttendancePanel({ courseId }: CourseAttendancePanelProps) {
+export function CourseAttendancePanel({
+  courseId,
+}: CourseAttendancePanelProps) {
   const stats = useCourseAttendanceStats(courseId)
   const listQuery = useCourseAttendance(courseId, {
     offset: 1,
@@ -130,10 +158,7 @@ export function CourseAttendancePanel({ courseId }: CourseAttendancePanelProps) 
       {/* Leyenda */}
       <div className="flex flex-wrap gap-2 text-[11px]">
         {Object.values(STATUS_META).map((s) => (
-          <span
-            key={s.short}
-            className={cn("rounded px-1.5 py-0.5", s.cls)}
-          >
+          <span key={s.short} className={cn("rounded px-1.5 py-0.5", s.cls)}>
             {s.short} = {s.label}
           </span>
         ))}
@@ -161,34 +186,56 @@ export function CourseAttendancePanel({ courseId }: CourseAttendancePanelProps) 
             <tbody>
               {listQuery.isLoading ? (
                 <tr>
-                  <td colSpan={dates.length + 1} className="px-3 py-6 text-center text-muted-foreground">
+                  <td
+                    colSpan={dates.length + 1}
+                    className="px-3 py-6 text-center text-muted-foreground"
+                  >
                     <Loader2Icon className="mx-auto size-4 animate-spin" />
                   </td>
                 </tr>
               ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={dates.length + 1} className="px-3 py-6 text-center text-muted-foreground">
+                  <td
+                    colSpan={dates.length + 1}
+                    className="px-3 py-6 text-center text-muted-foreground"
+                  >
                     Sin registros de asistencia.
                   </td>
                 </tr>
               ) : (
                 rows.map((r, idx) => {
                   const rowBg = idx % 2 === 0 ? "bg-card" : "bg-muted"
-                  const byDate = new Map(r.attendances.map((a) => [a.date, a.status]))
+                  const byDate = new Map(
+                    r.attendances.map((a) => [a.date, a.status])
+                  )
                   return (
                     <tr key={r.courseEnrollmentId} className="border-t">
-                      <td className={cn("sticky left-0 z-10 min-w-[14rem] border-r px-3 py-2 font-medium shadow-[2px_0_0_0_var(--border)]", rowBg)}>
+                      <td
+                        className={cn(
+                          "sticky left-0 z-10 min-w-[14rem] border-r px-3 py-2 font-medium shadow-[2px_0_0_0_var(--border)]",
+                          rowBg
+                        )}
+                      >
                         {r.fullName}
                       </td>
                       {dates.map((d) => {
                         const status = byDate.get(d)
                         const meta = status ? STATUS_META[status] : undefined
                         return (
-                          <td key={d} className={cn("border-r px-1 py-1 text-center", rowBg)}>
+                          <td
+                            key={d}
+                            className={cn(
+                              "border-r px-1 py-1 text-center",
+                              rowBg
+                            )}
+                          >
                             {meta ? (
                               <span
                                 title={meta.label}
-                                className={cn("inline-block w-6 rounded text-xs font-medium", meta.cls)}
+                                className={cn(
+                                  "inline-block w-6 rounded text-xs font-medium",
+                                  meta.cls
+                                )}
                               >
                                 {meta.short}
                               </span>

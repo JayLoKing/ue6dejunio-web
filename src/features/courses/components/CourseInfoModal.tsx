@@ -45,8 +45,8 @@ export function CourseInfoModal({ course, onClose }: CourseInfoModalProps) {
           </div>
         ) : overview.isError ? (
           <div className="flex items-center gap-2 py-6 text-sm text-destructive">
-            <TriangleAlertIcon className="size-4" /> No se pudo cargar la información
-            del curso.
+            <TriangleAlertIcon className="size-4" /> No se pudo cargar la
+            información del curso.
           </div>
         ) : (
           <div className="flex flex-col gap-4">
@@ -118,7 +118,9 @@ function Stat({
     <div className="rounded-md border p-2">
       <div className="text-xs text-muted-foreground">{label}</div>
       <div className="text-lg font-semibold">{value}</div>
-      {hint ? <div className="text-[10px] text-muted-foreground">{hint}</div> : null}
+      {hint ? (
+        <div className="text-[10px] text-muted-foreground">{hint}</div>
+      ) : null}
     </div>
   )
 }

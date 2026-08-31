@@ -17,7 +17,7 @@ if (!parsed.success) {
 
   // eslint-disable-next-line no-console
   console.error(
-    `\n[env] Variables de entorno inválidas o faltantes:\n${issues}\n\nRevisa tu archivo .env contra .env.example.\n`,
+    `\n[env] Variables de entorno inválidas o faltantes:\n${issues}\n\nRevisa tu archivo .env contra .env.example.\n`
   )
 
   throw new Error("Variables de entorno inválidas. Revisa la consola.")

@@ -10,13 +10,13 @@ import type { StudentResponse } from "../models/response/student-response"
 export default class TeacherStudentsHelper {
   byTeacherAsync(
     userId: string,
-    query: PageQuery,
+    query: PageQuery
   ): UseApiCall<PagedResponse<StudentResponse>> {
     const controller = loadAbort()
     return {
       call: httpClient.get<PagedResponse<StudentResponse>>(
         TeacherStudentsUrl.ByTeacher(userId),
-        { signal: controller.signal, params: toPageParams(query) },
+        { signal: controller.signal, params: toPageParams(query) }
       ),
       controller,
     }

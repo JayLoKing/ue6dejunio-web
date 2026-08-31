@@ -73,7 +73,7 @@ export default class PdcServiceHelper {
   writeSubjectAsync(
     id: string,
     planSubjectId: string,
-    payload: UpsertPdcSubjectPayload,
+    payload: UpsertPdcSubjectPayload
   ): UseApiCall<Pdc> {
     const controller = loadAbort()
     return {
@@ -120,7 +120,7 @@ export default class PdcServiceHelper {
       call: httpClient.post<Pdc>(
         PdcUrl.Observe(id),
         { observations },
-        { signal: controller.signal },
+        { signal: controller.signal }
       ),
       controller,
     }
@@ -138,7 +138,7 @@ export default class PdcServiceHelper {
 
   addProgressAsync(
     id: string,
-    payload: AddProgressPayload,
+    payload: AddProgressPayload
   ): UseApiCall<PdcProgress> {
     const controller = loadAbort()
     return {

@@ -68,7 +68,7 @@ export function PdcCreateDialog({
         period_start: periodStart,
         period_end: periodEnd,
       },
-      { onSuccess: onCreated },
+      { onSuccess: onCreated }
     )
 
   return (
@@ -77,8 +77,8 @@ export function PdcCreateDialog({
         <DialogHeader>
           <DialogTitle>Nuevo plan del mes</DialogTitle>
           <DialogDescription>
-            Se abrirá un bloque por cada materia del curso. Los completas uno tras
-            otro, dentro del mismo plan.
+            Se abrirá un bloque por cada materia del curso. Los completas uno
+            tras otro, dentro del mismo plan.
           </DialogDescription>
         </DialogHeader>
 

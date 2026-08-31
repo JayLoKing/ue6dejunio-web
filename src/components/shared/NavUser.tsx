@@ -106,10 +106,7 @@ export function NavUser() {
             </DropdownMenuGroup>
 
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              variant="destructive"
-              onSelect={handleLogout}
-            >
+            <DropdownMenuItem variant="destructive" onSelect={handleLogout}>
               <LogOutIcon />
               Cerrar sesión
             </DropdownMenuItem>

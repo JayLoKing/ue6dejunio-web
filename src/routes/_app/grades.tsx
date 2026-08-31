@@ -63,7 +63,7 @@ function GradesPage() {
 
   const query = useMemo<PageQuery>(
     () => ({ offset: page, limit, sort: "asc" }),
-    [page, limit],
+    [page, limit]
   )
   const { data, isLoading, isFetching, refetch } = useGradesAdmin(query)
   const levels = useLevels(LEVELS_QUERY)
@@ -90,7 +90,11 @@ function GradesPage() {
   const onSubmit = form.handleSubmit(async (v) => {
     try {
       if (editing) {
-        await update.mutateAsync({ id: editing.id, name: v.name, id_level: v.levelId })
+        await update.mutateAsync({
+          id: editing.id,
+          name: v.name,
+          id_level: v.levelId,
+        })
       } else {
         await create.mutateAsync({ name: v.name, id_level: v.levelId })
       }
@@ -184,10 +188,14 @@ function GradesPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{editing ? "Editar grado" : "Nuevo grado"}</DialogTitle>
+            <DialogTitle>
+              {editing ? "Editar grado" : "Nuevo grado"}
+            </DialogTitle>
           </DialogHeader>
           <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
-            <Field data-invalid={Boolean(form.formState.errors.name) || undefined}>
+            <Field
+              data-invalid={Boolean(form.formState.errors.name) || undefined}
+            >
               <FieldLabel htmlFor="grade-name">Nombre</FieldLabel>
               <Input id="grade-name" {...form.register("name")} />
               {form.formState.errors.name ? (
@@ -198,7 +206,11 @@ function GradesPage() {
               control={form.control}
               name="levelId"
               render={({ field }) => (
-                <Field data-invalid={Boolean(form.formState.errors.levelId) || undefined}>
+                <Field
+                  data-invalid={
+                    Boolean(form.formState.errors.levelId) || undefined
+                  }
+                >
                   <FieldLabel htmlFor="grade-level">Nivel</FieldLabel>
                   <Select
                     value={field.value ? String(field.value) : undefined}
@@ -216,13 +228,19 @@ function GradesPage() {
                     </SelectContent>
                   </Select>
                   {form.formState.errors.levelId ? (
-                    <FieldError>{form.formState.errors.levelId.message}</FieldError>
+                    <FieldError>
+                      {form.formState.errors.levelId.message}
+                    </FieldError>
                   ) : null}
                 </Field>
               )}
             />
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDialogOpen(false)}
+              >
                 Cancelar
               </Button>
               <Button
@@ -240,7 +258,9 @@ function GradesPage() {
       <ConfirmDialog
         open={Boolean(deleting)}
         title="Eliminar grado"
-        description={deleting ? `"${deleting.name}" será eliminado.` : undefined}
+        description={
+          deleting ? `"${deleting.name}" será eliminado.` : undefined
+        }
         confirmLabel="Eliminar"
         destructive
         loading={remove.isPending}

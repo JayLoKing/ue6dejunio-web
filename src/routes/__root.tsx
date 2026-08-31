@@ -1,8 +1,5 @@
 import { QueryClient } from "@tanstack/react-query"
-import {
-  Outlet,
-  createRootRouteWithContext,
-} from "@tanstack/react-router"
+import { Outlet, createRootRouteWithContext } from "@tanstack/react-router"
 
 import { ErrorFallback } from "@/components/shared/ErrorFallback"
 

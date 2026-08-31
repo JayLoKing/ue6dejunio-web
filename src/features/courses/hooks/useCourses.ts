@@ -43,7 +43,7 @@ export function useTeacherClassGroups(userId: string | null | undefined) {
 /** Vista consolidada del curso (Director): header + materias(docente) + estudiantes. */
 export function useCourseOverview(
   courseId: string | null | undefined,
-  trimester: number,
+  trimester: number
 ) {
   return useQuery({
     queryKey: ["course-overview", courseId ?? "", trimester],
@@ -60,7 +60,7 @@ export function useCourseOverview(
 
 export function useCourseStudents(
   courseId: string | null | undefined,
-  query: PageQuery,
+  query: PageQuery
 ) {
   return useQuery({
     queryKey: ["course-students", courseId ?? "", query],
@@ -104,4 +104,3 @@ export function useSetHomeroom() {
     },
   })
 }
-

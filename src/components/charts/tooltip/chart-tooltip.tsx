@@ -1,62 +1,62 @@
-"use client";
+"use client"
 
-import { motion, useSpring } from "motion/react";
-import { memo, useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
-import { type SpringConfig, useChartConfig } from "../chart-config-context";
+import { motion, useSpring } from "motion/react"
+import { memo, useEffect, useMemo, useState } from "react"
+import { createPortal } from "react-dom"
+import { type SpringConfig, useChartConfig } from "../chart-config-context"
 import {
   chartCssVars,
   type LineConfig,
   useChart,
   useChartStable,
-} from "../chart-context";
-import { weekdayDateFmt } from "../chart-formatters";
-import { DateTicker } from "./date-ticker";
-import { TooltipBox } from "./tooltip-box";
-import { TooltipContent, type TooltipRow } from "./tooltip-content";
-import { TooltipDot } from "./tooltip-dot";
-import { TooltipIndicator } from "./tooltip-indicator";
+} from "../chart-context"
+import { weekdayDateFmt } from "../chart-formatters"
+import { DateTicker } from "./date-ticker"
+import { TooltipBox } from "./tooltip-box"
+import { TooltipContent, type TooltipRow } from "./tooltip-content"
+import { TooltipDot } from "./tooltip-dot"
+import { TooltipIndicator } from "./tooltip-indicator"
 
 export interface ChartTooltipProps {
   /** Whether to show the date pill at bottom. Default: true */
-  showDatePill?: boolean;
+  showDatePill?: boolean
   /** Whether to show the vertical crosshair line. Default: true */
-  showCrosshair?: boolean;
+  showCrosshair?: boolean
   /** Whether to show dots on the lines. Default: true */
-  showDots?: boolean;
+  showDots?: boolean
   /**
    * Color for the crosshair/indicator line. When a function, receives the hovered point
    * (e.g. for candlestick: match candle color from close vs open). Default: --chart-crosshair.
    */
-  indicatorColor?: string | ((point: Record<string, unknown>) => string);
+  indicatorColor?: string | ((point: Record<string, unknown>) => string)
   /** Custom content renderer for the tooltip box */
   content?: (props: {
-    point: Record<string, unknown>;
-    index: number;
-  }) => React.ReactNode;
+    point: Record<string, unknown>
+    index: number
+  }) => React.ReactNode
   /** Custom row renderer - return array of TooltipRow */
-  rows?: (point: Record<string, unknown>) => TooltipRow[];
+  rows?: (point: Record<string, unknown>) => TooltipRow[]
   /**
    * Override tooltip dot fill. When omitted and `rows` is set, dot colors match row colors.
    * When a function, receives the hovered point and line config.
    */
   dotColor?:
     | string
-    | ((point: Record<string, unknown>, line: LineConfig) => string);
+    | ((point: Record<string, unknown>, line: LineConfig) => string)
   /** Additional content to show below rows (e.g., markers) */
-  children?: React.ReactNode;
+  children?: React.ReactNode
   /** Custom class name */
-  className?: string;
+  className?: string
   /** Per-chart override for the crosshair / dot / date-pill spring. */
-  springConfig?: SpringConfig;
+  springConfig?: SpringConfig
   /** Per-chart override for the floating-panel spring. */
-  boxSpringConfig?: SpringConfig;
+  boxSpringConfig?: SpringConfig
   /** Inline styles for the tooltip panel (background, blur, etc.). */
-  panelStyle?: React.CSSProperties;
+  panelStyle?: React.CSSProperties
 }
 
 interface ChartTooltipInnerProps extends ChartTooltipProps {
-  container: HTMLElement;
+  container: HTMLElement
 }
 
 const ChartTooltipInner = memo(function ChartTooltipInner({
@@ -87,29 +87,29 @@ const ChartTooltipInner = memo(function ChartTooltipInner({
     containerRef,
     orientation,
     barXAccessor,
-  } = useChart();
+  } = useChart()
 
-  const isHorizontal = orientation === "horizontal";
-  const discreteInteraction = dateLabels.length > 60;
+  const isHorizontal = orientation === "horizontal"
+  const discreteInteraction = dateLabels.length > 60
 
-  const visible = tooltipData !== null;
-  const x = tooltipData?.x ?? 0;
-  const xWithMargin = x + margin.left;
+  const visible = tooltipData !== null
+  const x = tooltipData?.x ?? 0
+  const xWithMargin = x + margin.left
 
   // For horizontal charts, get the y position from the first line's yPosition (center of bar)
-  const firstLineDataKey = lines[0]?.dataKey;
+  const firstLineDataKey = lines[0]?.dataKey
   const firstLineY = firstLineDataKey
     ? (tooltipData?.yPositions[firstLineDataKey] ?? 0)
-    : 0;
-  const yWithMargin = firstLineY + margin.top;
+    : 0
+  const yWithMargin = firstLineY + margin.top
 
   const tooltipRows = useMemo(() => {
     if (!tooltipData) {
-      return [];
+      return []
     }
 
     if (rowsRenderer) {
-      return rowsRenderer(tooltipData.point);
+      return rowsRenderer(tooltipData.point)
     }
 
     // Default: generate rows from registered lines
@@ -117,51 +117,51 @@ const ChartTooltipInner = memo(function ChartTooltipInner({
       color: line.stroke,
       label: line.dataKey,
       value: (tooltipData.point[line.dataKey] as number) ?? 0,
-    }));
-  }, [tooltipData, lines, rowsRenderer]);
+    }))
+  }, [tooltipData, lines, rowsRenderer])
 
   const resolveDotColor = useMemo(() => {
     return (line: LineConfig, index: number): string => {
       if (rowsRenderer && tooltipRows[index]?.color) {
-        return tooltipRows[index].color;
+        return tooltipRows[index].color
       }
       if (dotColorProp != null) {
         if (typeof dotColorProp === "function" && tooltipData) {
-          return dotColorProp(tooltipData.point, line);
+          return dotColorProp(tooltipData.point, line)
         }
         if (typeof dotColorProp === "string") {
-          return dotColorProp;
+          return dotColorProp
         }
       }
-      return line.stroke;
-    };
-  }, [dotColorProp, rowsRenderer, tooltipData, tooltipRows]);
+      return line.stroke
+    }
+  }, [dotColorProp, rowsRenderer, tooltipData, tooltipRows])
 
   // Resolve indicator color (static or from hovered point)
   const indicatorColor = useMemo(() => {
     if (indicatorColorProp == null) {
-      return chartCssVars.crosshair;
+      return chartCssVars.crosshair
     }
     if (typeof indicatorColorProp === "function") {
       return tooltipData
         ? indicatorColorProp(tooltipData.point)
-        : chartCssVars.crosshair;
+        : chartCssVars.crosshair
     }
-    return indicatorColorProp;
-  }, [indicatorColorProp, tooltipData]);
+    return indicatorColorProp
+  }, [indicatorColorProp, tooltipData])
 
   // Title from date or category
   const title = useMemo(() => {
     if (!tooltipData) {
-      return undefined;
+      return undefined
     }
     // For bar charts (horizontal or vertical), use the category name
     if (barXAccessor) {
-      return barXAccessor(tooltipData.point);
+      return barXAccessor(tooltipData.point)
     }
     // For line/area charts, use the date
-    return weekdayDateFmt.format(xAccessor(tooltipData.point));
-  }, [tooltipData, barXAccessor, xAccessor]);
+    return weekdayDateFmt.format(xAccessor(tooltipData.point))
+  }, [tooltipData, barXAccessor, xAccessor])
 
   const tooltipContent = (
     <>
@@ -250,47 +250,47 @@ const ChartTooltipInner = memo(function ChartTooltipInner({
         xWithMargin={xWithMargin}
       />
     </>
-  );
+  )
 
-  return createPortal(tooltipContent, container);
-});
+  return createPortal(tooltipContent, container)
+})
 
 export function ChartTooltip(props: ChartTooltipProps) {
-  const { containerRef } = useChartStable();
-  const [mounted, setMounted] = useState(false);
+  const { containerRef } = useChartStable()
+  const [mounted, setMounted] = useState(false)
 
   // Only render portals on client side after mount
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    setMounted(true)
+  }, [])
 
-  const container = containerRef.current;
+  const container = containerRef.current
   if (!(mounted && container)) {
-    return null;
+    return null
   }
 
-  return <ChartTooltipInner {...props} container={container} />;
+  return <ChartTooltipInner {...props} container={container} />
 }
 
-ChartTooltip.displayName = "ChartTooltip";
+ChartTooltip.displayName = "ChartTooltip"
 
 interface DatePillTrackerProps {
-  enabled: boolean;
-  visible: boolean;
-  labels: string[];
-  currentIndex: number;
-  xWithMargin: number;
-  discreteInteraction: boolean;
-  springConfig?: SpringConfig;
+  enabled: boolean
+  visible: boolean
+  labels: string[]
+  currentIndex: number
+  xWithMargin: number
+  discreteInteraction: boolean
+  springConfig?: SpringConfig
 }
 
 // Inner-only-on-visible so `useSpring` initializes at the real cursor x
 // instead of `margin.left` on first hover.
 function DatePillTracker(props: DatePillTrackerProps) {
   if (!(props.enabled && props.visible && props.labels.length > 0)) {
-    return null;
+    return null
   }
-  return <DatePillTrackerInner {...props} />;
+  return <DatePillTrackerInner {...props} />
 }
 
 function DatePillTrackerInner({
@@ -301,18 +301,18 @@ function DatePillTrackerInner({
   springConfig,
   visible,
 }: DatePillTrackerProps) {
-  const { tooltipSpring } = useChartConfig();
-  const effectiveSpring = springConfig ?? tooltipSpring;
-  const animatedX = useSpring(xWithMargin, effectiveSpring);
+  const { tooltipSpring } = useChartConfig()
+  const effectiveSpring = springConfig ?? tooltipSpring
+  const animatedX = useSpring(xWithMargin, effectiveSpring)
 
   if (!discreteInteraction) {
-    animatedX.set(xWithMargin);
+    animatedX.set(xWithMargin)
   }
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: we need to jump the animatedX when the visible prop changes
   useEffect(() => {
-    animatedX.set(xWithMargin);
-  }, [animatedX, visible]);
+    animatedX.set(xWithMargin)
+  }, [animatedX, visible])
 
   return (
     <motion.div
@@ -329,7 +329,7 @@ function DatePillTrackerInner({
         visible={visible}
       />
     </motion.div>
-  );
+  )
 }
 
-export default ChartTooltip;
+export default ChartTooltip

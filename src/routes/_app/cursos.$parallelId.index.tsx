@@ -36,7 +36,7 @@ function ParallelCoursesPage() {
       (coursesQuery.data?.content ?? [])
         .filter((c) => String(c.parallelId) === parallelId)
         .sort((a, b) => a.gradeId - b.gradeId),
-    [coursesQuery.data, parallelId],
+    [coursesQuery.data, parallelId]
   )
 
   return (
@@ -93,7 +93,11 @@ function ParallelCoursesPage() {
                   <InfoIcon data-icon="inline-start" />
                   Info
                 </Button>
-                <Button size="sm" className="flex-1 bg-univalle text-univalle-foreground hover:bg-univalle/90" asChild>
+                <Button
+                  size="sm"
+                  className="flex-1 bg-univalle text-univalle-foreground hover:bg-univalle/90"
+                  asChild
+                >
                   <Link
                     to="/cursos/$parallelId/curso/$courseId"
                     params={{ parallelId, courseId: c.id }}

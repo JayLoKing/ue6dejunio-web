@@ -1,10 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 
 import { AttendanceService } from "../services/attendanceService"
-import type {
-  DailyAttendancePayload,
-  SessionAttendancePayload,
-} from "../types"
+import type { DailyAttendancePayload, SessionAttendancePayload } from "../types"
 
 export function useDailyAttendance() {
   const qc = useQueryClient()

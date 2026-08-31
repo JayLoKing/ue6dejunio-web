@@ -27,7 +27,7 @@ export const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const
 /** Build axios params object from a PageQuery (+ extras). */
 export const toPageParams = (
   q: PageQuery,
-  extra: Record<string, unknown> = {},
+  extra: Record<string, unknown> = {}
 ): Record<string, unknown> => ({
   offset: q.offset,
   limit: q.limit,

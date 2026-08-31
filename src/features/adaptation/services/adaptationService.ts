@@ -14,7 +14,7 @@ const helper = new AdaptationServiceHelper()
 
 export class AdaptationService {
   static async list(
-    params: AdaptationListParams,
+    params: AdaptationListParams
   ): Promise<PagedResponse<Adaptation>> {
     const { call } = helper.listAsync(params)
     return (await call).data
@@ -29,7 +29,7 @@ export class AdaptationService {
   }
   static async update(
     id: string,
-    payload: UpdateAdaptationPayload,
+    payload: UpdateAdaptationPayload
   ): Promise<Adaptation> {
     const { call } = helper.updateAsync(id, payload)
     return (await call).data

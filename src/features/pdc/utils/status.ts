@@ -20,8 +20,10 @@ export function isEditable(status: PdcStatus): boolean {
 /** How a status is shaded in the listing: draft muted, review amber, observations alarming. */
 export const STATUS_BADGE: Record<PdcStatus, string> = {
   Draft: "bg-muted text-muted-foreground",
-  Published: "bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30",
-  "Under Review": "bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30",
+  Published:
+    "bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30",
+  "Under Review":
+    "bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30",
   "With Observations":
     "bg-destructive/15 text-destructive border border-destructive/30",
   Approved:

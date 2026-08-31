@@ -36,8 +36,7 @@ const ORDINAL: Record<Trimester, string> = { 1: "1er", 2: "2do", 3: "3er" }
 function TrimesterPeriodsPage() {
   const coursesQuery = useAllCourses()
   // El año académico actual es el de cualquier curso (todos comparten el año).
-  const academicYearId =
-    coursesQuery.data?.content[0]?.academicYearId ?? null
+  const academicYearId = coursesQuery.data?.content[0]?.academicYearId ?? null
 
   const periodsQuery = useTrimesterPeriods(academicYearId)
 
@@ -93,7 +92,11 @@ interface TrimesterCardProps {
   existing: TrimesterPeriod | null
 }
 
-function TrimesterCard({ trimester, academicYearId, existing }: TrimesterCardProps) {
+function TrimesterCard({
+  trimester,
+  academicYearId,
+  existing,
+}: TrimesterCardProps) {
   const [start, setStart] = useState(existing?.startDate ?? "")
   const [end, setEnd] = useState(existing?.endDate ?? "")
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -108,7 +111,10 @@ function TrimesterCard({ trimester, academicYearId, existing }: TrimesterCardPro
   const save = () => {
     if (!valid) return
     if (existing) {
-      update.mutate({ id: existing.id, payload: { start_date: start, end_date: end } })
+      update.mutate({
+        id: existing.id,
+        payload: { start_date: start, end_date: end },
+      })
     } else {
       create.mutate({
         id_academic_year: academicYearId,
@@ -191,7 +197,9 @@ function TrimesterCard({ trimester, academicYearId, existing }: TrimesterCardPro
         loading={remove.isPending}
         onConfirm={() => {
           if (!existing) return
-          remove.mutate(existing.id, { onSuccess: () => setConfirmDelete(false) })
+          remove.mutate(existing.id, {
+            onSuccess: () => setConfirmDelete(false),
+          })
         }}
         onOpenChange={(o) => !o && setConfirmDelete(false)}
       />

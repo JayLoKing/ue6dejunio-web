@@ -5,7 +5,12 @@ import type { Institution } from "@/features/institution/types"
 import type { Adaptation } from "@/features/adaptation/types"
 
 import type { Pdc, PdcEntry, PdcSubject } from "../types"
-import { areaLine, spellDate, teacherLine, trimesterName } from "../utils/heading"
+import {
+  areaLine,
+  spellDate,
+  teacherLine,
+  trimesterName,
+} from "../utils/heading"
 
 /** The id the print stylesheet and the Word export both reach for. */
 export const PDC_DOCUMENT_ID = "pdc-document"
@@ -53,7 +58,7 @@ function MomentsCell({ entry }: { entry: PdcEntry }) {
             <span className="whitespace-pre-wrap">{value}</span>
             <br />
           </Fragment>
-        ) : null,
+        ) : null
       )}
     </td>
   )
@@ -77,7 +82,7 @@ function CriteriaCell({ entry }: { entry: PdcEntry }) {
             <span className="whitespace-pre-wrap">{value}</span>
             <br />
           </Fragment>
-        ) : null,
+        ) : null
       )}
     </td>
   )
@@ -87,12 +92,25 @@ function CriteriaCell({ entry }: { entry: PdcEntry }) {
  * One subject's table: the six columns of the form, with the learning objective spanning every
  * week of the subject the way the printed cell is merged down the block.
  */
-function SubjectTable({ subject, active }: { subject: PdcSubject; active: boolean }) {
-  const weeks = [...subject.entries].sort((a, b) => a.displayOrder - b.displayOrder)
+function SubjectTable({
+  subject,
+  active,
+}: {
+  subject: PdcSubject
+  active: boolean
+}) {
+  const weeks = [...subject.entries].sort(
+    (a, b) => a.displayOrder - b.displayOrder
+  )
   const rows = weeks.length === 0 ? 1 : weeks.length
 
   return (
-    <table className={cn("w-full table-fixed border-collapse", active && "outline outline-2 outline-univalle")}>
+    <table
+      className={cn(
+        "w-full table-fixed border-collapse",
+        active && "outline outline-2 outline-univalle"
+      )}
+    >
       <thead>
         {/*
           The band is a row of this table rather than a box above it. As two elements they were two
@@ -100,9 +118,13 @@ function SubjectTable({ subject, active }: { subject: PdcSubject; active: boolea
           template draws it — the heading and the columns are the same frame.
         */}
         <tr>
-          <th colSpan={6} className={`${CELL} pdc-band bg-[#E2EFD9] text-center font-normal`}>
+          <th
+            colSpan={6}
+            className={`${CELL} pdc-band bg-[#E2EFD9] text-center font-normal`}
+          >
             <span className="pdc-strong block font-bold">
-              Área de saberes y conocimiento: {subject.knowledgeArea ?? "Sin área"}
+              Área de saberes y conocimiento:{" "}
+              {subject.knowledgeArea ?? "Sin área"}
             </span>
             <span className="block">{orBlank(subject.subjectName)}</span>
           </th>
@@ -119,7 +141,9 @@ function SubjectTable({ subject, active }: { subject: PdcSubject; active: boolea
       <tbody>
         {weeks.length === 0 ? (
           <tr>
-            <td className={`${CELL} whitespace-pre-wrap`}>{orBlank(subject.learningObjective)}</td>
+            <td className={`${CELL} whitespace-pre-wrap`}>
+              {orBlank(subject.learningObjective)}
+            </td>
             <td className={CELL} />
             <td className={CELL} />
             <td className={CELL} />
@@ -136,10 +160,14 @@ function SubjectTable({ subject, active }: { subject: PdcSubject; active: boolea
               ) : null}
               <td className={CELL}>
                 <span className="pdc-strong font-bold">{entry.weekLabel}</span>
-                <span className="block whitespace-pre-wrap">{orBlank(entry.contents)}</span>
+                <span className="block whitespace-pre-wrap">
+                  {orBlank(entry.contents)}
+                </span>
               </td>
               <MomentsCell entry={entry} />
-              <td className={`${CELL} whitespace-pre-wrap`}>{orBlank(entry.resources)}</td>
+              <td className={`${CELL} whitespace-pre-wrap`}>
+                {orBlank(entry.resources)}
+              </td>
               <td className={`${CELL} text-center`}>{entry.periods ?? ""}</td>
               <CriteriaCell entry={entry} />
             </tr>
@@ -152,7 +180,9 @@ function SubjectTable({ subject, active }: { subject: PdcSubject; active: boolea
               the row is for, which is guidance for filling the form rather than part of the
               document — it lives on the field in the wizard now.
             */}
-            <span className="pdc-strong font-bold">ADAPTACIONES CURRICULARES</span>
+            <span className="pdc-strong font-bold">
+              ADAPTACIONES CURRICULARES
+            </span>
             <span className="block whitespace-pre-wrap">
               {orBlank(subject.generalAdaptations)}
             </span>
@@ -229,7 +259,7 @@ export function PdcPreview({
       // Letter landscape with half-inch margins, the page setup the template carries. The sheet
       // keeps its real size so what is on screen is what comes out of the printer; the panel around
       // it scrolls rather than the sheet shrinking to fit.
-      className="w-[11in] min-h-[8.5in] shrink-0 bg-white p-[0.5in] text-[11pt] leading-snug text-black [font-family:'Arial_Narrow','Liberation_Sans_Narrow',Arial,sans-serif]"
+      className="min-h-[8.5in] w-[11in] shrink-0 bg-white p-[0.5in] [font-family:'Arial_Narrow','Liberation_Sans_Narrow',Arial,sans-serif] text-[11pt] leading-snug text-black"
     >
       {/*
         The heading is the template's own wording, not the level as the database spells it: the
@@ -258,26 +288,36 @@ export function PdcPreview({
           </tr>
           <tr>
             <td className={LABEL}>Director/a</td>
-            <td className={CELL} colSpan={3}>{orBlank(institution?.directorName)}</td>
+            <td className={CELL} colSpan={3}>
+              {orBlank(institution?.directorName)}
+            </td>
           </tr>
           <tr>
             <td className={LABEL}>Maestro/a</td>
-            <td className={CELL} colSpan={3}>{teacherLine(plan)}</td>
+            <td className={CELL} colSpan={3}>
+              {teacherLine(plan)}
+            </td>
           </tr>
           <tr>
             <td className={LABEL}>Áreas</td>
-            <td className={CELL} colSpan={3}>{areaLine(plan)}</td>
+            <td className={CELL} colSpan={3}>
+              {areaLine(plan)}
+            </td>
           </tr>
           <tr>
             <td className={LABEL}>Trimestre</td>
-            <td className={CELL} colSpan={3}>{trimesterName(plan.trimester)}</td>
+            <td className={CELL} colSpan={3}>
+              {trimesterName(plan.trimester)}
+            </td>
           </tr>
           <tr>
             <td className={LABEL} />
             {/* The template sets both labels in bold and spaces the dates off them. */}
             <td className={CELL} colSpan={3}>
               <span className="pdc-strong font-bold">Del:</span>
-              <span className="pdc-date ml-3 mr-12">{spellDate(plan.periodStart)}</span>
+              <span className="pdc-date mr-12 ml-3">
+                {spellDate(plan.periodStart)}
+              </span>
               <span className="pdc-strong font-bold">al:</span>
               <span className="pdc-date ml-3">{spellDate(plan.periodEnd)}</span>
             </td>
@@ -287,7 +327,7 @@ export function PdcPreview({
 
       <h3 className={`mb-1 ${RULE}`}>2. DESARROLLO</h3>
       <p className={`${SMALL} font-bold`}>Objetivo holístico de nivel</p>
-      <p className={`mb-5 whitespace-pre-wrap text-justify ${SMALL}`}>
+      <p className={`mb-5 text-justify whitespace-pre-wrap ${SMALL}`}>
         {orBlank(plan.holisticObjective)}
       </p>
 
@@ -298,7 +338,10 @@ export function PdcPreview({
       */}
       {blocks.map((subject) => (
         <div key={subject.id} className="mb-5">
-          <SubjectTable subject={subject} active={subject.id === activeSubjectId} />
+          <SubjectTable
+            subject={subject}
+            active={subject.id === activeSubjectId}
+          />
         </div>
       ))}
 
@@ -343,8 +386,12 @@ export function PdcPreview({
       <p className="mb-10 whitespace-pre-wrap">{orBlank(plan.bibliography)}</p>
 
       <footer className="grid grid-cols-2 gap-16 text-center">
-        <p className="pdc-sign border-t border-black pt-1">Firma del Maestro/a</p>
-        <p className="pdc-sign border-t border-black pt-1">Sello y Firma del Director/a</p>
+        <p className="pdc-sign border-t border-black pt-1">
+          Firma del Maestro/a
+        </p>
+        <p className="pdc-sign border-t border-black pt-1">
+          Sello y Firma del Director/a
+        </p>
       </footer>
     </article>
   )

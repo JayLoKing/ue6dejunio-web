@@ -64,7 +64,7 @@ function writtenColumns(adaptation: Adaptation) {
   ]
   return columns.filter(
     (column): column is [string, string] =>
-      column[1] !== null && column[1].trim() !== "",
+      column[1] !== null && column[1].trim() !== ""
   )
 }
 
@@ -187,7 +187,9 @@ export function AdaptationsStep({
   return (
     <div className="flex flex-col gap-5">
       <header className="flex flex-col gap-1">
-        <h3 className="text-lg font-semibold">Adaptaciones curriculares significativas</h3>
+        <h3 className="text-lg font-semibold">
+          Adaptaciones curriculares significativas
+        </h3>
         <p className="text-sm text-muted-foreground">
           Paso opcional. Se carga solo si en el curso hay un estudiante con
           discapacidad, talento extraordinario, TDH, TEA u otra condición.
@@ -200,10 +202,16 @@ export function AdaptationsStep({
             <li key={adaptation.id} className="rounded-md border p-3 text-sm">
               {editing === adaptation.id ? (
                 <div className="flex flex-col gap-4">
-                  <p className="font-medium">{adaptation.studentName ?? "Estudiante"}</p>
+                  <p className="font-medium">
+                    {adaptation.studentName ?? "Estudiante"}
+                  </p>
                   <ColumnFields value={draft} onChange={change} />
                   <div className="flex justify-end gap-2">
-                    <Button type="button" variant="outline" onClick={stopEditing}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={stopEditing}
+                    >
                       Cancelar
                     </Button>
                     <Button
@@ -218,7 +226,9 @@ export function AdaptationsStep({
               ) : (
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex min-w-0 flex-col gap-1">
-                    <p className="font-medium">{adaptation.studentName ?? "Estudiante"}</p>
+                    <p className="font-medium">
+                      {adaptation.studentName ?? "Estudiante"}
+                    </p>
                     {writtenColumns(adaptation).map(([label, value]) => (
                       <p key={label} className="text-muted-foreground">
                         <span className="font-medium">{label}: </span>
@@ -285,7 +295,12 @@ export function AdaptationsStep({
           <ColumnFields value={draft} onChange={change} />
 
           <div className="flex justify-end">
-            <Button type="button" variant="outline" disabled={saving} onClick={add}>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={saving}
+              onClick={add}
+            >
               <PlusIcon className="size-4" />
               {saving ? "Guardando…" : "Agregar adaptación"}
             </Button>

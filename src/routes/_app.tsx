@@ -49,7 +49,7 @@ function AppLayout() {
 
   const title =
     Object.entries(SECTION_TITLES).find(([key]) =>
-      pathname.startsWith(key),
+      pathname.startsWith(key)
     )?.[1] ?? "Plataforma"
 
   return (

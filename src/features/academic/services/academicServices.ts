@@ -57,7 +57,7 @@ export class GradeAdminService {
   }
   static async update(
     id: number,
-    payload: { name: string; id_level: number },
+    payload: { name: string; id_level: number }
   ): Promise<Grade> {
     const { call } = gradeHelper.updateAsync(id, payload)
     return (await call).data
@@ -79,7 +79,7 @@ export class ParallelService {
   }
   static async update(
     id: number,
-    payload: { name: string },
+    payload: { name: string }
   ): Promise<Parallel> {
     const { call } = parallelHelper.updateAsync(id, payload)
     return (await call).data
@@ -104,7 +104,7 @@ export class SubjectAdminService {
   }
   static async update(
     id: string,
-    payload: { name?: string; technical?: boolean; active?: boolean },
+    payload: { name?: string; technical?: boolean; active?: boolean }
   ): Promise<Subject> {
     const { call } = subjectHelper.updateAsync(id, payload)
     return (await call).data
@@ -120,13 +120,13 @@ export class TrimesterPeriodService {
     return (await trimesterHelper.listAsync(academicYearId).call).data
   }
   static async create(
-    payload: CreateTrimesterPeriodPayload,
+    payload: CreateTrimesterPeriodPayload
   ): Promise<TrimesterPeriod> {
     return (await trimesterHelper.createAsync(payload).call).data
   }
   static async update(
     id: string,
-    payload: UpdateTrimesterPeriodPayload,
+    payload: UpdateTrimesterPeriodPayload
   ): Promise<TrimesterPeriod> {
     return (await trimesterHelper.updateAsync(id, payload).call).data
   }

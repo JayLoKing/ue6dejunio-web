@@ -51,7 +51,6 @@ export interface CourseOverview {
   students: PagedResponse<StudentSummary>
 }
 
-
 /** ClassGroup = materia dentro de un curso. */
 export interface ClassGroupItem {
   id: string
@@ -70,10 +69,7 @@ const TECHNICAL_SUBJECTS = ["religion", "musica", "educacion musical"]
 
 // Quita acentos para que "Religión"/"Música" coincidan igual que sin tilde.
 const normalize = (s: string): string =>
-  s
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+  s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
 
 export const isTechnicalSubject = (subjectName: string): boolean => {
   const n = normalize(subjectName)

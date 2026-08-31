@@ -15,7 +15,7 @@ const helper = new CourseServiceHelper()
 export class CourseService {
   static async list(
     query: PageQuery,
-    academicYearId?: number,
+    academicYearId?: number
   ): Promise<PagedResponse<Course>> {
     return (await helper.listAsync(query, academicYearId).call).data
   }
@@ -25,12 +25,12 @@ export class CourseService {
   static async overview(
     id: string,
     trimester: number,
-    query: PageQuery,
+    query: PageQuery
   ): Promise<CourseOverview> {
     return (await helper.overviewAsync(id, trimester, query).call).data
   }
   static async create(
-    payload: CreateCoursePayload,
+    payload: CreateCoursePayload
   ): Promise<CourseWithSubjects> {
     return (await helper.createAsync(payload).call).data
   }
@@ -42,7 +42,7 @@ export class CourseService {
   }
   static async students(
     courseId: string,
-    query: PageQuery,
+    query: PageQuery
   ): Promise<PagedResponse<CourseStudent>> {
     return (await helper.studentsAsync(courseId, query).call).data
   }

@@ -4,7 +4,7 @@ import { Loader2Icon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { TrimesterSelect } from "@/components/shared/TrimesterSelect"
-import { cualitativoOf, situacionClass, situacionOf } from "@/lib/grading"
+import { qualitativeBandOf, statusClassName, statusOf } from "@/lib/grading"
 
 import { useEnrollmentScores, useStudentSummary } from "../hooks/useGradebook"
 import type { EnrollmentScore } from "../types"
@@ -13,7 +13,10 @@ export interface StudentGradesDetailProps {
   courseEnrollmentId: string
 }
 
-const DIM_COLS: { label: string; pick: (s: EnrollmentScore) => number | null }[] = [
+const DIM_COLS: {
+  label: string
+  pick: (s: EnrollmentScore) => number | null
+}[] = [
   { label: "SER", pick: (s) => s.scoreBeing },
   { label: "SABER", pick: (s) => s.scoreKnowing },
   { label: "HACER", pick: (s) => s.scoreDoing },
@@ -23,19 +26,21 @@ const DIM_COLS: { label: string; pick: (s: EnrollmentScore) => number | null }[]
 const fmt = (n: number | null): string =>
   n === null || Number.isNaN(Number(n)) ? "—" : Number(n).toFixed(1)
 
-export function StudentGradesDetail({ courseEnrollmentId }: StudentGradesDetailProps) {
+export function StudentGradesDetail({
+  courseEnrollmentId,
+}: StudentGradesDetailProps) {
   const [trimester, setTrimester] = useState(1)
   const summary = useStudentSummary(courseEnrollmentId, trimester)
   const scoresQuery = useEnrollmentScores(courseEnrollmentId)
 
   const rows = useMemo(
     () => (scoresQuery.data ?? []).filter((s) => s.trimester === trimester),
-    [scoresQuery.data, trimester],
+    [scoresQuery.data, trimester]
   )
 
   const general = summary.data ? Number(summary.data.generalAverage) : null
-  const sit = general === null ? null : situacionOf(general)
-  const cual = general === null ? null : cualitativoOf(general)
+  const status = general === null ? null : statusOf(general)
+  const qualitative = general === null ? null : qualitativeBandOf(general)
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
@@ -44,11 +49,12 @@ export function StudentGradesDetail({ courseEnrollmentId }: StudentGradesDetailP
           <span className="text-lg font-semibold">
             {summary.data?.fullName ?? "Estudiante"}
           </span>
-          {general !== null && sit && cual ? (
+          {general !== null && status && qualitative ? (
             <span className="flex items-center gap-2 text-sm text-muted-foreground">
               Promedio general: <strong>{general.toFixed(2)}</strong>
-              <Badge className={cn("gap-1", situacionClass(sit))}>
-                {sit === "APROBADO" ? "Aprobado" : "Reprobado"} · {cual.code}
+              <Badge className={cn("gap-1", statusClassName(status))}>
+                {status === "APROBADO" ? "Aprobado" : "Reprobado"} ·{" "}
+                {qualitative.code}
               </Badge>
             </span>
           ) : null}
@@ -82,19 +88,28 @@ export function StudentGradesDetail({ courseEnrollmentId }: StudentGradesDetailP
           <tbody>
             {summary.isLoading || scoresQuery.isLoading ? (
               <tr>
-                <td colSpan={DIM_COLS.length + 2} className="px-3 py-6 text-center text-muted-foreground">
+                <td
+                  colSpan={DIM_COLS.length + 2}
+                  className="px-3 py-6 text-center text-muted-foreground"
+                >
                   <Loader2Icon className="mx-auto size-4 animate-spin" />
                 </td>
               </tr>
             ) : summary.isError || scoresQuery.isError ? (
               <tr>
-                <td colSpan={DIM_COLS.length + 2} className="px-3 py-6 text-center text-destructive">
+                <td
+                  colSpan={DIM_COLS.length + 2}
+                  className="px-3 py-6 text-center text-destructive"
+                >
                   No se pudo cargar el detalle del estudiante.
                 </td>
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td colSpan={DIM_COLS.length + 2} className="px-3 py-6 text-center text-muted-foreground">
+                <td
+                  colSpan={DIM_COLS.length + 2}
+                  className="px-3 py-6 text-center text-muted-foreground"
+                >
                   Sin notas registradas en este trimestre.
                 </td>
               </tr>

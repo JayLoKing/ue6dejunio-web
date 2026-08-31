@@ -1,9 +1,5 @@
 import { useState } from "react"
-import {
-  FileTextIcon,
-  Loader2Icon,
-  UploadCloudIcon,
-} from "lucide-react"
+import { FileTextIcon, Loader2Icon, UploadCloudIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -17,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-import { parseStudentsPdf } from "../helpers/pdfParser"
+import { useParseStudentsPdf } from "../hooks/useParseStudentsPdf"
 import { useEnrollBatch } from "../hooks/useEnroll"
 import type { ParsedStudentRow } from "../types"
 
@@ -26,12 +22,16 @@ export interface AutomatedEnrollFormProps {
   onSuccess: () => void
 }
 
-export function AutomatedEnrollForm({ courseId, onSuccess }: AutomatedEnrollFormProps) {
+export function AutomatedEnrollForm({
+  courseId,
+  onSuccess,
+}: AutomatedEnrollFormProps) {
   const [file, setFile] = useState<File | null>(null)
   const [rows, setRows] = useState<ParsedStudentRow[]>([])
-  const [parsing, setParsing] = useState(false)
   const [parseError, setParseError] = useState<string | null>(null)
 
+  const parse = useParseStudentsPdf()
+  const parsing = parse.isPending
   const enroll = useEnrollBatch()
 
   const handleFile = async (selected: File | null) => {
@@ -39,21 +39,18 @@ export function AutomatedEnrollForm({ courseId, onSuccess }: AutomatedEnrollForm
     setRows([])
     setParseError(null)
     if (!selected) return
-    setParsing(true)
     try {
-      const parsed = await parseStudentsPdf(selected)
+      const parsed = await parse.mutateAsync(selected)
       if (parsed.length === 0) {
         setParseError(
-          "No se detectaron filas validas. Verifica el formato del PDF.",
+          "No se detectaron filas válidas. Verifica el formato del PDF."
         )
       }
       setRows(parsed)
     } catch (e) {
       setParseError(
-        e instanceof Error ? e.message : "Error al procesar el PDF.",
+        e instanceof Error ? e.message : "Error al procesar el PDF."
       )
-    } finally {
-      setParsing(false)
     }
   }
 
@@ -63,14 +60,21 @@ export function AutomatedEnrollForm({ courseId, onSuccess }: AutomatedEnrollForm
       await enroll.mutateAsync({
         id_course: courseId,
         students: rows.map(
-          ({ rudeCode, identityCard, names, lastNames, birthDate, gender }) => ({
+          ({
             rudeCode,
             identityCard,
             names,
             lastNames,
             birthDate,
             gender,
-          }),
+          }) => ({
+            rudeCode,
+            identityCard,
+            names,
+            lastNames,
+            birthDate,
+            gender,
+          })
         ),
       })
       onSuccess()
@@ -90,7 +94,7 @@ export function AutomatedEnrollForm({ courseId, onSuccess }: AutomatedEnrollForm
       >
         <UploadCloudIcon className="size-8 text-univalle" />
         <span className="font-medium">
-          {file ? file.name : "Subir nomina PDF"}
+          {file ? file.name : "Subir nómina PDF"}
         </span>
         <span className="text-xs text-muted-foreground">
           Formato SIE — Estudiantes inscritos por curso
@@ -138,7 +142,7 @@ export function AutomatedEnrollForm({ courseId, onSuccess }: AutomatedEnrollForm
                     <TableHead>Apellidos</TableHead>
                     <TableHead>Nombres</TableHead>
                     <TableHead>Nacimiento</TableHead>
-                    <TableHead>Genero</TableHead>
+                    <TableHead>Género</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -174,11 +178,13 @@ export function AutomatedEnrollForm({ courseId, onSuccess }: AutomatedEnrollForm
         <Button
           type="button"
           className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
-          disabled={enroll.isPending || parsing || rows.length === 0 || !courseId}
+          disabled={
+            enroll.isPending || parsing || rows.length === 0 || !courseId
+          }
           onClick={handleSubmit}
         >
           {enroll.isPending
-            ? "Inscribiendo..."
+            ? "Inscribiendo…"
             : `Inscribir ${rows.length} estudiantes`}
         </Button>
       </div>

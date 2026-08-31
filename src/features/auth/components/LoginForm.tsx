@@ -99,7 +99,7 @@ export function LoginForm() {
           disabled={loading}
         >
           <LogInIcon data-icon="inline-start" />
-          {loading ? "Ingresando..." : "Ingresar"}
+          {loading ? "Ingresando…" : "Ingresar"}
         </Button>
         <Link
           to="/auth/forgot-password"

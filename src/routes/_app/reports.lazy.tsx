@@ -4,7 +4,7 @@ import { Loader2Icon } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
 import { CentralizerTable } from "@/features/gradebook/components/CentralizerTable"
-import { PromediosRanking } from "@/features/gradebook/components/PromediosRanking"
+import { AverageRanking } from "@/features/gradebook/components/AverageRanking"
 
 export const Route = createLazyFileRoute("/_app/reports")({
   component: ReportsPage,
@@ -18,7 +18,7 @@ function ReportsPage() {
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">Reportes</h1>
         <p className="text-sm text-muted-foreground">
-          Centralizador, promedios e informe pedagogico del curso.
+          Centralizador, promedios e informe pedagógico del curso.
         </p>
       </div>
 
@@ -28,7 +28,7 @@ function ReportsPage() {
         </div>
       ) : !homeroomCourseId ? (
         <div className="rounded-md border border-dashed p-12 text-center text-muted-foreground">
-          El centralizador es del curso de aula. Como docente tecnico no tienes
+          El centralizador es del curso de aula. Como docente técnico no tienes
           un curso de aula asignado.
         </div>
       ) : (
@@ -36,17 +36,17 @@ function ReportsPage() {
           <TabsList>
             <TabsTrigger value="centralizador">Centralizador</TabsTrigger>
             <TabsTrigger value="promedios">Promedios</TabsTrigger>
-            <TabsTrigger value="informe">Informe pedagogico</TabsTrigger>
+            <TabsTrigger value="informe">Informe pedagógico</TabsTrigger>
           </TabsList>
           <TabsContent value="centralizador" className="pt-4">
             <CentralizerTable courseId={homeroomCourseId} />
           </TabsContent>
           <TabsContent value="promedios" className="pt-4">
-            <PromediosRanking courseId={homeroomCourseId} />
+            <AverageRanking courseId={homeroomCourseId} />
           </TabsContent>
           <TabsContent value="informe" className="pt-4">
             <div className="rounded-md border border-dashed p-12 text-center text-muted-foreground">
-              Informe de Comision Pedagogica — en desarrollo.
+              Informe de Comisión Pedagógica — en desarrollo.
             </div>
           </TabsContent>
         </Tabs>

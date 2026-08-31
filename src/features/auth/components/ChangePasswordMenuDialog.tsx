@@ -10,7 +10,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { PasswordRequirements } from "@/components/shared/PasswordRequirements"
 
@@ -38,7 +43,11 @@ export function ChangePasswordMenuDialog({
   } = useForm<ChangePasswordFormValues>({
     resolver: zodResolver(changePasswordSchema),
     mode: "onChange",
-    defaultValues: { currentPassword: "", newPassword: "", confirmPassword: "" },
+    defaultValues: {
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    },
   })
 
   const { mutateAsync, isPending } = useChangePassword()
@@ -65,16 +74,16 @@ export function ChangePasswordMenuDialog({
     >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Cambiar contrasena</DialogTitle>
+          <DialogTitle>Cambiar contraseña</DialogTitle>
           <DialogDescription>
-            Tras cambiarla deberas iniciar sesion nuevamente.
+            Tras cambiarla deberás iniciar sesión nuevamente.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={onSubmit} noValidate>
           <FieldGroup>
             <Field data-invalid={Boolean(errors.currentPassword) || undefined}>
-              <FieldLabel htmlFor="cpm-current">Contrasena actual</FieldLabel>
+              <FieldLabel htmlFor="cpm-current">Contraseña actual</FieldLabel>
               <Input
                 id="cpm-current"
                 type="password"
@@ -87,7 +96,7 @@ export function ChangePasswordMenuDialog({
             </Field>
 
             <Field data-invalid={Boolean(errors.newPassword) || undefined}>
-              <FieldLabel htmlFor="cpm-new">Nueva contrasena</FieldLabel>
+              <FieldLabel htmlFor="cpm-new">Nueva contraseña</FieldLabel>
               <Input
                 id="cpm-new"
                 type="password"
@@ -103,7 +112,9 @@ export function ChangePasswordMenuDialog({
             </Field>
 
             <Field data-invalid={Boolean(errors.confirmPassword) || undefined}>
-              <FieldLabel htmlFor="cpm-confirm">Confirmar contrasena</FieldLabel>
+              <FieldLabel htmlFor="cpm-confirm">
+                Confirmar contraseña
+              </FieldLabel>
               <Input
                 id="cpm-confirm"
                 type="password"
@@ -130,7 +141,7 @@ export function ChangePasswordMenuDialog({
               className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
               disabled={isPending}
             >
-              {isPending ? "Actualizando..." : "Actualizar"}
+              {isPending ? "Actualizando…" : "Actualizar"}
             </Button>
           </DialogFooter>
         </form>

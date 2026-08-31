@@ -1,12 +1,7 @@
-import * as pdfjsLib from "pdfjs-dist"
-import type { TextItem as PdfTextItem } from "pdfjs-dist/types/src/display/api"
-import PdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url"
-
 import type { Gender, ParsedStudentRow } from "../types"
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = PdfWorker
-
-interface TextItem {
+/** Un fragmento de texto del PDF con su posición. Lo arma el servicio que lee el archivo. */
+export interface TextItem {
   str: string
   x: number
   y: number
@@ -61,17 +56,12 @@ export const parseSpanishDate = (raw: string): string | null => {
 }
 
 export const splitFullName = (
-  raw: string,
+  raw: string
 ): { lastNames: string; names: string; fullName: string } => {
-  const tokens = raw
-    .replace(/\s+/g, " ")
-    .trim()
-    .split(" ")
-    .filter(Boolean)
+  const tokens = raw.replace(/\s+/g, " ").trim().split(" ").filter(Boolean)
   const fullName = tokens.join(" ")
   if (tokens.length === 0) return { lastNames: "", names: "", fullName: "" }
-  if (tokens.length === 1)
-    return { lastNames: tokens[0], names: "", fullName }
+  if (tokens.length === 1) return { lastNames: tokens[0], names: "", fullName }
   if (tokens.length === 2)
     return { lastNames: tokens[0], names: tokens[1], fullName }
   return {
@@ -83,13 +73,11 @@ export const splitFullName = (
 
 const ROW_NUMBER_X_MAX = 60
 const Y_BAND = 14 // px tolerance for grouping multi-line cells into same row
-const FULLNAME_X_MIN = 200 // approx left bound of "Nombre Completo" column
 
 const isRowAnchor = (it: TextItem): boolean =>
   /^\d{1,3}$/.test(it.str.trim()) && it.x < ROW_NUMBER_X_MAX
 
-const DATE_RE =
-  /(\d{1,2})\s+de\s+([a-záéíóúñ.]+)\s+de\s+(\d{4})/i
+const DATE_RE = /(\d{1,2})\s+de\s+([a-záéíóúñ.]+)\s+de\s+(\d{4})/i
 
 interface PageRowResult {
   rude: string
@@ -132,9 +120,7 @@ const parseRowBag = (bag: TextItem[]): PageRowResult | null => {
 
   // 2. Gender: standalone M/F to the right of carnet, closest in x
   const genderCandidates = sorted.filter(
-    (it) =>
-      GENDER_TOKEN_RE.test(it.str.trim()) &&
-      it.x > carnetItem!.x + 20,
+    (it) => GENDER_TOKEN_RE.test(it.str.trim()) && it.x > carnetItem!.x + 20
   )
   if (genderCandidates.length === 0) return null
   const genderItem = genderCandidates.sort((a, b) => a.x - b.x)[0]
@@ -150,7 +136,7 @@ const parseRowBag = (bag: TextItem[]): PageRowResult | null => {
   const dateMatch = dateText.match(DATE_RE)
   if (!dateMatch) return null
   const birthDate = parseSpanishDate(
-    `${dateMatch[1]} de ${dateMatch[2]} de ${dateMatch[3]}`,
+    `${dateMatch[1]} de ${dateMatch[2]} de ${dateMatch[3]}`
   )
   if (!birthDate) return null
 
@@ -158,7 +144,7 @@ const parseRowBag = (bag: TextItem[]): PageRowResult | null => {
   const nameLeftX = carnetItem.x + carnetItem.width + 2
   const nameRightX = genderItem.x - 2
   const nameItems = sorted.filter(
-    (it) => it.x >= nameLeftX && it.x < nameRightX,
+    (it) => it.x >= nameLeftX && it.x < nameRightX
   )
   // Re-sort name items by reading order (top→bottom, left→right)
   nameItems.sort((a, b) => b.y - a.y || a.x - b.x)
@@ -179,90 +165,70 @@ const parseRowBag = (bag: TextItem[]): PageRowResult | null => {
   }
 }
 
-export const parseStudentsPdf = async (
-  file: File,
-): Promise<ParsedStudentRow[]> => {
-  const buffer = await file.arrayBuffer()
-  const loadingTask = pdfjsLib.getDocument({ data: buffer })
-  const pdf = await loadingTask.promise
+/**
+ * Los estudiantes que hay en el texto de una página, ya numerados.
+ *
+ * Recibe el texto y no el PDF: leer el archivo es entrada/salida y vive en el servicio, mientras
+ * que reconocer una fila entre coordenadas es una derivación, y se puede probar sin abrir nada.
+ *
+ * @param startIndex cuántas filas trajeron las páginas anteriores, para que rowIndex sea corrido
+ */
+export const studentRowsFromItems = (
+  items: TextItem[],
+  startIndex: number
+): ParsedStudentRow[] => {
+  // Los números de fila alineados a la izquierda anclan cada renglón.
+  const anchors = items.filter(isRowAnchor).sort((a, b) => b.y - a.y)
+  if (anchors.length === 0) return []
 
-  const collected: ParsedStudentRow[] = []
-  let globalIndex = 0
-
-  for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-    const page = await pdf.getPage(pageNum)
-    const content = await page.getTextContent()
-
-    const items: TextItem[] = content.items
-      .filter((it): it is PdfTextItem => "str" in it && "transform" in it)
-      .map((it) => ({
-        str: it.str,
-        x: it.transform[4],
-        y: it.transform[5],
-        width: it.width,
-      }))
-      .filter((it) => it.str.trim().length > 0)
-
-    // Detect row anchors (left-aligned row numbers)
-    const anchors = items
-      .filter(isRowAnchor)
-      .sort((a, b) => b.y - a.y)
-
-    if (anchors.length === 0) continue
-
-    // Filter duplicate anchors at very similar y (rare)
-    const uniqueAnchors: TextItem[] = []
-    for (const a of anchors) {
-      if (
-        !uniqueAnchors.length ||
-        Math.abs(uniqueAnchors[uniqueAnchors.length - 1].y - a.y) > 4
-      ) {
-        uniqueAnchors.push(a)
-      }
-    }
-
-    for (let i = 0; i < uniqueAnchors.length; i++) {
-      const anchor = uniqueAnchors[i]
-      const prevAnchor = uniqueAnchors[i - 1]
-      const nextAnchor = uniqueAnchors[i + 1]
-
-      // Midpoint between this anchor and neighbours = row band edges.
-      // PDF Y: higher value = higher position. anchors sorted desc.
-      const upperY = prevAnchor
-        ? (prevAnchor.y + anchor.y) / 2
-        : anchor.y + Y_BAND
-      const lowerY = nextAnchor
-        ? (anchor.y + nextAnchor.y) / 2
-        : anchor.y - Y_BAND
-
-      const bag = items.filter(
-        (it) => it.y <= upperY && it.y > lowerY,
-      )
-
-      const parsed = parseRowBag(bag)
-      if (!parsed) continue
-
-      const { lastNames, names, fullName } = splitFullName(
-        parsed.fullNameRaw,
-      )
-      if (!lastNames) continue
-
-      collected.push({
-        rowIndex: ++globalIndex,
-        rudeCode: parsed.rude,
-        identityCard: parsed.carnet,
-        names: names || lastNames,
-        lastNames,
-        rawFullName: parsed.fullNameRaw,
-        fullName,
-        birthDate: parsed.birthDate,
-        gender: parsed.gender,
-      })
+  // Descarta anclas repetidas a una y casi idéntica (raro, pero pasa).
+  const uniqueAnchors: TextItem[] = []
+  for (const a of anchors) {
+    if (
+      !uniqueAnchors.length ||
+      Math.abs(uniqueAnchors[uniqueAnchors.length - 1].y - a.y) > 4
+    ) {
+      uniqueAnchors.push(a)
     }
   }
 
-  // Silence unused var warning
-  void FULLNAME_X_MIN
+  const collected: ParsedStudentRow[] = []
+  let index = startIndex
+
+  for (let i = 0; i < uniqueAnchors.length; i++) {
+    const anchor = uniqueAnchors[i]
+    const prevAnchor = uniqueAnchors[i - 1]
+    const nextAnchor = uniqueAnchors[i + 1]
+
+    // El punto medio con cada vecina marca el borde de la banda.
+    // Y del PDF: valor más alto = más arriba. Las anclas vienen en orden descendente.
+    const upperY = prevAnchor
+      ? (prevAnchor.y + anchor.y) / 2
+      : anchor.y + Y_BAND
+    const lowerY = nextAnchor
+      ? (anchor.y + nextAnchor.y) / 2
+      : anchor.y - Y_BAND
+
+    const bag = items.filter((it) => it.y <= upperY && it.y > lowerY)
+
+    const parsed = parseRowBag(bag)
+    if (!parsed) continue
+
+    const { lastNames, names, fullName } = splitFullName(parsed.fullNameRaw)
+    if (!lastNames) continue
+
+    collected.push({
+      rowIndex: ++index,
+      rudeCode: parsed.rude,
+      identityCard: parsed.carnet,
+      names: names || lastNames,
+      lastNames,
+      rawFullName: parsed.fullNameRaw,
+      fullName,
+      birthDate: parsed.birthDate,
+      gender: parsed.gender,
+    })
+  }
 
   return collected
 }

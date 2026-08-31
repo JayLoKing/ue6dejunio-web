@@ -18,29 +18,41 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { cualitativoOf, situacionClass, situacionOf } from "@/lib/grading"
+import { qualitativeBandOf, statusClassName, statusOf } from "@/lib/grading"
 
 import { useCentralizer } from "../hooks/useGradebook"
 
-export function PromediosRanking({ courseId }: { courseId: string }) {
+export interface AverageRankingProps {
+  courseId: string
+}
+
+export function AverageRanking({ courseId }: AverageRankingProps) {
   const [trimester, setTrimester] = useState(1)
-  const query = useMemo(() => ({ offset: 1, limit: 200, sort: "asc" as const }), [])
+  const query = useMemo(
+    () => ({ offset: 1, limit: 200, sort: "asc" as const }),
+    []
+  )
   const { data, isLoading } = useCentralizer(courseId, trimester, query)
 
   const ranked = useMemo(
     () =>
       [...(data?.content ?? [])].sort(
-        (a, b) => Number(b.generalAverage) - Number(a.generalAverage),
+        (a, b) => Number(b.generalAverage) - Number(a.generalAverage)
       ),
-    [data],
+    [data]
   )
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2">
         <span className="text-sm text-muted-foreground">Trimestre</span>
-        <Select value={String(trimester)} onValueChange={(v) => setTrimester(Number(v))}>
-          <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+        <Select
+          value={String(trimester)}
+          onValueChange={(v) => setTrimester(Number(v))}
+        >
+          <SelectTrigger className="w-32">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="1">1ro</SelectItem>
             <SelectItem value="2">2do</SelectItem>
@@ -57,27 +69,49 @@ export function PromediosRanking({ courseId }: { courseId: string }) {
               <TableHead>Estudiante</TableHead>
               <TableHead className="text-center">Promedio</TableHead>
               <TableHead className="text-center">Cualitativo</TableHead>
-              <TableHead className="text-center">Situacion</TableHead>
+              <TableHead className="text-center">Situación</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground"><Loader2Icon className="mx-auto size-4 animate-spin" /></TableCell></TableRow>
+              <TableRow>
+                <TableCell
+                  colSpan={5}
+                  className="text-center text-muted-foreground"
+                >
+                  <Loader2Icon className="mx-auto size-4 animate-spin" />
+                </TableCell>
+              </TableRow>
             ) : ranked.length === 0 ? (
-              <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">Sin datos.</TableCell></TableRow>
+              <TableRow>
+                <TableCell
+                  colSpan={5}
+                  className="text-center text-muted-foreground"
+                >
+                  Sin datos.
+                </TableCell>
+              </TableRow>
             ) : (
               ranked.map((r, i) => {
                 const avg = Number(r.generalAverage)
-                const sit = situacionOf(avg)
-                const cual = cualitativoOf(avg)
+                const status = statusOf(avg)
+                const qualitative = qualitativeBandOf(avg)
                 return (
                   <TableRow key={r.courseEnrollmentId}>
-                    <TableCell className="font-mono text-xs text-muted-foreground">{i + 1}</TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">
+                      {i + 1}
+                    </TableCell>
                     <TableCell className="font-medium">{r.fullName}</TableCell>
-                    <TableCell className="text-center font-semibold text-univalle">{avg.toFixed(2)}</TableCell>
-                    <TableCell className="text-center">{cual.code} — {cual.label}</TableCell>
+                    <TableCell className="text-center font-semibold text-univalle">
+                      {avg.toFixed(2)}
+                    </TableCell>
                     <TableCell className="text-center">
-                      <Badge className={cn(situacionClass(sit))}>{sit === "APROBADO" ? "Aprobado" : "Reprobado"}</Badge>
+                      {qualitative.code} — {qualitative.label}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Badge className={cn(statusClassName(status))}>
+                        {status === "APROBADO" ? "Aprobado" : "Reprobado"}
+                      </Badge>
                     </TableCell>
                   </TableRow>
                 )

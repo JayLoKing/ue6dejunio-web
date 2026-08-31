@@ -72,10 +72,10 @@ export function ChangePasswordDialog({ open }: ChangePasswordDialogProps) {
             <KeyRoundIcon className="size-6" />
           </div>
           <DialogTitle className="text-center">
-            Cambio de contrasena obligatorio
+            Cambio de contraseña obligatorio
           </DialogTitle>
           <DialogDescription className="text-center">
-            Es tu primer acceso. Define una nueva contrasena para continuar.
+            Es tu primer acceso. Define una nueva contraseña para continuar.
           </DialogDescription>
         </DialogHeader>
 
@@ -83,7 +83,7 @@ export function ChangePasswordDialog({ open }: ChangePasswordDialogProps) {
           <FieldGroup>
             <Field data-invalid={Boolean(errors.currentPassword) || undefined}>
               <FieldLabel htmlFor="currentPassword">
-                Contrasena actual
+                Contraseña actual
               </FieldLabel>
               <Input
                 id="currentPassword"
@@ -98,7 +98,7 @@ export function ChangePasswordDialog({ open }: ChangePasswordDialogProps) {
             </Field>
 
             <Field data-invalid={Boolean(errors.newPassword) || undefined}>
-              <FieldLabel htmlFor="newPassword">Nueva contrasena</FieldLabel>
+              <FieldLabel htmlFor="newPassword">Nueva contraseña</FieldLabel>
               <Input
                 id="newPassword"
                 type="password"
@@ -116,7 +116,7 @@ export function ChangePasswordDialog({ open }: ChangePasswordDialogProps) {
 
             <Field data-invalid={Boolean(errors.confirmPassword) || undefined}>
               <FieldLabel htmlFor="confirmPassword">
-                Confirmar contrasena
+                Confirmar contraseña
               </FieldLabel>
               <Input
                 id="confirmPassword"
@@ -137,7 +137,7 @@ export function ChangePasswordDialog({ open }: ChangePasswordDialogProps) {
               className="w-full bg-univalle text-univalle-foreground hover:bg-univalle/90"
               disabled={isPending}
             >
-              {isPending ? "Actualizando..." : "Actualizar y cerrar sesion"}
+              {isPending ? "Actualizando…" : "Actualizar y cerrar sesión"}
             </Button>
           </DialogFooter>
         </form>

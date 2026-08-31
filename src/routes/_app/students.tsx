@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useMemo } from "react"
 import { createFileRoute, redirect } from "@tanstack/react-router"
 import { Loader2Icon } from "lucide-react"
 
@@ -7,10 +7,8 @@ import { isRole } from "@/features/auth/types"
 import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
 import { useCourseStudents } from "@/features/courses/hooks/useCourses"
 import { EnrollStudentDialog } from "@/features/students/components/EnrollStudentDialog"
-import {
-  StudentsTable,
-  type StudentRow,
-} from "@/features/students/components/StudentsTable"
+import { StudentsTable } from "@/features/students/components/StudentsTable"
+import type { StudentRow } from "@/features/students/types"
 
 export const Route = createFileRoute("/_app/students")({
   beforeLoad: () => {
@@ -22,14 +20,17 @@ export const Route = createFileRoute("/_app/students")({
   component: StudentsPage,
 })
 
+/**
+ * El curso entero de una sola vez.
+ *
+ * Constante de módulo y no un literal en la llamada: es la clave con la que react-query cachea,
+ * y esta pantalla no pagina — lista el curso, y un curso entra.
+ */
+const WHOLE_COURSE = { offset: 1, limit: 200, sort: "asc" as const }
+
 function StudentsPage() {
   const { homeroomCourseId, isLoading } = useCurrentContext()
-  const [page] = useState(1)
-  const studentsQuery = useCourseStudents(homeroomCourseId, {
-    offset: page,
-    limit: 200,
-    sort: "asc",
-  })
+  const studentsQuery = useCourseStudents(homeroomCourseId, WHOLE_COURSE)
 
   const rows = useMemo<StudentRow[]>(
     () =>
@@ -40,7 +41,7 @@ function StudentsPage() {
         fullName: s.fullName,
         status: s.status,
       })),
-    [studentsQuery.data],
+    [studentsQuery.data]
   )
 
   return (
@@ -49,7 +50,7 @@ function StudentsPage() {
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl font-semibold">Estudiantes</h1>
           <p className="text-sm text-muted-foreground">
-            Padron del curso de aula — gestion 2026.
+            Padrón del curso de aula — gestión 2026.
           </p>
         </div>
         <EnrollStudentDialog courseId={homeroomCourseId} />
@@ -62,7 +63,7 @@ function StudentsPage() {
         </div>
       ) : !homeroomCourseId ? (
         <div className="rounded-md border border-dashed p-12 text-center text-muted-foreground">
-          Como docente tecnico no tienes un curso de aula. El padron es del
+          Como docente técnico no tienes un curso de aula. El padrón es del
           docente de aula.
         </div>
       ) : (

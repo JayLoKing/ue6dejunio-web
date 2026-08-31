@@ -11,7 +11,7 @@ export function useChangePassword() {
   return useMutation<void, Error, ChangePasswordRequest>({
     mutationFn: (payload) => AuthService.changePassword(payload),
     onSuccess: () => {
-      toast.success("Contrasena actualizada. Vuelve a iniciar sesion.")
+      toast.success("Contraseña actualizada. Vuelve a iniciar sesión.")
       logout()
       window.location.href = "/auth/login"
     },

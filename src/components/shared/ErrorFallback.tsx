@@ -16,7 +16,9 @@ export interface ErrorFallbackProps {
 }
 
 const isErrorWithMessage = (e: unknown): e is { message: string } =>
-  typeof e === "object" && e !== null && "message" in e &&
+  typeof e === "object" &&
+  e !== null &&
+  "message" in e &&
   typeof (e as { message: unknown }).message === "string"
 
 export function ErrorFallback({ error, reset }: ErrorFallbackProps) {
@@ -39,22 +41,20 @@ export function ErrorFallback({ error, reset }: ErrorFallbackProps) {
           <div className="flex size-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
             <AlertTriangleIcon data-icon className="size-6" />
           </div>
-          <CardTitle>Algo salio mal</CardTitle>
+          <CardTitle>Algo salió mal</CardTitle>
           <CardDescription>{message}</CardDescription>
         </CardHeader>
         <CardContent className="text-center text-sm text-muted-foreground">
-          Intenta reintentar la accion. Si el problema persiste, contacta a
+          Intenta reintentar la acción. Si el problema persiste, contacta a
           soporte de la Unidad Educativa 6 de Junio.
         </CardContent>
         <CardFooter className="flex justify-center">
           <Button onClick={handleRetry}>
             <RefreshCwIcon data-icon="inline-start" />
-            Reintentar accion
+            Reintentar acción
           </Button>
         </CardFooter>
       </Card>
     </div>
   )
 }
-
-export default ErrorFallback

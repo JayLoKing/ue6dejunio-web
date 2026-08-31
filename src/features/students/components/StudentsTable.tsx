@@ -14,13 +14,7 @@ import {
 import { DataTablePagination } from "@/components/shared/DataTablePagination"
 import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue"
 
-export interface StudentRow {
-  courseEnrollmentId: string
-  rudeCode: string
-  identityCard: string
-  fullName: string
-  status: string
-}
+import type { StudentRow } from "../types"
 
 export interface StudentsTableProps {
   data: StudentRow[]
@@ -46,7 +40,7 @@ export function StudentsTable({
       (s) =>
         s.fullName.toLowerCase().includes(q) ||
         s.rudeCode.toLowerCase().includes(q) ||
-        s.identityCard.toLowerCase().includes(q),
+        s.identityCard.toLowerCase().includes(q)
     )
   }, [data, q])
 
@@ -59,7 +53,7 @@ export function StudentsTable({
       <div className="relative max-w-sm">
         <SearchIcon className="absolute top-1/2 left-2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Buscar por RUDE, carnet, nombre..."
+          placeholder="Buscar por RUDE, carnet, nombre…"
           value={search}
           onChange={(e) => {
             setSearch(e.target.value)
@@ -82,15 +76,22 @@ export function StudentsTable({
           <TableBody>
             {pageData.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground">
+                <TableCell
+                  colSpan={4}
+                  className="text-center text-muted-foreground"
+                >
                   Sin estudiantes.
                 </TableCell>
               </TableRow>
             ) : (
               pageData.map((s) => (
                 <TableRow key={s.courseEnrollmentId}>
-                  <TableCell className="font-mono text-xs">{s.rudeCode}</TableCell>
-                  <TableCell className="font-mono text-xs">{s.identityCard}</TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {s.rudeCode}
+                  </TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {s.identityCard}
+                  </TableCell>
                   <TableCell>{s.fullName}</TableCell>
                   <TableCell>
                     <Badge variant="secondary">{s.status}</Badge>

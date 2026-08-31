@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form"
+import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
 import { Button } from "@/components/ui/button"
@@ -26,12 +26,14 @@ export interface ManualEnrollFormProps {
   onSuccess: () => void
 }
 
-export function ManualEnrollForm({ courseId, onSuccess }: ManualEnrollFormProps) {
+export function ManualEnrollForm({
+  courseId,
+  onSuccess,
+}: ManualEnrollFormProps) {
   const {
     register,
     handleSubmit,
-    setValue,
-    watch,
+    control,
     formState: { errors },
   } = useForm<StudentPayload>({
     resolver: zodResolver(studentPayloadSchema),
@@ -62,7 +64,7 @@ export function ManualEnrollForm({ courseId, onSuccess }: ManualEnrollFormProps)
       <FieldGroup>
         <div className="grid grid-cols-2 gap-4">
           <Field data-invalid={Boolean(errors.rudeCode) || undefined}>
-            <FieldLabel htmlFor="rudeCode">Codigo RUDE</FieldLabel>
+            <FieldLabel htmlFor="rudeCode">Código RUDE</FieldLabel>
             <Input
               id="rudeCode"
               aria-invalid={Boolean(errors.rudeCode) || undefined}
@@ -128,19 +130,27 @@ export function ManualEnrollForm({ courseId, onSuccess }: ManualEnrollFormProps)
           </Field>
 
           <Field data-invalid={Boolean(errors.gender) || undefined}>
-            <FieldLabel htmlFor="gender">Genero</FieldLabel>
-            <Select
-              value={watch("gender")}
-              onValueChange={(v) => setValue("gender", v as "M" | "F")}
-            >
-              <SelectTrigger id="gender">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="M">Masculino</SelectItem>
-                <SelectItem value="F">Femenino</SelectItem>
-              </SelectContent>
-            </Select>
+            <FieldLabel htmlFor="gender">Género</FieldLabel>
+            {/* Controller y no setValue: es lo que usan los demás formularios, revalida al
+                elegir, y el propio campo ya está tipado, así que sobra el cast. */}
+            <Controller
+              control={control}
+              name="gender"
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger id="gender">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="M">Masculino</SelectItem>
+                    <SelectItem value="F">Femenino</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.gender ? (
+              <FieldError>{errors.gender.message}</FieldError>
+            ) : null}
           </Field>
         </div>
       </FieldGroup>
@@ -151,7 +161,7 @@ export function ManualEnrollForm({ courseId, onSuccess }: ManualEnrollFormProps)
           className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
           disabled={enroll.isPending || !courseId}
         >
-          {enroll.isPending ? "Inscribiendo..." : "Inscribir estudiante"}
+          {enroll.isPending ? "Inscribiendo…" : "Inscribir estudiante"}
         </Button>
       </div>
     </form>

@@ -25,11 +25,11 @@ const extractMessage = (error: AxiosError<ApiErrorPayload>): string => {
       data.detail ??
       data.title ??
       data.error ??
-      "Ocurrio un error inesperado."
+      "Ocurrió un error inesperado."
     )
   }
   if (error.code === "ERR_NETWORK") return "No se pudo conectar con el servidor."
-  return error.message || "Ocurrio un error inesperado."
+  return error.message || "Ocurrió un error inesperado."
 }
 
 const createAxiosInstance = (): AxiosInstance => axios.create({ baseURL })
@@ -60,7 +60,7 @@ const setupInterceptors = (httpClient: AxiosInstance) => {
 
       if (status >= 400) {
         toast.error(extractMessage(error), {
-          description: `Codigo ${status || "desconocido"}`,
+          description: `Código ${status || "desconocido"}`,
         })
       }
 

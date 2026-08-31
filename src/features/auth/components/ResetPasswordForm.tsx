@@ -12,7 +12,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { PasswordRequirements } from "@/components/shared/PasswordRequirements"
 
@@ -35,7 +40,8 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
           <TriangleAlertIcon className="mx-auto size-10 text-destructive" />
           <CardTitle className="text-xl">Enlace inválido</CardTitle>
           <CardDescription>
-            El enlace de recuperación no tiene token o expiró. Solicita uno nuevo.
+            El enlace de recuperación no tiene token o expiró. Solicita uno
+            nuevo.
           </CardDescription>
         </CardHeader>
         <CardFooter>
@@ -98,7 +104,9 @@ function ResetForm({ token }: { token: string }) {
             </Field>
 
             <Field data-invalid={Boolean(errors.confirmPassword) || undefined}>
-              <FieldLabel htmlFor="confirmPassword">Confirmar contraseña</FieldLabel>
+              <FieldLabel htmlFor="confirmPassword">
+                Confirmar contraseña
+              </FieldLabel>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -121,7 +129,7 @@ function ResetForm({ token }: { token: string }) {
           disabled={loading}
         >
           <KeyRoundIcon data-icon="inline-start" />
-          {loading ? "Guardando..." : "Restablecer contraseña"}
+          {loading ? "Guardando…" : "Restablecer contraseña"}
         </Button>
         <Button variant="ghost" className="w-full" asChild>
           <Link to="/auth/login">

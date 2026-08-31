@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import { useForm, Controller, type Resolver } from "react-hook-form"
+import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
 import { Button } from "@/components/ui/button"
@@ -11,7 +11,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -45,7 +50,7 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
     reset,
     formState: { errors },
   } = useForm<UpdateUserFormValues>({
-    resolver: zodResolver(updateUserSchema) as Resolver<UpdateUserFormValues>,
+    resolver: zodResolver(updateUserSchema),
     defaultValues: {
       names: "",
       lastNames: "",
@@ -128,7 +133,7 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
 
             <div className="grid grid-cols-2 gap-4">
               <Field data-invalid={Boolean(errors.phone) || undefined}>
-                <FieldLabel htmlFor="edit-phone">Telefono</FieldLabel>
+                <FieldLabel htmlFor="edit-phone">Teléfono</FieldLabel>
                 <Input
                   id="edit-phone"
                   aria-invalid={Boolean(errors.phone) || undefined}
@@ -146,7 +151,7 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
                   name="roleId"
                   render={({ field }) => (
                     <Select
-                      value={field.value ? String(field.value) : undefined}
+                      value={field.value ? String(field.value) : ""}
                       onValueChange={(v) => field.onChange(Number(v))}
                     >
                       <SelectTrigger id="edit-roleId">
@@ -205,7 +210,7 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
               className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
               disabled={isPending}
             >
-              {isPending ? "Guardando..." : "Guardar cambios"}
+              {isPending ? "Guardando…" : "Guardar cambios"}
             </Button>
           </DialogFooter>
         </form>

@@ -2,19 +2,14 @@ import type { PagedResponse, PageQuery } from "@/lib/types/pagination"
 
 import TeacherStudentsHelper from "../helpers/teacherStudentsHelper"
 import type { StudentResponse } from "../models/response/student-response"
+import type { TeacherSubject } from "../types"
 
 const helper = new TeacherStudentsHelper()
-
-export interface TeacherSubject {
-  subjectId: string
-  subjectName: string
-  classGroupId: string
-}
 
 export class TeacherStudentsService {
   static async byTeacher(
     userId: string,
-    query: PageQuery,
+    query: PageQuery
   ): Promise<PagedResponse<StudentResponse>> {
     const { call } = helper.byTeacherAsync(userId, query)
     return (await call).data
@@ -40,7 +35,7 @@ export class TeacherStudentsService {
       }
     }
     return Array.from(map.values()).sort((a, b) =>
-      a.subjectName.localeCompare(b.subjectName),
+      a.subjectName.localeCompare(b.subjectName)
     )
   }
 }

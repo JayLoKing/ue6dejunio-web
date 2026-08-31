@@ -101,7 +101,7 @@ export function NavUser() {
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => setChangePassOpen(true)}>
                 <KeyRoundIcon />
-                Cambiar contrasena
+                Cambiar contraseña
               </DropdownMenuItem>
             </DropdownMenuGroup>
 
@@ -111,7 +111,7 @@ export function NavUser() {
               onSelect={handleLogout}
             >
               <LogOutIcon />
-              Cerrar sesion
+              Cerrar sesión
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

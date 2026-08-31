@@ -1,28 +1,25 @@
-import { useQuery, keepPreviousData } from "@tanstack/react-query"
+import { useQuery, keepPreviousData, skipToken } from "@tanstack/react-query"
 
 import type { PageQuery } from "@/lib/types/pagination"
 
-import {
-  TeacherStudentsService,
-  type TeacherSubject,
-} from "../services/teacherStudentsService"
+import { TeacherStudentsService } from "../services/teacherStudentsService"
 
-export type { TeacherSubject }
-
-export const teacherStudentsKey = (
-  userId: string,
-  query: Partial<PageQuery>,
-) => ["teachers", userId, "students", query] as const
+export const teacherStudentsKey = (userId: string, query: Partial<PageQuery>) =>
+  ["teachers", userId, "students", query] as const
 
 export function useTeacherStudents(
   userId: string | null | undefined,
-  query: PageQuery,
+  query: PageQuery
 ) {
   return useQuery({
     queryKey: teacherStudentsKey(userId ?? "", query),
-    enabled: Boolean(userId),
     placeholderData: keepPreviousData,
-    queryFn: () => TeacherStudentsService.byTeacher(userId as string, query),
+    // skipToken en lugar de `enabled` + un cast: `enabled` es una guarda en tiempo de ejecución
+    // que el compilador no ve, así que obligaba a afirmar `userId as string`. Acá el propio tipo
+    // dice que sin usuario no hay consulta. Mismo patrón que useCourses.
+    queryFn: userId
+      ? () => TeacherStudentsService.byTeacher(userId, query)
+      : skipToken,
     staleTime: 60_000,
   })
 }
@@ -31,8 +28,7 @@ export function useTeacherStudents(
 export function useTeacherSubjects(userId: string | null | undefined) {
   return useQuery({
     queryKey: ["teachers", userId ?? "", "subjects"],
-    enabled: Boolean(userId),
     staleTime: 5 * 60_000,
-    queryFn: () => TeacherStudentsService.subjects(userId as string),
+    queryFn: userId ? () => TeacherStudentsService.subjects(userId) : skipToken,
   })
 }

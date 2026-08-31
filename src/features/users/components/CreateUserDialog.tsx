@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useForm, Controller, type Resolver } from "react-hook-form"
+import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { PlusIcon } from "lucide-react"
 
@@ -44,14 +44,16 @@ export function CreateUserDialog() {
     reset,
     formState: { errors },
   } = useForm<CreateUserFormValues>({
-    resolver: zodResolver(createUserSchema) as Resolver<CreateUserFormValues>,
+    resolver: zodResolver(createUserSchema),
     defaultValues: {
       ci: "",
       names: "",
       lastNames: "",
       phone: "",
       email: "",
-      roleId: undefined as unknown as number,
+      // Sin roleId: todavía no se eligió nada, y defaultValues es parcial, así que la forma
+      // honesta de decir "sin valor" es omitirlo. Castear undefined a number solo le decía al
+      // compilador que había un número donde no había ninguno.
     },
   })
 
@@ -106,7 +108,9 @@ export function CreateUserDialog() {
                   aria-invalid={Boolean(errors.ci) || undefined}
                   {...register("ci")}
                 />
-                {errors.ci ? <FieldError>{errors.ci.message}</FieldError> : null}
+                {errors.ci ? (
+                  <FieldError>{errors.ci.message}</FieldError>
+                ) : null}
               </Field>
 
               <Field data-invalid={Boolean(errors.roleId) || undefined}>
@@ -116,7 +120,7 @@ export function CreateUserDialog() {
                   name="roleId"
                   render={({ field }) => (
                     <Select
-                      value={field.value ? String(field.value) : undefined}
+                      value={field.value ? String(field.value) : ""}
                       onValueChange={(v) => field.onChange(Number(v))}
                     >
                       <SelectTrigger
@@ -181,7 +185,7 @@ export function CreateUserDialog() {
             </Field>
 
             <Field data-invalid={Boolean(errors.phone) || undefined}>
-              <FieldLabel htmlFor="phone">Telefono</FieldLabel>
+              <FieldLabel htmlFor="phone">Teléfono</FieldLabel>
               <Input
                 id="phone"
                 aria-invalid={Boolean(errors.phone) || undefined}
@@ -210,7 +214,7 @@ export function CreateUserDialog() {
               className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
               disabled={isPending}
             >
-              {isPending ? "Creando..." : "Crear usuario"}
+              {isPending ? "Creando…" : "Crear usuario"}
             </Button>
           </DialogFooter>
         </form>

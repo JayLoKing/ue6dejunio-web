@@ -13,7 +13,13 @@ export const createUserSchema = z.object({
   lastNames: nameString("Apellidos"),
   phone: phoneString(),
   email: emailString(),
-  roleId: z.coerce.number().int().positive("Selecciona un rol"),
+  // Un número, no algo coercible: el Select ya entrega Number(v), así que el esquema nunca ve
+  // un string. La coerción sólo ensanchaba la entrada a unknown, y era eso lo que obligaba a
+  // los formularios a castear su propio resolver.
+  roleId: z
+    .number({ message: "Selecciona un rol" })
+    .int()
+    .positive("Selecciona un rol"),
 })
 
 export type CreateUserFormValues = z.infer<typeof createUserSchema>
@@ -22,7 +28,13 @@ export const updateUserSchema = z.object({
   names: nameString("Nombres"),
   lastNames: nameString("Apellidos"),
   phone: phoneString(),
-  roleId: z.coerce.number().int().positive("Selecciona un rol"),
+  // Un número, no algo coercible: el Select ya entrega Number(v), así que el esquema nunca ve
+  // un string. La coerción sólo ensanchaba la entrada a unknown, y era eso lo que obligaba a
+  // los formularios a castear su propio resolver.
+  roleId: z
+    .number({ message: "Selecciona un rol" })
+    .int()
+    .positive("Selecciona un rol"),
   active: z.boolean(),
 })
 

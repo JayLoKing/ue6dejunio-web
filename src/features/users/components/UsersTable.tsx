@@ -50,7 +50,7 @@ export function UsersTable() {
       sort,
       search: debouncedSearch || undefined,
     }),
-    [page, limit, sort, debouncedSearch],
+    [page, limit, sort, debouncedSearch]
   )
 
   const { data, isLoading, isFetching, refetch } = useUsers(query)
@@ -70,7 +70,7 @@ export function UsersTable() {
       <div className="relative max-w-sm">
         <SearchIcon className="absolute top-1/2 left-2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Buscar por nombre, CI o correo..."
+          placeholder="Buscar por nombre, CI o correo…"
           value={search}
           onChange={(e) => {
             setSearch(e.target.value)
@@ -87,7 +87,7 @@ export function UsersTable() {
               <TableHead>CI</TableHead>
               <TableHead>Nombre completo</TableHead>
               <TableHead>Correo</TableHead>
-              <TableHead>Telefono</TableHead>
+              <TableHead>Teléfono</TableHead>
               <TableHead>Rol</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
@@ -96,13 +96,19 @@ export function UsersTable() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                <TableCell
+                  colSpan={7}
+                  className="text-center text-muted-foreground"
+                >
                   Cargando...
                 </TableCell>
               </TableRow>
             ) : rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                <TableCell
+                  colSpan={7}
+                  className="text-center text-muted-foreground"
+                >
                   Sin usuarios registrados.
                 </TableCell>
               </TableRow>
@@ -174,7 +180,7 @@ export function UsersTable() {
         title="Dar de baja usuario"
         description={
           deleting
-            ? `${deleting.names} ${deleting.lastNames} sera desactivado.`
+            ? `${deleting.names} ${deleting.lastNames} será desactivado.`
             : undefined
         }
         confirmLabel="Dar de baja"

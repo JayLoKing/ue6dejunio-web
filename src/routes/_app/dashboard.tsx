@@ -15,7 +15,7 @@ function DashboardPage() {
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">Dashboard</h1>
         <p className="text-sm text-muted-foreground">
-          Resumen pedagogico de la Unidad Educativa.
+          Resumen pedagógico de la Unidad Educativa.
         </p>
       </div>
 
@@ -24,7 +24,7 @@ function DashboardPage() {
       ) : (
         <div className="rounded-md border border-dashed p-12 text-center text-muted-foreground">
           {isTeacher
-            ? "Docente tecnico: sin curso de aula. Indicadores por materia en desarrollo."
+            ? "Docente técnico: sin curso de aula. Indicadores por materia en desarrollo."
             : "Indicadores institucionales — en desarrollo."}
         </div>
       )}

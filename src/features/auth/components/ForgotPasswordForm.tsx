@@ -113,7 +113,7 @@ export function ForgotPasswordForm() {
           disabled={loading}
         >
           <SendIcon data-icon="inline-start" />
-          {loading ? "Enviando..." : "Enviar enlace"}
+          {loading ? "Enviando…" : "Enviar enlace"}
         </Button>
         <Button variant="ghost" className="w-full" asChild>
           <Link to="/auth/login">

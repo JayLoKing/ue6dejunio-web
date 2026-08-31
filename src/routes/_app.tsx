@@ -38,7 +38,7 @@ const SECTION_TITLES: Record<string, string> = {
   "/subjects": "Materias",
   "/students": "Estudiantes",
   "/attendance": "Asistencias",
-  "/scores": "Notas / Areas",
+  "/scores": "Notas / Áreas",
   "/pdc": "PDC",
   "/reports": "Reportes",
 }

@@ -40,11 +40,18 @@ export function EnrollStudentDialog({ courseId }: EnrollStudentDialogProps) {
         <DialogHeader>
           <DialogTitle>Inscribir estudiantes</DialogTitle>
           <DialogDescription>
-            Elige el modo: manual (1 estudiante) o automatizado (nomina PDF).
+            Elige el modo: manual (1 estudiante) o automatizado (nómina PDF).
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={mode} onValueChange={(v) => setMode(v as typeof mode)}>
+        {/* Estrechado y no casteado: Tabs entrega un string cualquiera, y el único valor que este
+            estado admite es el de una de las dos pestañas. */}
+        <Tabs
+          value={mode}
+          onValueChange={(v) => {
+            if (v === "manual" || v === "automated") setMode(v)
+          }}
+        >
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="manual">Manual</TabsTrigger>
             <TabsTrigger value="automated">Automatizado (PDF)</TabsTrigger>

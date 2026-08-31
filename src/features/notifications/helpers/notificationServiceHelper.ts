@@ -4,7 +4,11 @@ import { httpClient } from "@/lib/axios"
 import type { PagedResponse } from "@/lib/types/pagination"
 
 import { NotificationUrl } from "./notificationPath"
-import type { NotificationItem, NotificationType, UnreadCount } from "../types"
+import type {
+  NotificationItem,
+  SendNotificationPayload,
+  UnreadCount,
+} from "../types"
 
 export interface InboxParams {
   unreadOnly?: boolean
@@ -12,20 +16,10 @@ export interface InboxParams {
   limit?: number
 }
 
-export interface SendNotificationPayload {
-  receiver_id: string
-  type: NotificationType
-  /** Required by the API when the type is CUSTOM, and meaningless otherwise. */
-  subject?: string
-  message: string
-  resource_type?: string
-  resource_id?: string
-}
+export type { SendNotificationPayload }
 
 export default class NotificationServiceHelper {
-  inboxAsync(
-    params: InboxParams,
-  ): UseApiCall<PagedResponse<NotificationItem>> {
+  inboxAsync(params: InboxParams): UseApiCall<PagedResponse<NotificationItem>> {
     const controller = loadAbort()
     return {
       call: httpClient.get<PagedResponse<NotificationItem>>(
@@ -37,7 +31,7 @@ export default class NotificationServiceHelper {
             offset: params.offset ?? 1,
             limit: params.limit ?? 20,
           },
-        },
+        }
       ),
       controller,
     }

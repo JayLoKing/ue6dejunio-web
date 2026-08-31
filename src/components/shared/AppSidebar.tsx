@@ -6,6 +6,7 @@ import {
   ChevronRightIcon,
   ClipboardListIcon,
   FileBarChartIcon,
+  Bell,
   FileText,
   GraduationCapIcon,
   LayersIcon,
@@ -90,10 +91,30 @@ const TOP_LINKS: NavLink[] = [
 
 const ADMIN_LINKS: NavLink[] = [
   { title: "Niveles", to: "/levels", icon: LayersIcon, roles: ["DIRECTOR"] },
-  { title: "Grados", to: "/grades", icon: GraduationCapIcon, roles: ["DIRECTOR"] },
-  { title: "Paralelos", to: "/parallels", icon: LayoutGridIcon, roles: ["DIRECTOR"] },
-  { title: "Materias", to: "/subjects", icon: BookOpenIcon, roles: ["DIRECTOR"] },
-  { title: "Trimestres", to: "/trimestres", icon: CalendarRangeIcon, roles: ["DIRECTOR"] },
+  {
+    title: "Grados",
+    to: "/grades",
+    icon: GraduationCapIcon,
+    roles: ["DIRECTOR"],
+  },
+  {
+    title: "Paralelos",
+    to: "/parallels",
+    icon: LayoutGridIcon,
+    roles: ["DIRECTOR"],
+  },
+  {
+    title: "Materias",
+    to: "/subjects",
+    icon: BookOpenIcon,
+    roles: ["DIRECTOR"],
+  },
+  {
+    title: "Trimestres",
+    to: "/trimestres",
+    icon: CalendarRangeIcon,
+    roles: ["DIRECTOR"],
+  },
 ]
 
 export function AppSidebar() {
@@ -109,21 +130,23 @@ export function AppSidebar() {
   // Docente de aula: ve las 9 materias del curso (incl. técnicas) vía overview.
   const aulaOverview = useCourseOverview(
     teacher && !isTechnical ? ctx.homeroomCourseId : null,
-    1,
+    1
   )
   const materias = useMemo(
     () => (isTechnical ? classGroups : (aulaOverview.data?.classGroups ?? [])),
-    [isTechnical, classGroups, aulaOverview.data],
+    [isTechnical, classGroups, aulaOverview.data]
   )
   const materiasLoading =
     ctx.isLoading || (!isTechnical && aulaOverview.isLoading)
   const parallelsQuery = useParallels()
   const parallels = useMemo(
     () => parallelsQuery.data ?? [],
-    [parallelsQuery.data],
+    [parallelsQuery.data]
   )
 
-  const visibleTop = TOP_LINKS.filter((l) => l.roles.some((r) => isRole(role, r)))
+  const visibleTop = TOP_LINKS.filter((l) =>
+    l.roles.some((r) => isRole(role, r))
+  )
 
   return (
     <Sidebar collapsible="icon">
@@ -172,18 +195,18 @@ export function AppSidebar() {
 
               {/* Docente: aula ve sus materias; tecnico ve sus cursos (su unica materia por curso). */}
               {teacher ? (
-                <Collapsible
-                  defaultOpen
-                  className="group/collapsible"
-                  asChild
-                >
+                <Collapsible defaultOpen className="group/collapsible" asChild>
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton
-                        tooltip={isTechnical ? "Mis cursos" : "Materias / Áreas"}
+                        tooltip={
+                          isTechnical ? "Mis cursos" : "Materias / Áreas"
+                        }
                       >
                         {isTechnical ? <SchoolIcon /> : <ClipboardListIcon />}
-                        <span>{isTechnical ? "Mis cursos" : "Materias / Áreas"}</span>
+                        <span>
+                          {isTechnical ? "Mis cursos" : "Materias / Áreas"}
+                        </span>
                         <ChevronRightIcon className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
@@ -319,6 +342,27 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         ) : null}
+
+        {/* Todos tienen bandeja: la campana es un vistazo, esto es la bandeja entera. */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Comunicación</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname.startsWith("/notifications")}
+                  tooltip="Notificaciones"
+                >
+                  <Link to="/notifications">
+                    <Bell />
+                    <span>Notificaciones</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter>

@@ -34,6 +34,28 @@ export interface NotificationItem {
   createdAt: string
 }
 
+/** What the API is sent to write one. Snake case because that is the wire, not our shape. */
+export interface SendNotificationPayload {
+  receiver_id: string
+  type: NotificationType
+  /** Required by the API when the type is CUSTOM, and refused on every other type. */
+  subject?: string
+  message: string
+  resource_type?: string
+  resource_id?: string
+}
+
 export interface UnreadCount {
   unread: number
+}
+
+/**
+ * Somebody the Director may write to, as the form needs them: a name to choose and an id to send.
+ *
+ * <p>Lives here rather than beside the form because the roster is built before any form exists —
+ * a util that produced this shape would otherwise have to reach up into the components.
+ */
+export interface Recipient {
+  id: string
+  fullName: string
 }

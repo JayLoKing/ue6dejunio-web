@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
 import { ComposeNotification } from "./ComposeNotification"
+import { HEADING } from "../utils/heading"
 
 const props = (
   over: Partial<Parameters<typeof ComposeNotification>[0]> = {}
@@ -128,6 +129,26 @@ describe("ComposeNotification", () => {
     expect(
       screen.getByRole("option", { name: "Luis Rojas" })
     ).toBeInTheDocument()
+  })
+
+  // The words the Director picks from are the words the receiver will read at the top of the
+  // row. Spelled in two places they drift, and then a notice sent as "Cuaderno pedagógico"
+  // arrives headed as something else.
+  it("offers each reason by the same words the inbox heads it with", async () => {
+    render(<ComposeNotification {...props()} />)
+
+    await userEvent.click(screen.getByRole("combobox", { name: /motivo/i }))
+
+    for (const type of [
+      "SUMMONS",
+      "NOTEBOOK",
+      "ATTENDANCE",
+      "PDC_PROGRESS",
+    ] as const) {
+      expect(
+        screen.getByRole("option", { name: HEADING[type] })
+      ).toBeInTheDocument()
+    }
   })
 
   it("says so when there is nobody to write to", () => {

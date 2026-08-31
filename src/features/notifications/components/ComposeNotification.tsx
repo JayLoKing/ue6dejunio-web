@@ -3,6 +3,7 @@ import { SendIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import {
   Select,
@@ -12,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
+import { HEADING } from "../utils/heading"
 import type {
   NotificationType,
   Recipient,
@@ -25,11 +27,22 @@ import type {
  * the API refuses them from a person for the same reason this list leaves them out — a notice
  * saying a plan was approved has to mean that it was.
  */
+const SENDABLE: NotificationType[] = [
+  "SUMMONS",
+  "NOTEBOOK",
+  "ATTENDANCE",
+  "PDC_PROGRESS",
+]
+
+/**
+ * What each reason is called, taken from the headings rather than spelled again — the receiver
+ * reads the row headed by the very words the sender chose here.
+ *
+ * <p>CUSTOM is the exception and keeps its own label: in the list it names a choice the Director
+ * is making, while `HEADING` holds what a custom notice falls back to when no subject was typed.
+ */
 const REASONS: { type: NotificationType; label: string }[] = [
-  { type: "SUMMONS", label: "Citación a dirección" },
-  { type: "NOTEBOOK", label: "Cuaderno pedagógico" },
-  { type: "ATTENDANCE", label: "Asistencias" },
-  { type: "PDC_PROGRESS", label: "Avance del PDC" },
+  ...SENDABLE.map((type) => ({ type, label: HEADING[type] })),
   { type: "CUSTOM", label: "Otro" },
 ]
 
@@ -133,9 +146,10 @@ export function ComposeNotification({
       {needsSubject ? (
         <Field>
           <FieldLabel htmlFor="notification-subject">Asunto</FieldLabel>
-          <Textarea
+          {/* One line, so an input: the subject is a title and a textarea invites the newlines
+              the API would then store inside one. */}
+          <Input
             id="notification-subject"
-            rows={1}
             maxLength={150}
             value={subject}
             onChange={(e) => setSubject(e.target.value)}

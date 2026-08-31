@@ -1,7 +1,12 @@
 import type { NotificationItem, NotificationType } from "../types"
 
-/** What a notification is about, in one line, for the reader. */
-const HEADING: Record<NotificationType, string> = {
+/**
+ * What a notification is about, in one line, for the reader.
+ *
+ * <p>Exported because the compose form offers these same words as the reasons to write: the
+ * heading a receiver reads has to be the one the sender picked, and two lists cannot promise that.
+ */
+export const HEADING: Record<NotificationType, string> = {
   PDC_PUBLISHED: "PDC entregado",
   PDC_APPROVED: "PDC aprobado",
   PDC_OBSERVED: "PDC observado",

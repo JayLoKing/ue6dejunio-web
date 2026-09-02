@@ -1,12 +1,5 @@
 import { useMemo, useState } from "react"
-import {
-  CheckIcon,
-  FileDownIcon,
-  Loader2Icon,
-  PrinterIcon,
-  ZoomInIcon,
-  ZoomOutIcon,
-} from "lucide-react"
+import { CheckIcon, Loader2Icon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Field, FieldLabel } from "@/components/ui/field"
@@ -29,35 +22,12 @@ import {
   useUpdatePdc,
   useWritePdcSubject,
 } from "../hooks/usePdc"
-import { PDC_DOCUMENT_ID, PdcPreview } from "./PdcPreview"
+import { PdcDocumentPanel } from "./PdcDocumentPanel"
 import { PdcSubjectStep } from "./PdcSubjectStep"
 import type { Pdc, UpdatePdcPayload } from "../types"
 import { DEFAULT_HOLISTIC_OBJECTIVE } from "../utils/holisticObjective"
-import { planLabel } from "../utils/planLabel"
 import { isEditable } from "../utils/status"
 import { trimmed } from "@/lib/trimmed"
-import { wordDocumentOf } from "../utils/wordDocument"
-import { DEFAULT_ZOOM, ZOOM_STEPS, zoomIn, zoomOut } from "../utils/zoom"
-
-/**
- * Hands the document over as a file Word opens. What is saved is the preview's own markup, so the
- * file says exactly what the teacher was looking at — there is no second rendering to keep in step.
- */
-function downloadPdcAsWord(plan: Pdc) {
-  const document_ = document.getElementById(PDC_DOCUMENT_ID)
-  if (!document_) return
-
-  const title = planLabel(plan)
-  const blob = new Blob([wordDocumentOf(document_.innerHTML, title)], {
-    type: "application/msword",
-  })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement("a")
-  link.href = url
-  link.download = `${title}.doc`
-  link.click()
-  URL.revokeObjectURL(url)
-}
 
 /**
  * The steps of the form, in the order the paper plan is filled: the heading once, then one step
@@ -116,7 +86,6 @@ export function PdcWizard({ planId, onClose }: PdcWizardProps) {
   const editAdaptation = useUpdateAdaptation(planId)
   const removeAdaptation = useDeleteAdaptation(planId)
   const [current, setCurrent] = useState(0)
-  const [zoom, setZoom] = useState<number>(DEFAULT_ZOOM)
 
   const plan = detail.data
   const roster = useCourseStudents(plan?.courseId, WHOLE_ROSTER)
@@ -267,72 +236,14 @@ export function PdcWizard({ planId, onClose }: PdcWizardProps) {
           ) : null}
         </section>
 
-        <section className="min-w-0">
-          <div className="mb-2 flex items-center justify-between gap-2">
-            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              Vista previa
-            </p>
-            <div className="flex items-center gap-1">
-              <Button
-                type="button"
-                size="icon"
-                variant="outline"
-                className="size-8"
-                title="Alejar"
-                aria-label="Alejar la vista previa"
-                disabled={zoom === ZOOM_STEPS[0]}
-                onClick={() => setZoom(zoomOut(zoom))}
-              >
-                <ZoomOutIcon className="size-4" />
-              </Button>
-              <span className="w-10 text-center text-xs text-muted-foreground tabular-nums">
-                {Math.round(zoom * 100)}%
-              </span>
-              <Button
-                type="button"
-                size="icon"
-                variant="outline"
-                className="size-8"
-                title="Acercar"
-                aria-label="Acercar la vista previa"
-                disabled={zoom === ZOOM_STEPS[ZOOM_STEPS.length - 1]}
-                onClick={() => setZoom(zoomIn(zoom))}
-              >
-                <ZoomInIcon className="size-4" />
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="ml-2"
-                onClick={() => window.print()}
-              >
-                <PrinterIcon className="size-4" />
-                Imprimir o PDF
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => downloadPdcAsWord(plan)}
-              >
-                <FileDownIcon className="size-4" />
-                Descargar .doc
-              </Button>
-            </div>
-          </div>
-          <div className="overflow-x-auto rounded-md border">
-            <PdcPreview
-              plan={plan}
-              institution={institution.data}
-              adaptations={written}
-              zoom={zoom}
-              activeSubjectId={
-                step.kind === "subject" ? plan.subjects[step.index].id : null
-              }
-            />
-          </div>
-        </section>
+        <PdcDocumentPanel
+          plan={plan}
+          institution={institution.data}
+          adaptations={written}
+          activeSubjectId={
+            step.kind === "subject" ? plan.subjects[step.index].id : null
+          }
+        />
       </div>
     </div>
   )

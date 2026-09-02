@@ -1,8 +1,7 @@
 import { useMemo, useState } from "react"
 import { createFileRoute, redirect } from "@tanstack/react-router"
 import {
-  CheckCircle2Icon,
-  MessageSquareWarningIcon,
+  FileSearchIcon,
   PencilIcon,
   PlusIcon,
   SendIcon,
@@ -15,11 +14,9 @@ import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Textarea } from "@/components/ui/textarea"
 import {
   Table,
   TableBody,
@@ -35,6 +32,7 @@ import { useAuthStore } from "@/features/auth/store/authStore"
 import { isRole } from "@/features/auth/types"
 import { useTeacherClassGroups } from "@/features/courses/hooks/useCourses"
 import { PdcCreateDialog } from "@/features/pdc/components/PdcCreateDialog"
+import { PdcReviewDialog } from "@/features/pdc/components/PdcReviewDialog"
 import { PdcWizard } from "@/features/pdc/components/PdcWizard"
 import { planLabel } from "@/features/pdc/utils/planLabel"
 import {
@@ -68,8 +66,9 @@ function PdcPage() {
   // The plan being walked through step by step. Null closes the wizard back to the listing.
   const [editingId, setEditingId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState<Pdc | null>(null)
-  const [observing, setObserving] = useState<Pdc | null>(null)
-  const [observation, setObservation] = useState("")
+  // The plan the Director is reading. Approving and observing both happen in there, with the
+  // document open: deciding a month of work from a table row was answering a plan unread.
+  const [reviewingId, setReviewingId] = useState<string | null>(null)
   const [progress, setProgress] = useState<Pdc | null>(null)
 
   const classGroupsQuery = useTeacherClassGroups(isTeacher ? userId : null)
@@ -77,7 +76,7 @@ function PdcPage() {
     offset: page,
     limit,
   })
-  const { publish, approve, observe, remove } = usePdcAction()
+  const { publish, remove } = usePdcAction()
   // The plan's own state change is what notifies its author now, on the server, after the write
   // commits. Sending it from here as well would put two rows in the teacher's inbox for one
   // approval — and a plan approved from anywhere but this screen used to notify nobody at all.
@@ -230,33 +229,19 @@ function PdcPage() {
                           <Trash2Icon className="size-4" />
                         </Button>
                       ) : null}
-                      {isDirector &&
-                      (p.status === "Published" ||
-                        p.status === "Under Review") ? (
-                        <>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="size-8 text-emerald-600"
-                            title="Aprobar"
-                            disabled={approve.isPending}
-                            onClick={() => approve.mutate(p.id)}
-                          >
-                            <CheckCircle2Icon className="size-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="size-8 text-amber-600"
-                            title="Observar"
-                            onClick={() => {
-                              setObserving(p)
-                              setObservation("")
-                            }}
-                          >
-                            <MessageSquareWarningIcon className="size-4" />
-                          </Button>
-                        </>
+                      {/* A listing row carries no blocks and no weekly rows — it says how wide the
+                          month is, not what is in it. Reading the plan is what the Director
+                          approves or observes it from, so both answers live behind this. */}
+                      {isDirector ? (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-8"
+                          title="Ver y revisar"
+                          onClick={() => setReviewingId(p.id)}
+                        >
+                          <FileSearchIcon className="size-4" />
+                        </Button>
                       ) : null}
                     </div>
                   </TableCell>
@@ -326,44 +311,10 @@ function PdcPage() {
         onOpenChange={(o) => !o && setDeleting(null)}
       />
 
-      <Dialog
-        open={Boolean(observing)}
-        onOpenChange={(o) => !o && setObserving(null)}
-      >
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Observar PDC</DialogTitle>
-          </DialogHeader>
-          <Textarea
-            rows={4}
-            placeholder="Describe las observaciones…"
-            value={observation}
-            onChange={(e) => setObservation(e.target.value)}
-          />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setObserving(null)}>
-              Cancelar
-            </Button>
-            <Button
-              className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
-              disabled={!observation.trim() || observe.isPending}
-              onClick={() => {
-                if (!observing) return
-                const target = observing
-                const obs = observation.trim()
-                observe.mutate(
-                  { id: target.id, observations: obs },
-                  {
-                    onSuccess: () => setObserving(null),
-                  }
-                )
-              }}
-            >
-              Enviar observación
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <PdcReviewDialog
+        planId={reviewingId}
+        onClose={() => setReviewingId(null)}
+      />
     </div>
   )
 }

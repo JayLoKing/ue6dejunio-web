@@ -9,6 +9,7 @@ import { TrimesterSelect } from "@/components/shared/TrimesterSelect"
 import { qualitativeBandOf, statusClassName, statusOf } from "@/lib/grading"
 
 import { useCentralizer } from "../hooks/useGradebook"
+import { subjectColumnsOf } from "../utils/subjectColumns"
 import type { StudentSummary } from "../types"
 
 export interface CentralizerTableProps {
@@ -36,7 +37,7 @@ export function CentralizerTable({
   )
 
   const rows = useMemo<StudentSummary[]>(() => data?.content ?? [], [data])
-  const subjects = useMemo(() => rows[0]?.subjects ?? [], [rows])
+  const subjects = useMemo(() => subjectColumnsOf(rows), [rows])
 
   const counters = useMemo(() => {
     let passed = 0

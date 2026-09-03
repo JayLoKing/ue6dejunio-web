@@ -18,6 +18,7 @@ import {
   useMarkNotificationRead,
   useUnreadCount,
 } from "../hooks/useNotifications"
+import { useNotificationStream } from "../hooks/useNotificationStream"
 
 /** As much as fits in a popover before it stops being a peek and becomes the page. */
 const LATEST = { offset: 1, limit: 20 }
@@ -34,6 +35,10 @@ const formatWhen = (iso: string): string => {
 
 export function NotificationBell() {
   const [open, setOpen] = useState(false)
+  // The bell is on every page of the app, so this is the one place the stream is held open — one
+  // connection per tab. Opening it from each screen that shows a count would spend several of the
+  // six connections a browser allows per origin on the same nudge.
+  useNotificationStream()
   const { data: unread = 0 } = useUnreadCount()
   const inbox = useInbox(LATEST, open)
   const markRead = useMarkNotificationRead()

@@ -1,6 +1,7 @@
 import type { UseApiCall } from "@/lib/useApicall"
 import { loadAbort } from "@/lib/loadAbort"
 import { httpClient } from "@/lib/axios"
+import { env } from "@/config/env"
 import type { PagedResponse } from "@/lib/types/pagination"
 
 import { NotificationUrl } from "./notificationPath"
@@ -35,6 +36,27 @@ export default class NotificationServiceHelper {
       ),
       controller,
     }
+  }
+
+  /**
+   * Opens the live stream. The one call in this module that does not go through axios.
+   *
+   * <p>An `XMLHttpRequest` hands the body over as one string when it finishes, and this response
+   * never finishes — `fetch` is what exposes it as a stream while it is still arriving. The
+   * cancellation still comes from outside, the same way the abort controller works everywhere else
+   * here, but it is the caller's: this connection outlives any one request.
+   *
+   * <p>The header is built by hand because the axios interceptor is not on this path. It is the
+   * same `Bearer` and the same base URL, assembled at the same edge as the rest.
+   */
+  streamAsync(token: string, signal: AbortSignal): Promise<Response> {
+    return fetch(`${env.VITE_API_URL}${NotificationUrl.Stream}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "text/event-stream",
+      },
+      signal,
+    })
   }
 
   unreadCountAsync(): UseApiCall<UnreadCount> {

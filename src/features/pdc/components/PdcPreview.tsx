@@ -12,7 +12,11 @@ import {
   trimesterName,
 } from "../utils/heading"
 
-/** The id the print stylesheet and the Word export both reach for. */
+/**
+ * The id the print path reaches for to lift the sheet out of the app.
+ *
+ * <p>The Word export does not use it: that one is written from the plan, not from this markup.
+ */
 export const PDC_DOCUMENT_ID = "pdc-document"
 
 /** Blank slots read as the form's own empty cell rather than as missing data. */
@@ -327,7 +331,7 @@ export function PdcPreview({
 
       <h3 className={`mb-1 ${RULE}`}>2. DESARROLLO</h3>
       <p className={`${SMALL} font-bold`}>Objetivo holístico de nivel</p>
-      <p className={`mb-5 text-justify whitespace-pre-wrap ${SMALL}`}>
+      <p className={`pdc-wrap mb-5 text-justify whitespace-pre-wrap ${SMALL}`}>
         {orBlank(plan.holisticObjective)}
       </p>
 
@@ -345,11 +349,21 @@ export function PdcPreview({
         </div>
       ))}
 
-      <p className="pdc-band-adapt mb-1 border border-black bg-[#A8D08D] px-2 py-1 text-center font-bold">
-        ADAPTACIONES CURRICULARES SIGNIFICATIVAS
-      </p>
       <table className="mb-5 w-full table-fixed border-collapse">
         <thead>
+          {/*
+            The title is a row of this table, not a box above it. As two elements they were two
+            borders with a gap between them and the title floated free of the columns it names;
+            the template draws one frame, the same way each subject's band heads its own table.
+          */}
+          <tr>
+            <th
+              colSpan={4}
+              className={`${CELL} pdc-band-adapt bg-[#A8D08D] text-center font-bold`}
+            >
+              ADAPTACIONES CURRICULARES SIGNIFICATIVAS
+            </th>
+          </tr>
           <tr>
             <th className={HEAD_ADAPTATION}>Contenido</th>
             <th className={HEAD_ADAPTATION}>
@@ -380,19 +394,35 @@ export function PdcPreview({
       </table>
 
       <h3 className="mb-1 font-bold">3. PRODUCTO FINAL DEL MES</h3>
-      <p className="mb-5 whitespace-pre-wrap">{orBlank(plan.finalProduct)}</p>
+      <p className="pdc-wrap mb-5 whitespace-pre-wrap">
+        {orBlank(plan.finalProduct)}
+      </p>
 
       <h3 className="mb-1 font-bold">BIBLIOGRAFÍA</h3>
-      <p className="mb-10 whitespace-pre-wrap">{orBlank(plan.bibliography)}</p>
+      <p className="pdc-wrap mb-10 whitespace-pre-wrap">
+        {orBlank(plan.bibliography)}
+      </p>
 
-      <footer className="grid grid-cols-2 gap-16 text-center">
-        <p className="pdc-sign border-t border-black pt-1">
-          Firma del Maestro/a
-        </p>
-        <p className="pdc-sign border-t border-black pt-1">
-          Sello y Firma del Director/a
-        </p>
-      </footer>
+      {/*
+        A table rather than a grid: the two lines sit side by side on the printed form, and a grid
+        is one of the few layouts that survives neither the print sheet nor Word.
+      */}
+      <table className="pdc-signatures w-full table-fixed border-collapse">
+        <tbody>
+          <tr>
+            <td className="px-6 text-center">
+              <span className="pdc-sign block border-t border-black pt-1">
+                Firma del Maestro/a
+              </span>
+            </td>
+            <td className="px-6 text-center">
+              <span className="pdc-sign block border-t border-black pt-1">
+                Sello y Firma del Director/a
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </article>
   )
 }

@@ -1,10 +1,12 @@
 import { useState } from "react"
 import {
   FileDownIcon,
+  Loader2Icon,
   PrinterIcon,
   ZoomInIcon,
   ZoomOutIcon,
 } from "lucide-react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import type { Institution } from "@/features/institution/types"
@@ -13,27 +15,91 @@ import type { Adaptation } from "@/features/adaptation/types"
 import { PDC_DOCUMENT_ID, PdcPreview } from "./PdcPreview"
 import type { Pdc } from "../types"
 import { planLabel } from "../utils/planLabel"
-import { wordDocumentOf } from "../utils/wordDocument"
+import { printableDocumentOf } from "../utils/printDocument"
 import { DEFAULT_ZOOM, ZOOM_STEPS, zoomIn, zoomOut } from "../utils/zoom"
 
 /**
- * Hands the document over as a file Word opens. What is saved is the preview's own markup, so the
- * file says exactly what was on screen — there is no second rendering to keep in step.
+ * Hands a file to the browser.
+ *
+ * <p>The anchor goes into the document and the object URL is released on the next tick. Clicking a
+ * detached anchor and revoking its URL in the same statement raced the download in some browsers,
+ * which read the blob after the click returns.
  */
-function downloadPdcAsWord(plan: Pdc) {
-  const document_ = document.getElementById(PDC_DOCUMENT_ID)
-  if (!document_) return
-
-  const title = planLabel(plan)
-  const blob = new Blob([wordDocumentOf(document_.innerHTML, title)], {
-    type: "application/msword",
-  })
+function saveBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob)
   const link = document.createElement("a")
   link.href = url
-  link.download = `${title}.doc`
+  link.download = filename
+  link.style.display = "none"
+  document.body.appendChild(link)
   link.click()
-  URL.revokeObjectURL(url)
+  link.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 0)
+}
+
+/**
+ * The document as a real Office file.
+ *
+ * <p>Written from the plan rather than from the markup on screen, so what Word opens does not
+ * depend on a stylesheet that never travelled with it. The library is loaded only when somebody
+ * asks for the file — it is a document writer, and it has no business in the bundle everyone
+ * downloads to see a listing.
+ */
+async function downloadPdcAsDocx(
+  plan: Pdc,
+  institution: Institution | undefined,
+  adaptations: Adaptation[]
+) {
+  const [{ pdcDocxOf }, { Packer }] = await Promise.all([
+    import("../utils/pdcDocx"),
+    import("docx"),
+  ])
+  const title = planLabel(plan)
+  const blob = await Packer.toBlob(
+    pdcDocxOf({ plan, institution, adaptations })
+  )
+  saveBlob(blob, `${title}.docx`)
+}
+
+/**
+ * Prints the document on a page of its own.
+ *
+ * <p>Not `window.print()`: on screen the sheet sits inside a dialog, which is a fixed, transformed,
+ * scrolling box. A print stylesheet cannot lift a child out of one — the sheet came out cropped,
+ * and the browser dropped the form's fills on the way. Handed to a frame that holds nothing but the
+ * document, there is nothing left to escape from.
+ */
+function printPdcDocument(title: string) {
+  const node = document.getElementById(PDC_DOCUMENT_ID)
+  if (!node) return
+
+  const frame = document.createElement("iframe")
+  frame.setAttribute("aria-hidden", "true")
+  frame.setAttribute("title", title)
+  frame.style.position = "fixed"
+  frame.style.right = "0"
+  frame.style.bottom = "0"
+  frame.style.width = "0"
+  frame.style.height = "0"
+  frame.style.border = "0"
+
+  frame.onload = () => {
+    const view = frame.contentWindow
+    if (!view) {
+      frame.remove()
+      return
+    }
+    // Taking the frame away while the dialog is still open cancels the job in some browsers, so it
+    // leaves on afterprint — and on a timer too, because Safari does not always fire it.
+    const done = () => frame.remove()
+    view.addEventListener("afterprint", done, { once: true })
+    setTimeout(done, 60_000)
+    view.focus()
+    view.print()
+  }
+
+  document.body.appendChild(frame)
+  frame.srcdoc = printableDocumentOf(node.innerHTML, title)
 }
 
 export interface PdcDocumentPanelProps {
@@ -57,6 +123,14 @@ export function PdcDocumentPanel({
   activeSubjectId = null,
 }: PdcDocumentPanelProps) {
   const [zoom, setZoom] = useState<number>(DEFAULT_ZOOM)
+  const [writing, setWriting] = useState(false)
+
+  const onDownload = () => {
+    setWriting(true)
+    downloadPdcAsDocx(plan, institution, adaptations)
+      .catch(() => toast.error("No se pudo generar el documento de Word."))
+      .finally(() => setWriting(false))
+  }
 
   return (
     <section className="min-w-0">
@@ -97,7 +171,7 @@ export function PdcDocumentPanel({
             size="sm"
             variant="outline"
             className="ml-2"
-            onClick={() => window.print()}
+            onClick={() => printPdcDocument(planLabel(plan))}
           >
             <PrinterIcon className="size-4" />
             Imprimir o PDF
@@ -106,10 +180,15 @@ export function PdcDocumentPanel({
             type="button"
             size="sm"
             variant="outline"
-            onClick={() => downloadPdcAsWord(plan)}
+            disabled={writing}
+            onClick={onDownload}
           >
-            <FileDownIcon className="size-4" />
-            Descargar .doc
+            {writing ? (
+              <Loader2Icon className="size-4 animate-spin" />
+            ) : (
+              <FileDownIcon className="size-4" />
+            )}
+            Descargar .docx
           </Button>
         </div>
       </div>

@@ -61,7 +61,10 @@ describe("PdcDocumentPanel", () => {
     ).toBeEnabled()
   })
 
-  it("hands the document to the printer", async () => {
+  // Printing the sheet where it is drawn does not work: it sits inside a dialog, which is a fixed,
+  // transformed, scrolling box that a print stylesheet cannot lift a child out of. The sheet came
+  // out cropped and without the form's fills. So the document is handed to a page of its own.
+  it("prints the document on a page of its own, not the app's", async () => {
     const print = vi.fn()
     vi.stubGlobal("print", print)
 
@@ -70,7 +73,27 @@ describe("PdcDocumentPanel", () => {
       screen.getByRole("button", { name: /Imprimir o PDF/ })
     )
 
-    expect(print).toHaveBeenCalledOnce()
+    const frame = document.querySelector("iframe")
+    expect(frame).not.toBeNull()
+    expect(frame?.srcdoc).toContain("PLAN DE DESARROLLO CURRICULAR")
+    // Backgrounds are the first thing a browser drops when printing, and the two greens are what
+    // make the sheet the form rather than a grid of text.
+    expect(frame?.srcdoc).toContain("print-color-adjust: exact")
+    // Whatever is printed, it is never the page the document is embedded in.
+    expect(print).not.toHaveBeenCalled()
+
     vi.unstubAllGlobals()
+  })
+
+  // .doc is Word 97. What the school is asked for, and what every other reader opens, is a package.
+  it("offers the plan as a .docx rather than as a renamed web page", () => {
+    render(<PdcDocumentPanel plan={plan()} />)
+
+    expect(
+      screen.getByRole("button", { name: /Descargar \.docx/ })
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole("button", { name: /Descargar \.doc$/ })
+    ).not.toBeInTheDocument()
   })
 })

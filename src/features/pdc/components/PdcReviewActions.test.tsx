@@ -21,6 +21,28 @@ describe("PdcReviewActions", () => {
     expect(screen.getByRole("button", { name: "Observar" })).toBeInTheDocument()
   })
 
+  // A teacher opens the same plan to read it. They are not being asked anything, so the panel says
+  // nothing at all — the "not waiting for review" note answers a question only the Director is asked.
+  it("says nothing to a reader who has no decision to make", () => {
+    const { container } = render(
+      <PdcReviewActions
+        status="Published"
+        canDecide={false}
+        deciding={false}
+        onApprove={vi.fn()}
+        onObserve={vi.fn()}
+      />
+    )
+
+    expect(
+      screen.queryByRole("button", { name: "Aprobar" })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByText(/no está esperando revisión/i)
+    ).not.toBeInTheDocument()
+    expect(container).toBeEmptyDOMElement()
+  })
+
   it("offers no answer on a plan that is not waiting for one", () => {
     render(
       <PdcReviewActions

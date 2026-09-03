@@ -231,18 +231,18 @@ function PdcPage() {
                       ) : null}
                       {/* A listing row carries no blocks and no weekly rows — it says how wide the
                           month is, not what is in it. Reading the plan is what the Director
-                          approves or observes it from, so both answers live behind this. */}
-                      {isDirector ? (
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="size-8"
-                          title="Ver y revisar"
-                          onClick={() => setReviewingId(p.id)}
-                        >
-                          <FileSearchIcon className="size-4" />
-                        </Button>
-                      ) : null}
+                          approves or observes it from, so both answers live behind this. The
+                          teacher opens the same document without them: a plan that came back
+                          approved or observed is theirs to read, not only to report progress on. */}
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-8"
+                        title={isDirector ? "Ver y revisar" : "Ver el plan"}
+                        onClick={() => setReviewingId(p.id)}
+                      >
+                        <FileSearchIcon className="size-4" />
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -313,6 +313,7 @@ function PdcPage() {
 
       <PdcReviewDialog
         planId={reviewingId}
+        canDecide={isDirector}
         onClose={() => setReviewingId(null)}
       />
     </div>

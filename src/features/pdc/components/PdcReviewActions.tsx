@@ -14,6 +14,12 @@ const AWAITING_REVIEW: PdcStatus[] = ["Published", "Under Review"]
 
 export interface PdcReviewActionsProps {
   status: PdcStatus
+  /**
+   * Whether the reader is the one being asked. Only the Director answers a plan; a teacher opens
+   * the same document to read it, and a panel that explains why they cannot decide is answering a
+   * question they were never asked.
+   */
+  canDecide?: boolean
   /** An answer already on its way. Both move the plan out of review, so a second one is refused. */
   deciding: boolean
   onApprove: () => void
@@ -26,12 +32,17 @@ export interface PdcReviewActionsProps {
  */
 export function PdcReviewActions({
   status,
+  canDecide = true,
   deciding,
   onApprove,
   onObserve,
 }: PdcReviewActionsProps) {
   const [writing, setWriting] = useState(false)
   const [observations, setObservations] = useState("")
+
+  if (!canDecide) {
+    return null
+  }
 
   if (!AWAITING_REVIEW.includes(status)) {
     return (

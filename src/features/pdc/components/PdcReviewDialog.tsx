@@ -17,17 +17,27 @@ import { planLabel } from "../utils/planLabel"
 export interface PdcReviewDialogProps {
   /** The plan being read. Null closes the dialog back to the listing. */
   planId: string | null
+  /**
+   * Whether the reader answers the plan or only reads it. The Director decides; the teacher opens
+   * the same document to see what was approved, which the API already lets them read.
+   */
+  canDecide?: boolean
   onClose: () => void
 }
 
 /**
- * The plan as the Director reads it: the handed-in document, whole, and the two answers they may
- * give it. Read-only — reviewing is not editing, and the API refuses a Director's write anyway.
+ * The plan as it is read: the handed-in document, whole, and — for the Director — the two answers
+ * they may give it. Read-only either way; reviewing is not editing, and the API refuses a
+ * Director's write anyway.
  *
  * <p>The blocks and the weekly rows only travel with the detail, never with a listing row, which
  * is why this fetches the plan again rather than taking the row it was opened from.
  */
-export function PdcReviewDialog({ planId, onClose }: PdcReviewDialogProps) {
+export function PdcReviewDialog({
+  planId,
+  canDecide = true,
+  onClose,
+}: PdcReviewDialogProps) {
   const detail = usePdcDetail(planId)
   const institution = useInstitution()
   const adaptations = useAdaptationList(planId)
@@ -65,6 +75,7 @@ export function PdcReviewDialog({ planId, onClose }: PdcReviewDialogProps) {
 
             <PdcReviewActions
               status={plan.status}
+              canDecide={canDecide}
               deciding={deciding}
               onApprove={() => approve.mutate(plan.id, { onSuccess: onClose })}
               onObserve={(observations) =>

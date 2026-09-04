@@ -6,4 +6,5 @@ export const CatalogUrl = {
   Subjects: `${baseModuleUrl}/subjects`,
   Teachers: `${baseModuleUrl}/teachers`,
   Trimesters: `${baseModuleUrl}/trimesters`,
+  AcademicYears: `${baseModuleUrl}/academic-years`,
 } as const

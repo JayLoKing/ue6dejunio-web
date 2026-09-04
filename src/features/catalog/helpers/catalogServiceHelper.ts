@@ -4,6 +4,7 @@ import { httpClient } from "@/lib/axios"
 
 import { CatalogUrl } from "./catalogServicePath"
 import type {
+  AcademicYearItem,
   GradeItem,
   ParallelItem,
   SubjectItem,
@@ -48,6 +49,15 @@ export default class CatalogServiceHelper {
           academicYearId === undefined
             ? undefined
             : { id_academic_year: academicYearId },
+      }),
+      controller,
+    }
+  }
+  academicYearsAsync(): UseApiCall<AcademicYearItem[]> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.get<AcademicYearItem[]>(CatalogUrl.AcademicYears, {
+        signal: controller.signal,
       }),
       controller,
     }

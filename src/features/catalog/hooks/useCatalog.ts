@@ -10,6 +10,7 @@ export const catalogKeys = {
     ["catalog", "teachers", technical ?? "all"] as const,
   trimesters: (academicYearId?: number) =>
     ["catalog", "trimesters", academicYearId ?? "current"] as const,
+  academicYears: ["catalog", "academic-years"] as const,
 }
 
 export const useGrades = () =>
@@ -30,6 +31,19 @@ export const useSubjects = () =>
   useQuery({
     queryKey: catalogKeys.subjects,
     queryFn: CatalogService.subjects,
+    staleTime: 5 * 60_000,
+  })
+
+/**
+ * Las gestiones, de la más reciente a la más antigua.
+ *
+ * La primera es la actual — el backend ordena así, y de ahí sale la que el directorio muestra
+ * cuando nadie eligió ninguna.
+ */
+export const useAcademicYears = () =>
+  useQuery({
+    queryKey: catalogKeys.academicYears,
+    queryFn: CatalogService.academicYears,
     staleTime: 5 * 60_000,
   })
 

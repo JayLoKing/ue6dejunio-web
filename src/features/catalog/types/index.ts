@@ -22,6 +22,14 @@ export interface TeacherItem {
   technical: boolean
 }
 
+/**
+ * Una gestión. `id` es lo que se manda como filtro; `year` es lo que se le muestra a la persona.
+ */
+export interface AcademicYearItem {
+  id: number
+  year: number
+}
+
 /** Trimestre configurado (catálogo): 1|2|3 + rango de fechas. */
 export interface TrimesterItem {
   id: string

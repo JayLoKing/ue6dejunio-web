@@ -31,7 +31,7 @@ import {
   type UpdateUserFormValues,
 } from "../models/schemas/user-schemas"
 import { useUpdateUser } from "../hooks/useUpdateUser"
-import { ROLES } from "../types"
+import { ROLES, roleOptionsFor } from "../types"
 import type { UsersListItem } from "../models/response/user-response"
 
 export interface EditUserDialogProps {
@@ -43,6 +43,8 @@ const roleIdFromName = (role: string): number =>
   ROLES.find((r) => r.name === role.toUpperCase())?.id ?? 3
 
 export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
+  // Dirección no se otorga desde acá, pero si la persona ya la tiene hay que poder mostrarla.
+  const roleOptions = roleOptionsFor(user?.role ?? "")
   const {
     register,
     handleSubmit,
@@ -158,7 +160,7 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
                         <SelectValue placeholder="Rol" />
                       </SelectTrigger>
                       <SelectContent>
-                        {ROLES.map((r) => (
+                        {roleOptions.map((r) => (
                           <SelectItem key={r.id} value={String(r.id)}>
                             {r.label}
                           </SelectItem>

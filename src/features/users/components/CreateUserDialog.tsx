@@ -33,7 +33,7 @@ import {
   type CreateUserFormValues,
 } from "../models/schemas/user-schemas"
 import { useCreateUser } from "../hooks/useCreateUser"
-import { ROLES } from "../types"
+import { ASSIGNABLE_ROLES } from "../types"
 
 export function CreateUserDialog() {
   const [open, setOpen] = useState(false)
@@ -130,7 +130,7 @@ export function CreateUserDialog() {
                         <SelectValue placeholder="Selecciona un rol" />
                       </SelectTrigger>
                       <SelectContent>
-                        {ROLES.map((r) => (
+                        {ASSIGNABLE_ROLES.map((r) => (
                           <SelectItem key={r.id} value={String(r.id)}>
                             {r.label}
                           </SelectItem>

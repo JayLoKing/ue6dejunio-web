@@ -210,7 +210,9 @@ export function AssignCourseSubjectsForm() {
                 const state = subjectStates[s.id]
                 const checked = state?.checked ?? false
                 const teacherId = state?.teacherId ?? null
-                // Materia técnica: docente técnico obligatorio (sin default de aula).
+                // Materia técnica: hay que elegir a alguien, y ese alguien puede ser un docente
+                // técnico o el docente de aula del curso — los técnicos no alcanzan para todos los
+                // cursos. Sin default: cuando hay un técnico libre, es a quien corresponde.
                 // Materia de aula: default al docente de aula si no se elige otro.
                 const effectiveTeacher = s.technical
                   ? teacherId
@@ -260,7 +262,7 @@ export function AssignCourseSubjectsForm() {
                             <SelectValue
                               placeholder={
                                 s.technical
-                                  ? "Selecciona docente técnico"
+                                  ? "Docente técnico o el de aula"
                                   : homeroomTeacherId
                                     ? `Aula: ${
                                         aulaTeachers.data?.find(
@@ -272,9 +274,13 @@ export function AssignCourseSubjectsForm() {
                             />
                           </SelectTrigger>
                           <SelectContent>
-                            {!s.technical && homeroomTeacherId ? (
+                            {/* También en las técnicas: el encargado del curso las dicta cuando
+                                no hay un docente técnico disponible. */}
+                            {homeroomTeacherId ? (
                               <SelectItem value={homeroomTeacherId}>
-                                Docente de aula
+                                {s.technical
+                                  ? "Docente de aula del curso"
+                                  : "Docente de aula"}
                               </SelectItem>
                             ) : null}
                             {options

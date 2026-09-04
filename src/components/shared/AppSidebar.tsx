@@ -75,6 +75,14 @@ const TOP_LINKS: NavLink[] = [
     icon: UserSquare2Icon,
     roles: ["TEACHER"],
   },
+  // Mismo título, otra pantalla y otro público: el docente ve el padrón de su curso, Dirección y
+  // secretaría ven la institución entera. Ningún rol tiene los dos, así que el nombre no se repite.
+  {
+    title: "Estudiantes",
+    to: "/estudiantes",
+    icon: UserSquare2Icon,
+    roles: ["DIRECTOR", "SECRETARY"],
+  },
   {
     title: "Asistencias",
     to: "/attendance",

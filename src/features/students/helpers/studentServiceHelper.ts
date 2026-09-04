@@ -7,6 +7,7 @@ import type {
   EnrollBatchRequest,
   EnrollSingleRequest,
 } from "../models/requests/enroll-request"
+import type { WithdrawStudentRequest } from "../models/requests/withdraw-request"
 import type { EnrollResponse } from "../models/response/enroll-response"
 import type { StudentDetail } from "../types"
 
@@ -15,6 +16,19 @@ export default class StudentServiceHelper {
     const controller = loadAbort()
     return {
       call: httpClient.get<StudentDetail>(StudentUrl.ById(id), {
+        signal: controller.signal,
+      }),
+      controller,
+    }
+  }
+
+  withdrawAsync(
+    id: string,
+    payload: WithdrawStudentRequest
+  ): UseApiCall<void> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.post<void>(StudentUrl.Withdraw(id), payload, {
         signal: controller.signal,
       }),
       controller,

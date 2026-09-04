@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAllCourses } from "@/features/courses/hooks/useCourses"
 import { CentralizerTable } from "@/features/gradebook/components/CentralizerTable"
 import { CourseAttendancePanel } from "@/features/gradebook/components/CourseAttendancePanel"
+import { CourseStudentsPanel } from "@/features/students/components/CourseStudentsPanel"
 
 export const Route = createFileRoute(
   "/_app/cursos/$parallelId/curso/$courseId/"
@@ -46,6 +47,7 @@ function CourseGradebookPage() {
         <TabsList>
           <TabsTrigger value="notas">Notas</TabsTrigger>
           <TabsTrigger value="asistencia">Asistencia</TabsTrigger>
+          <TabsTrigger value="estudiantes">Estudiantes</TabsTrigger>
         </TabsList>
 
         <TabsContent value="notas" className="pt-4">
@@ -73,6 +75,16 @@ function CourseGradebookPage() {
 
         <TabsContent value="asistencia" className="pt-4">
           <CourseAttendancePanel courseId={courseId} />
+        </TabsContent>
+
+        {/* La baja va acá y no en el consolidado de notas: esa tabla es de solo lectura, y colgarle
+            una acción la vuelve otra cosa. Acá el curso se lee como padrón. */}
+        <TabsContent value="estudiantes" className="pt-4">
+          <p className="pb-3 text-xs text-muted-foreground">
+            Padrón del curso. Quien fue dado de baja se sigue mostrando, con su
+            motivo.
+          </p>
+          <CourseStudentsPanel courseId={courseId} />
         </TabsContent>
       </Tabs>
     </div>

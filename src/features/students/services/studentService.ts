@@ -3,6 +3,7 @@ import type {
   EnrollBatchRequest,
   EnrollSingleRequest,
 } from "../models/requests/enroll-request"
+import type { WithdrawStudentRequest } from "../models/requests/withdraw-request"
 import type { EnrollResponse } from "../models/response/enroll-response"
 import type { StudentDetail } from "../types"
 
@@ -13,6 +14,14 @@ export class StudentService {
   static async getById(id: string): Promise<StudentDetail> {
     const { call } = helper.getByIdAsync(id)
     return (await call).data
+  }
+
+  /** Baja lógica: el estudiante deja de estar en el padrón, su ficha y su historia quedan. */
+  static async withdraw(
+    id: string,
+    payload: WithdrawStudentRequest
+  ): Promise<void> {
+    await helper.withdrawAsync(id, payload).call
   }
 
   static async enrollSingle(

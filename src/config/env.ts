@@ -15,7 +15,8 @@ if (!parsed.success) {
     .map((issue) => `  - ${issue.path.join(".")}: ${issue.message}`)
     .join("\n")
 
-  // eslint-disable-next-line no-console
+  // La única consola que sobrevive a propósito: es lo último que se ve antes de que la app se
+  // niegue a arrancar, y sin este texto el error de abajo no dice qué variable falta.
   console.error(
     `\n[env] Variables de entorno inválidas o faltantes:\n${issues}\n\nRevisa tu archivo .env contra .env.example.\n`
   )

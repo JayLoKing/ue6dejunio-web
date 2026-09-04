@@ -2,12 +2,20 @@ import { useQuery } from "@tanstack/react-query"
 
 import { CatalogService } from "../services/catalogService"
 
+/**
+ * El catálogo se guarda cinco minutos porque casi nunca cambia — salvo cuando alguien lo cambia.
+ * Quien lo cambie tiene que invalidar su clave: un alta de usuario no toca
+ * `["catalog","teachers"]` por su cuenta, y el docente recién creado no aparecía en los selectores
+ * hasta que la caché venciera sola.
+ */
 export const catalogKeys = {
   grades: ["catalog", "grades"] as const,
   parallels: ["catalog", "parallels"] as const,
   subjects: ["catalog", "subjects"] as const,
   teachers: (technical?: boolean) =>
     ["catalog", "teachers", technical ?? "all"] as const,
+  /** Las tres listas de docentes a la vez: técnicos, de aula y todos. */
+  teachersAll: ["catalog", "teachers"] as const,
   trimesters: (academicYearId?: number) =>
     ["catalog", "trimesters", academicYearId ?? "current"] as const,
   academicYears: ["catalog", "academic-years"] as const,

@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react"
-import { SearchIcon } from "lucide-react"
+import { InfoIcon, SearchIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
   Table,
@@ -16,11 +17,25 @@ import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue"
 
 import type { StudentRow } from "../types"
 
+/** El estado que el backend escribe cuando se da de baja a un estudiante. */
+const WITHDRAWN = "Withdrawn"
+
+/** Lo que la columna guarda, en las palabras con las que se lee el padrón. */
+const STATUS_LABEL: Record<string, string> = {
+  Effective: "Activo",
+  Withdrawn: "Dado de baja",
+}
+
 export interface StudentsTableProps {
   data: StudentRow[]
   pageSize?: number
   isFetching?: boolean
   onRefresh?: () => void
+  /**
+   * Abre el motivo de la baja. Sin esto la tabla no lo ofrece: el padrón se muestra en más de una
+   * pantalla, y no todas tienen dónde abrirlo.
+   */
+  onOpenWithdrawal?: (studentId: string) => void
 }
 
 export function StudentsTable({
@@ -28,6 +43,7 @@ export function StudentsTable({
   pageSize = 10,
   isFetching,
   onRefresh,
+  onOpenWithdrawal,
 }: StudentsTableProps) {
   const [search, setSearch] = useState("")
   const [page, setPage] = useState(0)
@@ -71,13 +87,14 @@ export function StudentsTable({
               <TableHead>Carnet</TableHead>
               <TableHead>Nombre completo</TableHead>
               <TableHead>Estado</TableHead>
+              <TableHead className="w-10" />
             </TableRow>
           </TableHeader>
           <TableBody>
             {pageData.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={4}
+                  colSpan={5}
                   className="text-center text-muted-foreground"
                 >
                   Sin estudiantes.
@@ -94,7 +111,28 @@ export function StudentsTable({
                   </TableCell>
                   <TableCell>{s.fullName}</TableCell>
                   <TableCell>
-                    <Badge variant="secondary">{s.status}</Badge>
+                    <Badge variant="secondary">
+                      {/* Un estado que no está en el mapa se muestra tal cual: inventar una
+                          traducción para algo que el backend agregó después dice menos. */}
+                      {STATUS_LABEL[s.status] ?? s.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {/* Sólo la fila que despierta la pregunta puede contestarla. */}
+                    {s.status === WITHDRAWN && onOpenWithdrawal ? (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-8"
+                        title="Ver el motivo de la baja"
+                        onClick={() => onOpenWithdrawal(s.studentId)}
+                      >
+                        <InfoIcon className="size-4" />
+                        <span className="sr-only">
+                          Ver el motivo de la baja de {s.fullName}
+                        </span>
+                      </Button>
+                    ) : null}
                   </TableCell>
                 </TableRow>
               ))

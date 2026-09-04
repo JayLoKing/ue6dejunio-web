@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { createFileRoute, redirect } from "@tanstack/react-router"
 import { Loader2Icon } from "lucide-react"
 
@@ -8,6 +8,7 @@ import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
 import { useCourseStudents } from "@/features/courses/hooks/useCourses"
 import { EnrollStudentDialog } from "@/features/students/components/EnrollStudentDialog"
 import { StudentsTable } from "@/features/students/components/StudentsTable"
+import { StudentWithdrawalDialog } from "@/features/students/components/StudentWithdrawalDialog"
 import type { StudentRow } from "@/features/students/types"
 
 export const Route = createFileRoute("/_app/students")({
@@ -36,6 +37,7 @@ function StudentsPage() {
     () =>
       (studentsQuery.data?.content ?? []).map((s) => ({
         courseEnrollmentId: s.courseEnrollmentId,
+        studentId: s.studentId,
         rudeCode: s.rudeCode,
         identityCard: s.identityCard,
         fullName: s.fullName,
@@ -43,6 +45,9 @@ function StudentsPage() {
       })),
     [studentsQuery.data]
   )
+
+  // El estudiante cuya baja se está consultando. Null cierra el diálogo.
+  const [withdrawnId, setWithdrawnId] = useState<string | null>(null)
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -72,8 +77,14 @@ function StudentsPage() {
           pageSize={10}
           isFetching={studentsQuery.isFetching}
           onRefresh={() => void studentsQuery.refetch()}
+          onOpenWithdrawal={setWithdrawnId}
         />
       )}
+
+      <StudentWithdrawalDialog
+        studentId={withdrawnId}
+        onClose={() => setWithdrawnId(null)}
+      />
     </div>
   )
 }

@@ -12,6 +12,7 @@ import {
   LayersIcon,
   LayoutDashboardIcon,
   LayoutGridIcon,
+  LibraryIcon,
   type LucideIcon,
   SchoolIcon,
   UserSquare2Icon,
@@ -111,6 +112,13 @@ const ADMIN_LINKS: NavLink[] = [
     icon: LayoutGridIcon,
     roles: ["DIRECTOR"],
   },
+  // Antes que Materias: una materia no se puede crear sin un área a la que pertenecer.
+  {
+    title: "Áreas de Saberes",
+    to: "/areas-saberes",
+    icon: LibraryIcon,
+    roles: ["DIRECTOR"],
+  },
   {
     title: "Materias",
     to: "/subjects",
@@ -201,7 +209,7 @@ export function AppSidebar() {
                 )
               })}
 
-              {/* Docente: aula ve sus materias; tecnico ve sus cursos (su unica materia por curso). */}
+              {/* Docente: aula ve sus materias; técnico ve sus cursos (su única materia por curso). */}
               {teacher ? (
                 <Collapsible defaultOpen className="group/collapsible" asChild>
                   <SidebarMenuItem>

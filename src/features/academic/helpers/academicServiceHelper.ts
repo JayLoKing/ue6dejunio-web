@@ -6,6 +6,7 @@ import { toPageParams } from "@/lib/types/pagination"
 
 import {
   GradeUrl,
+  KnowledgeAreaUrl,
   LevelUrl,
   ParallelUrl,
   SubjectUrl,
@@ -14,6 +15,7 @@ import {
 import type {
   CreateTrimesterPeriodPayload,
   Grade,
+  KnowledgeArea,
   Level,
   Parallel,
   Subject,
@@ -147,6 +149,56 @@ export class ParallelServiceHelper {
   }
 }
 
+// ---- Knowledge areas ----
+export class KnowledgeAreaServiceHelper {
+  listAsync(query: PageQuery): UseApiCall<PagedResponse<KnowledgeArea>> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.get<PagedResponse<KnowledgeArea>>(
+        KnowledgeAreaUrl.Base,
+        {
+          signal: controller.signal,
+          params: toPageParams(query),
+        }
+      ),
+      controller,
+    }
+  }
+  createAsync(payload: {
+    name: string
+    displayOrder?: number
+  }): UseApiCall<KnowledgeArea> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.post<KnowledgeArea>(KnowledgeAreaUrl.Base, payload, {
+        signal: controller.signal,
+      }),
+      controller,
+    }
+  }
+  updateAsync(
+    id: number,
+    payload: { name: string; displayOrder?: number }
+  ): UseApiCall<KnowledgeArea> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.put<KnowledgeArea>(KnowledgeAreaUrl.ById(id), payload, {
+        signal: controller.signal,
+      }),
+      controller,
+    }
+  }
+  removeAsync(id: number): UseApiCall<void> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.delete<void>(KnowledgeAreaUrl.ById(id), {
+        signal: controller.signal,
+      }),
+      controller,
+    }
+  }
+}
+
 // ---- Subjects ----
 export class SubjectServiceHelper {
   listAsync(query: PageQuery): UseApiCall<PagedResponse<Subject>> {
@@ -159,8 +211,10 @@ export class SubjectServiceHelper {
       controller,
     }
   }
+  // `id_area` en snake_case porque así lo nombra el request de la API, que no traduce este campo.
   createAsync(payload: {
     name: string
+    id_area: number
     technical: boolean
   }): UseApiCall<Subject> {
     const controller = loadAbort()
@@ -173,7 +227,12 @@ export class SubjectServiceHelper {
   }
   updateAsync(
     id: string,
-    payload: { name?: string; technical?: boolean; active?: boolean }
+    payload: {
+      name?: string
+      id_area?: number
+      technical?: boolean
+      active?: boolean
+    }
   ): UseApiCall<Subject> {
     const controller = loadAbort()
     return {

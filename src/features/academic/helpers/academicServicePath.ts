@@ -13,6 +13,11 @@ export const ParallelUrl = {
   ById: (id: number) => `/parallels/${id}`,
 } as const
 
+export const KnowledgeAreaUrl = {
+  Base: "/knowledge-areas",
+  ById: (id: number) => `/knowledge-areas/${id}`,
+} as const
+
 export const SubjectUrl = {
   Base: "/subjects",
   ById: (id: string) => `/subjects/${id}`,

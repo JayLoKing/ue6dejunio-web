@@ -11,6 +11,7 @@ import type { PageQuery } from "@/lib/types/pagination"
 
 import {
   GradeAdminService,
+  KnowledgeAreaAdminService,
   LevelService,
   ParallelService,
   SubjectAdminService,
@@ -40,6 +41,22 @@ export const useParallels = (q: PageQuery) =>
   useResourceList("parallels", ParallelService.list, q)
 export const useSubjectsAdmin = (q: PageQuery) =>
   useResourceList("subjects", SubjectAdminService.list, q)
+export const useKnowledgeAreas = (q: PageQuery) =>
+  useResourceList("knowledge-areas", KnowledgeAreaAdminService.list, q)
+
+/**
+ * Todas las áreas de una, para los selectores.
+ *
+ * Son cuatro y casi nunca cambian, así que una página basta y se cachean cinco minutos: el
+ * formulario de materias no puede ofrecer un área que quedó fuera de la primera página.
+ */
+export const useAllKnowledgeAreas = () =>
+  useQuery({
+    queryKey: ["knowledge-areas", "all"],
+    queryFn: () =>
+      KnowledgeAreaAdminService.list({ offset: 1, limit: 100, sort: "asc" }),
+    staleTime: 5 * 60_000,
+  })
 
 function mutationFactory<V>(
   key: string,
@@ -112,16 +129,43 @@ export const useDeleteGrade = mutationFactory(
   "Grado eliminado."
 )
 
+// Knowledge areas
+export const useCreateKnowledgeArea = mutationFactory(
+  "knowledge-areas",
+  (p: { name: string; displayOrder?: number }) =>
+    KnowledgeAreaAdminService.create(p),
+  "Área de saberes creada."
+)
+export const useUpdateKnowledgeArea = mutationFactory(
+  "knowledge-areas",
+  (v: { id: number; name: string; displayOrder?: number }) =>
+    KnowledgeAreaAdminService.update(v.id, {
+      name: v.name,
+      displayOrder: v.displayOrder,
+    }),
+  "Área de saberes actualizada."
+)
+export const useDeleteKnowledgeArea = mutationFactory(
+  "knowledge-areas",
+  (id: number) => KnowledgeAreaAdminService.remove(id),
+  "Área de saberes eliminada."
+)
+
 // Subjects
 export const useCreateSubject = mutationFactory(
   "subjects",
-  (p: { name: string; technical: boolean }) => SubjectAdminService.create(p),
+  (p: { name: string; id_area: number; technical: boolean }) =>
+    SubjectAdminService.create(p),
   "Materia creada."
 )
 export const useUpdateSubject = mutationFactory(
   "subjects",
-  (v: { id: string; name: string; technical: boolean }) =>
-    SubjectAdminService.update(v.id, { name: v.name, technical: v.technical }),
+  (v: { id: string; name: string; id_area: number; technical: boolean }) =>
+    SubjectAdminService.update(v.id, {
+      name: v.name,
+      id_area: v.id_area,
+      technical: v.technical,
+    }),
   "Materia actualizada."
 )
 export const useDeleteSubject = mutationFactory(

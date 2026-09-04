@@ -2,6 +2,7 @@ import type { PagedResponse, PageQuery } from "@/lib/types/pagination"
 
 import {
   GradeServiceHelper,
+  KnowledgeAreaServiceHelper,
   LevelServiceHelper,
   ParallelServiceHelper,
   SubjectServiceHelper,
@@ -10,6 +11,7 @@ import {
 import type {
   CreateTrimesterPeriodPayload,
   Grade,
+  KnowledgeArea,
   Level,
   Parallel,
   Subject,
@@ -20,6 +22,7 @@ import type {
 const levelHelper = new LevelServiceHelper()
 const gradeHelper = new GradeServiceHelper()
 const parallelHelper = new ParallelServiceHelper()
+const knowledgeAreaHelper = new KnowledgeAreaServiceHelper()
 const subjectHelper = new SubjectServiceHelper()
 const trimesterHelper = new TrimesterPeriodServiceHelper()
 
@@ -89,6 +92,31 @@ export class ParallelService {
   }
 }
 
+// ---- Knowledge areas ----
+export class KnowledgeAreaAdminService {
+  static async list(q: PageQuery): Promise<PagedResponse<KnowledgeArea>> {
+    const { call } = knowledgeAreaHelper.listAsync(q)
+    return (await call).data
+  }
+  static async create(payload: {
+    name: string
+    displayOrder?: number
+  }): Promise<KnowledgeArea> {
+    const { call } = knowledgeAreaHelper.createAsync(payload)
+    return (await call).data
+  }
+  static async update(
+    id: number,
+    payload: { name: string; displayOrder?: number }
+  ): Promise<KnowledgeArea> {
+    const { call } = knowledgeAreaHelper.updateAsync(id, payload)
+    return (await call).data
+  }
+  static async remove(id: number): Promise<void> {
+    await knowledgeAreaHelper.removeAsync(id).call
+  }
+}
+
 // ---- Subjects ----
 export class SubjectAdminService {
   static async list(q: PageQuery): Promise<PagedResponse<Subject>> {
@@ -97,6 +125,7 @@ export class SubjectAdminService {
   }
   static async create(payload: {
     name: string
+    id_area: number
     technical: boolean
   }): Promise<Subject> {
     const { call } = subjectHelper.createAsync(payload)
@@ -104,7 +133,12 @@ export class SubjectAdminService {
   }
   static async update(
     id: string,
-    payload: { name?: string; technical?: boolean; active?: boolean }
+    payload: {
+      name?: string
+      id_area?: number
+      technical?: boolean
+      active?: boolean
+    }
   ): Promise<Subject> {
     const { call } = subjectHelper.updateAsync(id, payload)
     return (await call).data

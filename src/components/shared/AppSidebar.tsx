@@ -65,7 +65,7 @@ const TOP_LINKS: NavLink[] = [
   },
   { title: "Usuarios", to: "/users", icon: UsersIcon, roles: ["DIRECTOR"] },
   {
-    title: "Asignar materias",
+    title: "Registrar Curso",
     to: "/courses",
     icon: ClipboardListIcon,
     roles: ["DIRECTOR"],
@@ -216,12 +216,12 @@ export function AppSidebar() {
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton
                         tooltip={
-                          isTechnical ? "Mis cursos" : "Materias / Áreas"
+                          isTechnical ? "Mis cursos" : "Cuaderno Pedagógico"
                         }
                       >
                         {isTechnical ? <SchoolIcon /> : <ClipboardListIcon />}
                         <span>
-                          {isTechnical ? "Mis cursos" : "Materias / Áreas"}
+                          {isTechnical ? "Mis cursos" : "Cuaderno Pedagógico"}
                         </span>
                         <ChevronRightIcon className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
                       </SidebarMenuButton>

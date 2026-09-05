@@ -20,6 +20,9 @@ export const createUserSchema = z.object({
     .number({ message: "Selecciona un rol" })
     .int()
     .positive("Selecciona un rol"),
+  // Sin pregunta que responder fuera de Docente, así que el formulario lo mantiene en false y sólo
+  // lo muestra donde significa algo. La API vuelve a imponer la misma regla.
+  technical: z.boolean(),
 })
 
 export type CreateUserFormValues = z.infer<typeof createUserSchema>

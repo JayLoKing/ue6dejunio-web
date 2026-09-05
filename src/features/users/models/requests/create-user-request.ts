@@ -5,4 +5,6 @@ export interface CreateUserRequest {
   phone: string
   email: string
   roleId: number
+  /** Sólo un docente puede serlo; la API guarda false para cualquier otro rol. */
+  technical: boolean
 }

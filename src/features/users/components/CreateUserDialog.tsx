@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useForm, Controller } from "react-hook-form"
+import { useForm, useWatch, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { PlusIcon } from "lucide-react"
 
@@ -19,6 +19,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -33,7 +34,7 @@ import {
   type CreateUserFormValues,
 } from "../models/schemas/user-schemas"
 import { useCreateUser } from "../hooks/useCreateUser"
-import { ASSIGNABLE_ROLES } from "../types"
+import { ASSIGNABLE_ROLES, teachesSubjects } from "../types"
 
 export function CreateUserDialog() {
   const [open, setOpen] = useState(false)
@@ -42,6 +43,7 @@ export function CreateUserDialog() {
     handleSubmit,
     control,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<CreateUserFormValues>({
     resolver: zodResolver(createUserSchema),
@@ -51,11 +53,17 @@ export function CreateUserDialog() {
       lastNames: "",
       phone: "",
       email: "",
+      technical: false,
       // Sin roleId: todavía no se eligió nada, y defaultValues es parcial, así que la forma
       // honesta de decir "sin valor" es omitirlo. Castear undefined a number solo le decía al
       // compilador que había un número donde no había ninguno.
     },
   })
+
+  // useWatch y no watch(): watch devuelve una función nueva en cada render, y el compilador de
+  // React deja de memoizar el componente entero antes que arriesgar una UI vieja.
+  const roleId = useWatch({ control, name: "roleId" })
+  const showsTechnical = teachesSubjects(roleId)
 
   const { mutateAsync, isPending } = useCreateUser()
 
@@ -68,6 +76,7 @@ export function CreateUserDialog() {
         phone: values.phone ?? "",
         email: values.email,
         roleId: values.roleId,
+        technical: values.technical,
       })
       reset()
       setOpen(false)
@@ -121,7 +130,15 @@ export function CreateUserDialog() {
                   render={({ field }) => (
                     <Select
                       value={field.value ? String(field.value) : ""}
-                      onValueChange={(v) => field.onChange(Number(v))}
+                      onValueChange={(v) => {
+                        const roleId = Number(v)
+                        field.onChange(roleId)
+                        // La respuesta pertenecía al rol que la pidió: si el rol deja de enseñar,
+                        // el campo queda escondido y mandaría un valor que nadie volvió a ver.
+                        if (!teachesSubjects(roleId)) {
+                          setValue("technical", false)
+                        }
+                      }}
                     >
                       <SelectTrigger
                         id="roleId"
@@ -195,6 +212,25 @@ export function CreateUserDialog() {
                 <FieldError>{errors.phone.message}</FieldError>
               ) : null}
             </Field>
+
+            {showsTechnical ? (
+              <Controller
+                control={control}
+                name="technical"
+                render={({ field }) => (
+                  <Field orientation="horizontal">
+                    <Checkbox
+                      id="technical"
+                      checked={field.value}
+                      onCheckedChange={(v) => field.onChange(Boolean(v))}
+                    />
+                    <FieldLabel htmlFor="technical" className="font-normal">
+                      Docente técnico
+                    </FieldLabel>
+                  </Field>
+                )}
+              />
+            ) : null}
           </FieldGroup>
 
           <DialogFooter className="mt-6">

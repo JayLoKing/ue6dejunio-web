@@ -23,6 +23,15 @@ export const ASSIGNABLE_ROLES: readonly RoleOption[] = ROLES.filter(
 )
 
 /**
+ * Si el rol elegido enseña.
+ *
+ * Ser docente técnico es una propiedad de quien dicta materias: preguntárselo a un secretario deja
+ * una respuesta guardada que después lo hace aparecer en el catálogo de docentes técnicos.
+ */
+export const teachesSubjects = (roleId: number | undefined): boolean =>
+  roleId !== undefined && roleId === ROLES.find((r) => r.name === "TEACHER")?.id
+
+/**
  * Las opciones para editar a alguien que ya existe.
  *
  * Si la persona tiene un rol que no se otorga —hoy, dirección— se lo incluye igual: un selector que

@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest"
 
-import { ASSIGNABLE_ROLES, ROLES, roleOptionsFor } from "./index"
+import {
+  ASSIGNABLE_ROLES,
+  ROLES,
+  roleOptionsFor,
+  teachesSubjects,
+} from "./index"
 
 describe("assignable roles", () => {
   /**
@@ -18,6 +23,22 @@ describe("assignable roles", () => {
 
   it("still knows every role exists, for reading one back", () => {
     expect(ROLES.map((r) => r.name)).toContain("DIRECTOR")
+  })
+})
+
+describe("teachesSubjects", () => {
+  it("recognises the teaching role", () => {
+    expect(teachesSubjects(3)).toBe(true)
+  })
+
+  it("says no for every other role", () => {
+    expect(teachesSubjects(1)).toBe(false)
+    expect(teachesSubjects(2)).toBe(false)
+  })
+
+  /** No role chosen is not a teaching role, and must not read as one. */
+  it("says no when nothing has been chosen", () => {
+    expect(teachesSubjects(undefined)).toBe(false)
   })
 })
 

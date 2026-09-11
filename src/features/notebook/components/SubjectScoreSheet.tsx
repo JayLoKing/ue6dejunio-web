@@ -1,15 +1,21 @@
 import { Fragment, useMemo, useState } from "react"
 import { Link } from "@tanstack/react-router"
-import { AlertTriangleIcon, Loader2Icon } from "lucide-react"
+import { AlertTriangleIcon, Loader2Icon, BrainCircuitIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TrimesterSelect } from "@/components/shared/TrimesterSelect"
 import { useCourseStudents } from "@/features/courses/hooks/useCourses"
 import type { ClassGroupItem } from "@/features/courses/types/course"
 import { isTechnicalSubject } from "@/features/courses/types/course"
+import {
+  useClassGroupRisk,
+  usePredictClassGroupRisk,
+} from "@/features/risk/hooks/useRisk"
+import { RiskProbability } from "@/features/risk/components/RiskProbability"
 
 import {
   DIMENSIONS,
@@ -69,6 +75,16 @@ export function SubjectScoreSheet({
   // acá y se dibuja leyendo directamente la nota. Así un refetch no puede pisar lo que
   // el docente está escribiendo, y no hace falta sincronizar nada en un efecto.
   const [draft, setDraft] = useState<Record<string, string>>({})
+
+  // El riesgo vive en su propio panel; acá va sólo la columna, al lado de la nota que la explica.
+  const riskQuery = useClassGroupRisk(classGroup.id, trimester)
+  const predictRisk = usePredictClassGroupRisk()
+  const predictionsLoading = riskQuery.isLoading
+  // Por estudiante: la tabla busca treinta veces, y un find lineal por fila sería cuadrático.
+  const riskByStudent = useMemo(
+    () => new Map((riskQuery.data ?? []).map((r) => [r.studentId, r])),
+    [riskQuery.data]
+  )
 
   const criteriaQuery = useCriteria(classGroup.id, trimester)
   const critLoading = criteriaQuery.isLoading
@@ -220,7 +236,10 @@ export function SubjectScoreSheet({
   const visibleDims = DIMENSIONS.filter((d) =>
     columns.some((c) => c.dimKey === d.key)
   )
-  const bodyColSpan = columns.length + visibleDims.length + 2
+  // Las tres fijas son Estudiante, el promedio trimestral y el riesgo; cada dimensión visible
+  // suma su propia columna de promedio además de sus criterios. Si se agrega o saca una columna
+  // fija hay que tocar esto, o la fila de "sin estudiantes" deja de cubrir la tabla.
+  const bodyColSpan = columns.length + visibleDims.length + 3
 
   const hasCriteria = criteria.length > 0
   const technical = isTechnicalSubject(classGroup.subjectName)
@@ -241,12 +260,32 @@ export function SubjectScoreSheet({
             </span>
           ) : null}
         </h2>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Trimestre</span>
-          <TrimesterSelect
-            value={trimester}
-            onChange={(t) => setTrimester(t as Trimester)}
-          />
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            disabled={
+              predictRisk.isPending || hasCriteria === false || readOnly
+            }
+            onClick={() =>
+              predictRisk.mutate({ classGroupId: classGroup.id, trimester })
+            }
+          >
+            {predictRisk.isPending ? (
+              <Loader2Icon className="size-4 animate-spin" />
+            ) : (
+              <BrainCircuitIcon className="size-4 text-primary" />
+            )}
+            Predecir Riesgo
+          </Button>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Trimestre</span>
+            <TrimesterSelect
+              value={trimester}
+              onChange={(t) => setTrimester(t as Trimester)}
+            />
+          </div>
         </div>
       </div>
 
@@ -310,6 +349,15 @@ export function SubjectScoreSheet({
                       >
                         <div className={VERTICAL_HEAD}>
                           PROMEDIO TRIMESTRAL · /100
+                        </div>
+                      </th>
+                      <th
+                        rowSpan={2}
+                        className="w-10 border-b border-l bg-rose-500/10 p-1 align-bottom font-semibold text-rose-700 dark:text-rose-400"
+                        title="Probabilidad de reprobar la materia al finalizar el año"
+                      >
+                        <div className={VERTICAL_HEAD}>
+                          RIESGO (PROB. REPRUEBA)
                         </div>
                       </th>
                     </tr>
@@ -494,11 +542,22 @@ export function SubjectScoreSheet({
                             })}
                             <td
                               className={cn(
-                                "px-2 py-1 text-center font-semibold",
+                                "border-r px-2 py-1 text-center font-semibold",
                                 rowBg
                               )}
                             >
                               {round1(totalOf(ce))}
+                            </td>
+                            <td
+                              className={cn(
+                                "border-l px-2 py-1 text-center font-medium",
+                                rowBg
+                              )}
+                            >
+                              <RiskProbability
+                                risk={riskByStudent.get(s.studentId)}
+                                isLoading={predictionsLoading}
+                              />
                             </td>
                           </tr>
                         )

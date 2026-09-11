@@ -5,6 +5,7 @@ import {
   CalendarRangeIcon,
   ChevronRightIcon,
   ClipboardListIcon,
+  BrainCircuitIcon,
   FileBarChartIcon,
   Bell,
   FileText,
@@ -95,6 +96,14 @@ const TOP_LINKS: NavLink[] = [
     to: "/reports",
     icon: FileBarChartIcon,
     roles: ["TEACHER"],
+  },
+  // Sin secretaría: una predicción nombra a un estudiante y su probabilidad de reprobar, y eso lo
+  // lee quien enseña y quien dirige, no quien administra el padrón.
+  {
+    title: "Riesgo académico",
+    to: "/riesgo",
+    icon: BrainCircuitIcon,
+    roles: ["DIRECTOR", "TEACHER"],
   },
 ]
 

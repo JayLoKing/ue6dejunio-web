@@ -1,10 +1,13 @@
+import { useState } from "react"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { ArrowLeftIcon, UserIcon } from "lucide-react"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { TrimesterSelect } from "@/components/shared/TrimesterSelect"
 import { useAllCourses } from "@/features/courses/hooks/useCourses"
 import { CentralizerTable } from "@/features/gradebook/components/CentralizerTable"
 import { CourseAttendancePanel } from "@/features/gradebook/components/CourseAttendancePanel"
+import { CourseRiskPanel } from "@/features/risk/components/CourseRiskPanel"
 import { CourseStudentsPanel } from "@/features/students/components/CourseStudentsPanel"
 
 export const Route = createFileRoute(
@@ -17,6 +20,7 @@ function CourseGradebookPage() {
   const { parallelId, courseId } = Route.useParams()
   const coursesQuery = useAllCourses()
   const course = coursesQuery.data?.content.find((c) => c.id === courseId)
+  const [trimester, setTrimester] = useState(1)
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
@@ -48,6 +52,7 @@ function CourseGradebookPage() {
           <TabsTrigger value="notas">Notas</TabsTrigger>
           <TabsTrigger value="asistencia">Asistencia</TabsTrigger>
           <TabsTrigger value="estudiantes">Estudiantes</TabsTrigger>
+          <TabsTrigger value="riesgo">Riesgo</TabsTrigger>
         </TabsList>
 
         <TabsContent value="notas" className="pt-4">
@@ -85,6 +90,27 @@ function CourseGradebookPage() {
             motivo.
           </p>
           <CourseStudentsPanel courseId={courseId} />
+        </TabsContent>
+
+        {/* Sólo lectura, como el resto de esta pantalla: atender una predicción es de quien da la
+            materia, y Dirección no da ninguna. El panel entero vive en /riesgo. */}
+        <TabsContent value="riesgo" className="pt-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-3">
+            <p className="text-xs text-muted-foreground">
+              Lo que el modelo anticipa en las materias de este curso. Predice
+              sobre lo ya calificado: a quien le falta una dimensión, no lo
+              evalúa.
+            </p>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Trimestre</span>
+              <TrimesterSelect
+                value={trimester}
+                onChange={setTrimester}
+                showRange={false}
+              />
+            </div>
+          </div>
+          <CourseRiskPanel courseId={courseId} trimester={trimester} />
         </TabsContent>
       </Tabs>
     </div>

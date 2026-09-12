@@ -9,6 +9,7 @@ import type {
   CourseAttendanceRow,
   CourseAttendanceStats,
   EnrollmentScore,
+  StudentAnnualSummary,
   StudentSummary,
 } from "../types"
 
@@ -39,6 +40,24 @@ export default class GradebookServiceHelper {
         {
           signal: controller.signal,
           params: toPageParams(query, { id_course: courseId, trimester }),
+        }
+      ),
+      controller,
+    }
+  }
+
+  /** Sin parámetro de trimestre: el curso ya fija su gestión, y la hoja es el año entero. */
+  annualCentralizerAsync(
+    courseId: string,
+    query: PageQuery
+  ): UseApiCall<PagedResponse<StudentAnnualSummary>> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.get<PagedResponse<StudentAnnualSummary>>(
+        GradebookUrl.AnnualCentralizer,
+        {
+          signal: controller.signal,
+          params: toPageParams(query, { id_course: courseId }),
         }
       ),
       controller,

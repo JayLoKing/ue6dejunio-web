@@ -18,6 +18,20 @@ export function useCentralizer(
   })
 }
 
+/** El año completo del curso: las tres hojas de cierre salen de esta única consulta. */
+export function useAnnualCentralizer(
+  courseId: string | null | undefined,
+  query: PageQuery
+) {
+  return useQuery({
+    queryKey: ["gradebook", "annual-centralizer", courseId ?? "", query],
+    queryFn: courseId
+      ? () => GradebookService.annualCentralizer(courseId, query)
+      : skipToken,
+    placeholderData: keepPreviousData,
+  })
+}
+
 export function useCourseAttendance(
   courseId: string | null | undefined,
   query: PageQuery,

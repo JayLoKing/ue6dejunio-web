@@ -1,5 +1,3 @@
-import type { StudentSubjectTotal, StudentSummary } from "../types"
-
 /**
  * The subject columns the centralizer heads itself with: every subject anybody on the page holds,
  * named once.
@@ -12,11 +10,14 @@ import type { StudentSubjectTotal, StudentSummary } from "../types"
  * <p>The fullest row goes first so the order stays the course's own. Building the header from a
  * short row and appending what it lacked would put a missing subject after the ones that follow it
  * in the plan.
+ *
+ * Generic over the cell, because the trimester sheet and the annual sheet head themselves the same
+ * way and differ only in what hangs under each column.
  */
-export function subjectColumnsOf(
-  rows: StudentSummary[]
-): StudentSubjectTotal[] {
-  const columns = new Map<string, StudentSubjectTotal>()
+export function subjectColumnsOf<T extends { classGroupId: string }>(
+  rows: { subjects: T[] }[]
+): T[] {
+  const columns = new Map<string, T>()
   // Sort is stable, so rows holding the same number of subjects keep the order the page sent them.
   const fullestFirst = [...rows].sort(
     (a, b) => b.subjects.length - a.subjects.length

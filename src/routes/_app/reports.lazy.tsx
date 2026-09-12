@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
 import { CentralizerTable } from "@/features/gradebook/components/CentralizerTable"
 import { AverageRanking } from "@/features/gradebook/components/AverageRanking"
+import { AnnualSheetsPanel } from "@/features/gradebook/components/AnnualSheetsPanel"
 
 export const Route = createLazyFileRoute("/_app/reports")({
   component: ReportsPage,
@@ -35,11 +36,15 @@ function ReportsPage() {
         <Tabs defaultValue="centralizador">
           <TabsList>
             <TabsTrigger value="centralizador">Centralizador</TabsTrigger>
+            <TabsTrigger value="anual">Cierre de gestión</TabsTrigger>
             <TabsTrigger value="promedios">Promedios</TabsTrigger>
             <TabsTrigger value="informe">Informe pedagógico</TabsTrigger>
           </TabsList>
           <TabsContent value="centralizador" className="pt-4">
             <CentralizerTable courseId={homeroomCourseId} />
+          </TabsContent>
+          <TabsContent value="anual" className="pt-4">
+            <AnnualSheetsPanel courseId={homeroomCourseId} />
           </TabsContent>
           <TabsContent value="promedios" className="pt-4">
             <AverageRanking courseId={homeroomCourseId} />

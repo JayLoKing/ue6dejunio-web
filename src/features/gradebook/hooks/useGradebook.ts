@@ -32,6 +32,16 @@ export function useAnnualCentralizer(
   })
 }
 
+/** La libreta de un estudiante. El encabezado de la escuela se lee aparte, de `useInstitution`. */
+export function useReportCard(courseEnrollmentId: string | null | undefined) {
+  return useQuery({
+    queryKey: ["gradebook", "report-card", courseEnrollmentId ?? ""],
+    queryFn: courseEnrollmentId
+      ? () => GradebookService.reportCard(courseEnrollmentId)
+      : skipToken,
+  })
+}
+
 export function useCourseAttendance(
   courseId: string | null | undefined,
   query: PageQuery,

@@ -93,6 +93,12 @@ describe("PdcPreview", () => {
           district: "Sacaba",
           school: 'Unidad Educativa "6 de Junio"',
           directorName: "Luis Rojas",
+          // The PDC prints none of these four; the libreta and the informe pedagógico do, and the
+          // heading is one object for all of them.
+          department: "Cochabamba",
+          dependency: "Fiscal",
+          shift: "Mañana",
+          educationLevel: "Educación Primaria Comunitaria Vocacional",
         }}
       />
     )

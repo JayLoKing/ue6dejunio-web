@@ -55,22 +55,8 @@ th { text-align: left; }
 .pdc-sign { border-top: 1px solid #000; padding-top: 4px; }
 `
 
-/**
- * Backgrounds are the first thing a browser drops when it prints, and the two greens are what make
- * the sheet recognisable as the form rather than as a grid of text. Asked for on every element,
- * because the rule does not inherit through table cells in every engine.
+/*
+ * Both of these belong to every sheet the school prints, not to this one. They live in lib and are
+ * re-exported here so the form's own module still reads as the one place its look is described.
  */
-export const PRINT_COLOR_CSS = `
-html, body, table, thead, tbody, tr, td, th, p, div, span, article, header, footer {
-  -webkit-print-color-adjust: exact;
-  print-color-adjust: exact;
-}
-`
-
-export function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-}
+export { escapeHtml, PRINT_COLOR_CSS } from "@/lib/printDocument"

@@ -9,6 +9,7 @@ import {
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
+import { printElementById } from "@/lib/printDocument"
 import type { Institution } from "@/features/institution/types"
 import type { Adaptation } from "@/features/adaptation/types"
 
@@ -70,36 +71,7 @@ async function downloadPdcAsDocx(
  * document, there is nothing left to escape from.
  */
 function printPdcDocument(title: string) {
-  const node = document.getElementById(PDC_DOCUMENT_ID)
-  if (!node) return
-
-  const frame = document.createElement("iframe")
-  frame.setAttribute("aria-hidden", "true")
-  frame.setAttribute("title", title)
-  frame.style.position = "fixed"
-  frame.style.right = "0"
-  frame.style.bottom = "0"
-  frame.style.width = "0"
-  frame.style.height = "0"
-  frame.style.border = "0"
-
-  frame.onload = () => {
-    const view = frame.contentWindow
-    if (!view) {
-      frame.remove()
-      return
-    }
-    // Taking the frame away while the dialog is still open cancels the job in some browsers, so it
-    // leaves on afterprint — and on a timer too, because Safari does not always fire it.
-    const done = () => frame.remove()
-    view.addEventListener("afterprint", done, { once: true })
-    setTimeout(done, 60_000)
-    view.focus()
-    view.print()
-  }
-
-  document.body.appendChild(frame)
-  frame.srcdoc = printableDocumentOf(node.innerHTML, title)
+  printElementById(PDC_DOCUMENT_ID, title, printableDocumentOf)
 }
 
 export interface PdcDocumentPanelProps {

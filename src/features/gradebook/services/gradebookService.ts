@@ -6,6 +6,7 @@ import type {
   CourseAttendanceStats,
   EnrollmentScore,
   StudentAnnualSummary,
+  StudentReportCard,
   StudentSummary,
 } from "../types"
 
@@ -32,6 +33,11 @@ export class GradebookService {
     query: PageQuery
   ): Promise<PagedResponse<StudentAnnualSummary>> {
     return (await helper.annualCentralizerAsync(courseId, query).call).data
+  }
+  static async reportCard(
+    courseEnrollmentId: string
+  ): Promise<StudentReportCard> {
+    return (await helper.reportCardAsync(courseEnrollmentId).call).data
   }
   static async attendance(
     courseId: string,

@@ -10,6 +10,7 @@ import type {
   CourseAttendanceStats,
   EnrollmentScore,
   StudentAnnualSummary,
+  StudentReportCard,
   StudentSummary,
 } from "../types"
 
@@ -60,6 +61,18 @@ export default class GradebookServiceHelper {
           params: toPageParams(query, { id_course: courseId }),
         }
       ),
+      controller,
+    }
+  }
+
+  /** La libreta de un estudiante. El encabezado de la escuela se pide aparte, una sola vez. */
+  reportCardAsync(courseEnrollmentId: string): UseApiCall<StudentReportCard> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.get<StudentReportCard>(GradebookUrl.ReportCard, {
+        signal: controller.signal,
+        params: { id_course_enrollment: courseEnrollmentId },
+      }),
       controller,
     }
   }

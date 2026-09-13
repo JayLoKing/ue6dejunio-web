@@ -4,6 +4,7 @@ export const GradebookUrl = {
   StudentSummary: `${baseModuleUrl}/student-summary`,
   Centralizer: `${baseModuleUrl}/centralizer`,
   AnnualCentralizer: `${baseModuleUrl}/annual-centralizer`,
+  ReportCard: `${baseModuleUrl}/report-card`,
   Attendance: `${baseModuleUrl}/attendance`,
 } as const
 

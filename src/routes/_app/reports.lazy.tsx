@@ -6,6 +6,7 @@ import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
 import { CentralizerTable } from "@/features/gradebook/components/CentralizerTable"
 import { AverageRanking } from "@/features/gradebook/components/AverageRanking"
 import { AnnualSheetsPanel } from "@/features/gradebook/components/AnnualSheetsPanel"
+import { ReportCardPanel } from "@/features/gradebook/components/ReportCardPanel"
 
 export const Route = createLazyFileRoute("/_app/reports")({
   component: ReportsPage,
@@ -37,6 +38,7 @@ function ReportsPage() {
           <TabsList>
             <TabsTrigger value="centralizador">Centralizador</TabsTrigger>
             <TabsTrigger value="anual">Cierre de gestión</TabsTrigger>
+            <TabsTrigger value="libretas">Libretas</TabsTrigger>
             <TabsTrigger value="promedios">Promedios</TabsTrigger>
             <TabsTrigger value="informe">Informe pedagógico</TabsTrigger>
           </TabsList>
@@ -45,6 +47,9 @@ function ReportsPage() {
           </TabsContent>
           <TabsContent value="anual" className="pt-4">
             <AnnualSheetsPanel courseId={homeroomCourseId} />
+          </TabsContent>
+          <TabsContent value="libretas" className="pt-4">
+            <ReportCardPanel courseId={homeroomCourseId} />
           </TabsContent>
           <TabsContent value="promedios" className="pt-4">
             <AverageRanking courseId={homeroomCourseId} />

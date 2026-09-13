@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react"
-import { Loader2Icon, PrinterIcon } from "lucide-react"
+import { FileDownIcon, Loader2Icon, PrinterIcon } from "lucide-react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -10,14 +11,39 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { printElementById } from "@/lib/printDocument"
+import { saveBlob } from "@/lib/saveBlob"
+import type { Institution } from "@/features/institution/types"
 import { useInstitution } from "@/features/institution/hooks/useInstitution"
 
 import { useAnnualCentralizer, useReportCard } from "../hooks/useGradebook"
-import {
-  REPORT_CARD_DOCUMENT_ID,
-  ReportCardPreview,
-} from "./ReportCardPreview"
+import { REPORT_CARD_DOCUMENT_ID, ReportCardPreview } from "./ReportCardPreview"
+import type { StudentReportCard } from "../types"
 import { printableReportCardOf } from "../utils/reportCardDocument"
+
+/** El nombre con el que la libreta llega al disco, y el título de la ventana de impresión. */
+function reportCardLabel(card: StudentReportCard): string {
+  return `Libreta ${card.fullName} ${card.year}`
+}
+
+/**
+ * La libreta como archivo de Word.
+ *
+ * Se escribe desde los datos y no desde el marcado de la pantalla, así lo que abre Word no depende
+ * de una hoja de estilos que nunca viajó con el archivo. La librería se carga recién cuando alguien
+ * pide el archivo: escribe documentos, y no tiene nada que hacer en el bundle que descarga todo el
+ * mundo para ver un listado.
+ */
+async function downloadReportCardAsDocx(
+  card: StudentReportCard,
+  school: Institution
+) {
+  const [{ reportCardDocxOf }, { Packer }] = await Promise.all([
+    import("../utils/reportCardDocx"),
+    import("docx"),
+  ])
+  const blob = await Packer.toBlob(reportCardDocxOf({ card, school }))
+  saveBlob(blob, `${reportCardLabel(card)}.docx`)
+}
 
 export interface ReportCardPanelProps {
   courseId: string
@@ -32,6 +58,7 @@ export interface ReportCardPanelProps {
  */
 export function ReportCardPanel({ courseId }: ReportCardPanelProps) {
   const [enrollmentId, setEnrollmentId] = useState<string | null>(null)
+  const [writing, setWriting] = useState(false)
 
   const rosterQuery = useMemo(
     () => ({ offset: 1, limit: 200, sort: "asc" as const }),
@@ -50,9 +77,17 @@ export function ReportCardPanel({ courseId }: ReportCardPanelProps) {
     if (!card) return
     printElementById(
       REPORT_CARD_DOCUMENT_ID,
-      `Libreta ${card.fullName} ${card.year}`,
+      reportCardLabel(card),
       printableReportCardOf
     )
+  }
+
+  const download = () => {
+    if (!card || !school) return
+    setWriting(true)
+    downloadReportCardAsDocx(card, school)
+      .catch(() => toast.error("No se pudo generar el documento de Word."))
+      .finally(() => setWriting(false))
   }
 
   return (
@@ -81,19 +116,39 @@ export function ReportCardPanel({ courseId }: ReportCardPanelProps) {
           </Select>
         </div>
 
-        <Button
-          variant="outline"
-          onClick={print}
-          disabled={!card || !school}
-          title={
-            school
-              ? undefined
-              : "Falta el encabezado de la unidad educativa para imprimir"
-          }
-        >
-          <PrinterIcon className="size-4" />
-          Imprimir
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={download}
+            disabled={!card || !school || writing}
+            title={
+              school
+                ? undefined
+                : "Falta el encabezado de la unidad educativa para exportar"
+            }
+          >
+            {writing ? (
+              <Loader2Icon className="size-4 animate-spin" />
+            ) : (
+              <FileDownIcon className="size-4" />
+            )}
+            Descargar Word
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={print}
+            disabled={!card || !school}
+            title={
+              school
+                ? undefined
+                : "Falta el encabezado de la unidad educativa para imprimir"
+            }
+          >
+            <PrinterIcon className="size-4" />
+            Imprimir
+          </Button>
+        </div>
       </div>
 
       {!enrollmentId ? (

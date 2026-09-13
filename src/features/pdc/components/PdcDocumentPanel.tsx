@@ -10,6 +10,7 @@ import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { printElementById } from "@/lib/printDocument"
+import { saveBlob } from "@/lib/saveBlob"
 import type { Institution } from "@/features/institution/types"
 import type { Adaptation } from "@/features/adaptation/types"
 
@@ -18,25 +19,6 @@ import type { Pdc } from "../types"
 import { planLabel } from "../utils/planLabel"
 import { printableDocumentOf } from "../utils/printDocument"
 import { DEFAULT_ZOOM, ZOOM_STEPS, zoomIn, zoomOut } from "../utils/zoom"
-
-/**
- * Hands a file to the browser.
- *
- * <p>The anchor goes into the document and the object URL is released on the next tick. Clicking a
- * detached anchor and revoking its URL in the same statement raced the download in some browsers,
- * which read the blob after the click returns.
- */
-function saveBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement("a")
-  link.href = url
-  link.download = filename
-  link.style.display = "none"
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
-  setTimeout(() => URL.revokeObjectURL(url), 0)
-}
 
 /**
  * The document as a real Office file.

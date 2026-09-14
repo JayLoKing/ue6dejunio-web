@@ -62,11 +62,22 @@ export function ClassGroupRiskPanel({
         </Button>
       </div>
 
+      {/*
+        The run button above stays reachable whatever happens below it: what can break here is the
+        reading of the standing rows, and running the model again is the very thing that might fix
+        it. A failed read never falls into the empty table — "sin predicciones" is an answer about
+        the subject, and it is the opposite of the one a request that never arrived deserves.
+      */}
       {risks.isLoading ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2Icon className="size-4 animate-spin" />
           Cargando predicciones…
         </div>
+      ) : risks.isError ? (
+        <p className="text-sm text-destructive">
+          No se pudo cargar las predicciones de la materia. Reintenta en un
+          momento.
+        </p>
       ) : (
         <>
           <RiskSummaryCards rows={rows} />

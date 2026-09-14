@@ -59,6 +59,17 @@ export function CourseRiskPanel({
     )
   }
 
+  // A failed request must not fall into the empty table. "Sin predicciones para este trimestre" is
+  // an answer about the course — nobody the model is calling for — and it is the opposite of the
+  // one a request that never arrived deserves.
+  if (risks.isError) {
+    return (
+      <p className="text-sm text-destructive">
+        No se pudo cargar las predicciones del curso. Reintenta en un momento.
+      </p>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <RiskSummaryCards rows={rows} />

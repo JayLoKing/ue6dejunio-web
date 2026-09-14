@@ -58,7 +58,10 @@ export function InstitutionRiskTable({ rows }: InstitutionRiskTableProps) {
         <TableBody>
           {rows.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="text-center text-muted-foreground">
+              <TableCell
+                colSpan={6}
+                className="text-center text-muted-foreground"
+              >
                 Sin predicciones para este trimestre.
               </TableCell>
             </TableRow>
@@ -71,7 +74,9 @@ export function InstitutionRiskTable({ rows }: InstitutionRiskTableProps) {
                   <TableCell className="text-right text-muted-foreground tabular-nums">
                     {entry.position}
                   </TableCell>
-                  <TableCell className="font-medium">{entry.fullName}</TableCell>
+                  <TableCell className="font-medium">
+                    {entry.fullName}
+                  </TableCell>
                   <TableCell>
                     {entry.gradeName} {entry.parallelName}
                   </TableCell>
@@ -81,7 +86,9 @@ export function InstitutionRiskTable({ rows }: InstitutionRiskTableProps) {
                       {riskLevelLabel(entry.riskLevel)}
                     </Badge>
                   </TableCell>
-                  <TableCell className={cn("text-right", RISK_TEXT_CLASS[tone])}>
+                  <TableCell
+                    className={cn("text-right", RISK_TEXT_CLASS[tone])}
+                  >
                     {formatProbability(entry.pFail)}
                   </TableCell>
                 </TableRow>

@@ -55,7 +55,13 @@ export function useInstitutionHonorRoll(
   places: number
 ) {
   return useQuery({
-    queryKey: ["gradebook", "honor-roll", "institution", academicYearId ?? "", places],
+    queryKey: [
+      "gradebook",
+      "honor-roll",
+      "institution",
+      academicYearId ?? "",
+      places,
+    ],
     queryFn: academicYearId
       ? () => GradebookService.institutionHonorRoll(academicYearId, places)
       : skipToken,

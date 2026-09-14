@@ -47,9 +47,9 @@ export function InstitutionRiskPanel({
     )
   }
 
-  // Una consulta que falló no puede caer en la tabla vacía. "Sin predicciones" es una respuesta
-  // — nadie en riesgo este trimestre — y es exactamente la contraria a "no se pudo preguntar".
-  // Dirección leería que la escuela está bien justo el día en que no lo está.
+  // A failed query must not fall into the empty table. "Sin predicciones" is an answer — nobody at
+  // risk this trimester — and it is the exact opposite of "the question could not be asked".
+  // Dirección would read that the school is fine on the very day it is not.
   if (risks.isError) {
     return (
       <p className="text-sm text-destructive">

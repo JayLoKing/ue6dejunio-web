@@ -43,8 +43,9 @@ export class RiskService {
     trimester: number,
     places: number
   ): Promise<InstitutionRiskEntry[]> {
-    return (await helper.institutionAsync(academicYearId, trimester, places).call)
-      .data
+    return (
+      await helper.institutionAsync(academicYearId, trimester, places).call
+    ).data
   }
 
   static async markAttended(

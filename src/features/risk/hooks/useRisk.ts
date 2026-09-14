@@ -61,7 +61,13 @@ export function useInstitutionRisk(
   places: number
 ) {
   return useQuery({
-    queryKey: [RISK_KEY, "institution", academicYearId ?? "", trimester, places],
+    queryKey: [
+      RISK_KEY,
+      "institution",
+      academicYearId ?? "",
+      trimester,
+      places,
+    ],
     queryFn: academicYearId
       ? () => RiskService.institution(academicYearId, trimester, places)
       : skipToken,

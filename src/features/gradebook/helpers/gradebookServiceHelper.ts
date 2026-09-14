@@ -48,7 +48,10 @@ export default class GradebookServiceHelper {
     }
   }
 
-  honorRollAsync(courseId: string, places: number): UseApiCall<HonorRollEntry[]> {
+  honorRollAsync(
+    courseId: string,
+    places: number
+  ): UseApiCall<HonorRollEntry[]> {
     const controller = loadAbort()
     return {
       call: httpClient.get<HonorRollEntry[]>(GradebookUrl.HonorRoll, {
@@ -69,10 +72,13 @@ export default class GradebookServiceHelper {
   ): UseApiCall<HonorRollEntry[]> {
     const controller = loadAbort()
     return {
-      call: httpClient.get<HonorRollEntry[]>(GradebookUrl.HonorRollInstitution, {
-        signal: controller.signal,
-        params: { id_academic_year: academicYearId, places },
-      }),
+      call: httpClient.get<HonorRollEntry[]>(
+        GradebookUrl.HonorRollInstitution,
+        {
+          signal: controller.signal,
+          params: { id_academic_year: academicYearId, places },
+        }
+      ),
       controller,
     }
   }

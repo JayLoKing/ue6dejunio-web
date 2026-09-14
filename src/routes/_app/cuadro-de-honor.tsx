@@ -158,10 +158,7 @@ function TeacherHonorRoll() {
         onChange={setPlaces}
         options={COURSE_PLACE_OPTIONS}
       />
-      <CourseHonorRollPanel
-        courseId={ctx.homeroomCourseId}
-        places={places}
-      />
+      <CourseHonorRollPanel courseId={ctx.homeroomCourseId} places={places} />
     </div>
   )
 }

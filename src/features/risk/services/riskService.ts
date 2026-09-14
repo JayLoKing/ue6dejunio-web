@@ -1,5 +1,10 @@
 import RiskServiceHelper from "../helpers/riskServiceHelper"
-import type { RiskPrediction, RunSummary, StudentRisk } from "../types/risk"
+import type {
+  InstitutionRiskEntry,
+  RiskPrediction,
+  RunSummary,
+  StudentRisk,
+} from "../types/risk"
 
 const helper = new RiskServiceHelper()
 
@@ -31,6 +36,15 @@ export class RiskService {
     trimester: number
   ): Promise<StudentRisk[]> {
     return (await helper.byCourseAsync(courseId, trimester).call).data
+  }
+
+  static async institution(
+    academicYearId: number,
+    trimester: number,
+    places: number
+  ): Promise<InstitutionRiskEntry[]> {
+    return (await helper.institutionAsync(academicYearId, trimester, places).call)
+      .data
   }
 
   static async markAttended(

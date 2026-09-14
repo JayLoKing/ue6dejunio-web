@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TrimesterSelect } from "@/components/shared/TrimesterSelect"
 import { useAuthStore } from "@/features/auth/store/authStore"
 import { isRole } from "@/features/auth/types"
@@ -18,7 +19,12 @@ import { useAcademicYears } from "@/features/catalog/hooks/useCatalog"
 import { useAllCourses } from "@/features/courses/hooks/useCourses"
 import { ClassGroupRiskPanel } from "@/features/risk/components/ClassGroupRiskPanel"
 import { CourseRiskPanel } from "@/features/risk/components/CourseRiskPanel"
+import { InstitutionRiskPanel } from "@/features/risk/components/InstitutionRiskPanel"
 import { usePredictYearRisk } from "@/features/risk/hooks/useRisk"
+
+/** Cuántos estudiantes trae la lista de la unidad educativa. */
+const PLACE_OPTIONS = [10, 20, 30, 50] as const
+const DEFAULT_PLACES = 10
 
 export const Route = createFileRoute("/_app/riesgo")({
   beforeLoad: () => {
@@ -75,6 +81,7 @@ function DirectorRisk({ trimester }: { trimester: number }) {
 
   const rows = useMemo(() => courses.data?.content ?? [], [courses.data])
   const [chosenCourseId, setChosenCourseId] = useState<string | null>(null)
+  const [places, setPlaces] = useState(DEFAULT_PLACES)
 
   // El primer curso mientras nadie eligió, derivado y no sincronizado en un efecto: un panel que
   // arranca vacío teniendo cursos para mostrar parece roto, y el Director tendría que elegir para
@@ -83,32 +90,14 @@ function DirectorRisk({ trimester }: { trimester: number }) {
   const courseId = chosenCourseId ?? rows[0]?.id ?? null
 
   // La gestión actual es la primera: el catálogo las devuelve de la más reciente a la más antigua.
-  // Se manda `year` y no `id` — la API filtra por el año calendario, no por la clave de la fila.
+  // Dos claves distintas de la misma fila y no intercambiables: el barrido manda `year`, el año
+  // calendario; la lista institucional manda `id`, la clave SERIAL de la fila.
   const currentYear = years.data?.[0]?.year ?? null
+  const currentYearId = years.data?.[0]?.id ?? null
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Curso</span>
-          <Select
-            value={courseId ?? ""}
-            onValueChange={setChosenCourseId}
-            disabled={courses.isLoading || rows.length === 0}
-          >
-            <SelectTrigger className="w-56">
-              <SelectValue placeholder="Selecciona un curso" />
-            </SelectTrigger>
-            <SelectContent>
-              {rows.map((course) => (
-                <SelectItem key={course.id} value={course.id}>
-                  {course.gradeName} {course.parallelName} · {course.year}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
+      <div className="flex flex-wrap items-center justify-end gap-3">
         <Button
           variant="outline"
           size="sm"
@@ -133,8 +122,67 @@ function DirectorRisk({ trimester }: { trimester: number }) {
         </Button>
       </div>
 
-      {/* Dirección lee; atender una predicción es de quien da la materia. */}
-      <CourseRiskPanel courseId={courseId} trimester={trimester} />
+      <Tabs defaultValue="institucion">
+        <TabsList>
+          <TabsTrigger value="institucion">Unidad educativa</TabsTrigger>
+          <TabsTrigger value="curso">Por curso</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="institucion" className="flex flex-col gap-4 pt-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm text-muted-foreground">Cuántos</span>
+            <Select
+              value={String(places)}
+              onValueChange={(value) => setPlaces(Number(value))}
+            >
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PLACE_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={String(option)}>
+                    {option} estudiantes
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-sm text-muted-foreground">
+              Un estudiante por fila, con la materia que más lo compromete.
+            </p>
+          </div>
+
+          <InstitutionRiskPanel
+            academicYearId={currentYearId}
+            trimester={trimester}
+            places={places}
+          />
+        </TabsContent>
+
+        <TabsContent value="curso" className="flex flex-col gap-4 pt-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Curso</span>
+            <Select
+              value={courseId ?? ""}
+              onValueChange={setChosenCourseId}
+              disabled={courses.isLoading || rows.length === 0}
+            >
+              <SelectTrigger className="w-56">
+                <SelectValue placeholder="Selecciona un curso" />
+              </SelectTrigger>
+              <SelectContent>
+                {rows.map((course) => (
+                  <SelectItem key={course.id} value={course.id}>
+                    {course.gradeName} {course.parallelName} · {course.year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Dirección lee; atender una predicción es de quien da la materia. */}
+          <CourseRiskPanel courseId={courseId} trimester={trimester} />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

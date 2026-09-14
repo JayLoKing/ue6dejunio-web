@@ -12,6 +12,12 @@
 export const RiskUrl = {
   /** The sweep over the whole gestión. Director only. */
   PredictYear: "/risk/predict-year",
+  /**
+   * The students of the whole school closest to failing, one row each. Director only, and gated on
+   * role alone: the answer spans every course of the gestión, so there is no single course to
+   * resolve ownership against.
+   */
+  Institution: "/risk/institution",
   PredictClassGroup: (classGroupId: string) =>
     `/class-groups/${classGroupId}/risk/predict`,
   ByClassGroup: (classGroupId: string) => `/class-groups/${classGroupId}/risk`,

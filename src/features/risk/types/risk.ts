@@ -40,6 +40,35 @@ export interface StudentRisk {
 }
 
 /**
+ * One place on the school-wide risk list.
+ *
+ * Deliberately not a `StudentRisk`. That one is a prediction and its two names, one row per
+ * subject; this is a student, their classroom and the single subject that put them on the list.
+ * Sharing a type between the two would give every screen a shape whose meaning changes with the
+ * scope it asked for.
+ *
+ * `predictionId` is what the attend action would write against: attending is per prediction, not
+ * per screen.
+ *
+ * @see InstitutionRiskEntryResponse on the API side
+ */
+export interface InstitutionRiskEntry {
+  position: number
+  predictionId: string
+  studentId: string
+  fullName: string
+  courseId: string
+  gradeName: string
+  parallelName: string
+  classGroupId: string
+  subjectName: string
+  riskLevel: RiskLevel | (string & {})
+  /** Probability of failing that subject, stored 0 to 1. */
+  pFail: number
+  attended: boolean
+}
+
+/**
  * What a write answers with. No names: whoever marked the prediction had it on screen already.
  *
  * @see RiskPredictionResponse on the API side

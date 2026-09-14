@@ -16,6 +16,7 @@ import {
   LibraryIcon,
   type LucideIcon,
   SchoolIcon,
+  TrophyIcon,
   UserSquare2Icon,
   UsersIcon,
 } from "lucide-react"
@@ -96,6 +97,14 @@ const TOP_LINKS: NavLink[] = [
     to: "/reports",
     icon: FileBarChartIcon,
     roles: ["TEACHER"],
+  },
+  // Fuera de "Reportes", que es del curso de aula y por eso sólo del docente: el podio tiene un
+  // alcance que Dirección puede pedir y el docente no, la unidad educativa entera.
+  {
+    title: "Cuadro de honor",
+    to: "/cuadro-de-honor",
+    icon: TrophyIcon,
+    roles: ["DIRECTOR", "TEACHER"],
   },
   // Sin secretaría: una predicción nombra a un estudiante y su probabilidad de reprobar, y eso lo
   // lee quien enseña y quien dirige, no quien administra el padrón.

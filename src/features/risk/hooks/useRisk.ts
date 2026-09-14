@@ -49,6 +49,25 @@ export function useCourseRisk(
   })
 }
 
+/**
+ * The school-wide list. Director only.
+ *
+ * @param academicYearId the row id of the gestión, not the calendar year — it is what the endpoint
+ *   filters on, and `usePredictYearRisk` below is the one that takes the year itself.
+ */
+export function useInstitutionRisk(
+  academicYearId: number | null | undefined,
+  trimester: number,
+  places: number
+) {
+  return useQuery({
+    queryKey: [RISK_KEY, "institution", academicYearId ?? "", trimester, places],
+    queryFn: academicYearId
+      ? () => RiskService.institution(academicYearId, trimester, places)
+      : skipToken,
+  })
+}
+
 export function usePredictClassGroupRisk() {
   const invalidate = useInvalidateRisk()
   return useMutation({

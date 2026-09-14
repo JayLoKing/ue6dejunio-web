@@ -23,14 +23,14 @@ import type {
 } from "../types"
 
 /*
- * The sheet's own measurements, the same ones `reportCardDocument.ts` declares for paper. Sizes are
- * in half-points because that is the unit Word stores them in: 20 is 10pt.
+ * Las medidas de la hoja, las mismas que `reportCardDocument.ts` declara para el papel. Los tamaños
+ * van en medios puntos porque es la unidad en que Word los guarda: 20 es 10pt.
  */
 const FONT = "Arial Narrow"
 const BODY = 20
 const LEVEL = 22
 const TITLE = 26
-/** The fill over the column headings, and the lighter one over each field of knowledge. */
+/** El relleno de los encabezados de columna, y el más claro de cada campo de saberes. */
 const BLUE = "DEEAF6"
 const GREY = "F2F2F2"
 
@@ -53,7 +53,7 @@ const NO_BORDERS = {
   insideHorizontal: NONE,
   insideVertical: NONE,
 } as const
-/** The student's box is one frame with no grid inside it, the way the sheet draws it. */
+/** El recuadro del estudiante es un marco sin grilla adentro, como lo dibuja la hoja. */
 const FRAME_ONLY = {
   top: SINGLE,
   bottom: SINGLE,
@@ -63,7 +63,7 @@ const FRAME_ONLY = {
   insideVertical: NONE,
 } as const
 
-/** The area column against the four mark columns, in the proportions the sheet prints. */
+/** La columna de áreas contra las cuatro de notas, en la proporción que imprime la hoja. */
 const COLUMNS = [3600, 1728, 1728, 1728, 1728]
 
 interface TextOptions {
@@ -87,10 +87,10 @@ function text(value: string, options: TextOptions = {}): Paragraph {
 }
 
 /**
- * A field name and what it holds, on one line.
+ * El nombre de un campo y lo que contiene, en una sola línea.
  *
- * <p>Two runs rather than two cells: the heading of this sheet is a list of labelled values, not a
- * grid, and a column of labels would draw a table the school's form does not have.
+ * <p>Dos runs y no dos celdas: el encabezado de esta hoja es una lista de valores rotulados, no una
+ * grilla, y una columna de rótulos dibujaría una tabla que el formulario de la escuela no tiene.
  */
 function labelled(label: string, value: string): Paragraph {
   return new Paragraph({
@@ -142,7 +142,7 @@ function table(
   })
 }
 
-/** The school's heading, the same six fields every official document of the school opens with. */
+/** El encabezado de la escuela: los mismos seis campos con que abre todo documento oficial suyo. */
 function headingTable(school: Institution, year: number): Table {
   const pair = (label: string, value: string) =>
     cell({ children: [labelled(label, value)] })
@@ -221,10 +221,10 @@ function areaRow(area: ReportCardArea): TableRow {
 }
 
 /**
- * The field of knowledge as its own banded row, with its areas under it.
+ * El campo de saberes como su propia fila con banda, y debajo sus áreas.
  *
- * <p>An area whose group was deactivated has no field. Its marks are printed anyway: they were
- * given, and a libreta that loses a subject in silence is worse than one with an untitled row.
+ * <p>Un área cuyo grupo fue desactivado no tiene campo. Sus notas se imprimen igual: fueron puestas,
+ * y una libreta que pierde una materia en silencio es peor que una con una fila sin título.
  */
 function fieldRows(field: ReportCardField): TableRow[] {
   return [
@@ -303,16 +303,16 @@ function marksTable(card: StudentReportCard): Table {
         ...card.trimesterAverages.map((average) =>
           centred(formatMark(average), true)
         ),
-        // No decimals on the annual average, the way the school signs the sheet.
+        // El promedio anual sin decimales, como la escuela firma la hoja.
         centred(formatMark(card.finalAverage, 0), true),
       ],
     })
   )
 
   /*
-   * The counts come from the API, never from the rows above. Recounting them here would make an
-   * area left ungraded that trimester count as failed, which tells a parent their child failed a
-   * subject nobody marked.
+   * Los conteos vienen de la API, nunca de las filas de arriba. Recontarlos acá haría que un área
+   * sin calificar en ese trimestre cuente como reprobada, y eso le dice a un padre que su hijo
+   * reprobó una materia que nadie calificó.
    */
   const outcomes = [1, 2, 3].map(
     (trimester) =>
@@ -337,8 +337,8 @@ function marksTable(card: StudentReportCard): Table {
 }
 
 function signatures(school: Institution): Table {
-  // The line is printed with no Director in office; what it cannot carry is the name of somebody
-  // who does not hold the post.
+  // La línea se imprime aunque no haya Director en funciones; lo que no puede llevar es el nombre
+  // de alguien que no ocupa el cargo.
   const director = school.directorName
     ? `Firma del Director U.E. — ${school.directorName}`
     : "Firma del Director U.E."
@@ -368,13 +368,13 @@ export interface ReportCardDocxParams {
 }
 
 /**
- * The libreta as a real Office document.
+ * La libreta como documento de Office de verdad.
  *
- * <p>Written from the card rather than from the markup on screen, so what Word opens does not
- * depend on a stylesheet that never travelled with it. Every number is the API's, including the
- * counts of passed and failed areas — this writes the sheet, it does not compute it.
+ * <p>Escrita desde la libreta y no desde el marcado de la pantalla, para que lo que abre Word no
+ * dependa de una hoja de estilos que nunca viajó con él. Todos los números son de la API, incluidos
+ * los conteos de áreas aprobadas y reprobadas: esto escribe la hoja, no la calcula.
  *
- * <p>Portrait, unlike the PDC: the libreta is a column of areas, not a weekly grid.
+ * <p>Vertical, a diferencia del PDC: la libreta es una columna de áreas, no una grilla semanal.
  */
 export function reportCardDocxOf({
   card,

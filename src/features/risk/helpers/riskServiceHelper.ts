@@ -3,7 +3,12 @@ import { loadAbort } from "@/lib/loadAbort"
 import type { UseApiCall } from "@/lib/useApicall"
 
 import { RiskUrl } from "./riskServicePath"
-import type { RiskPrediction, RunSummary, StudentRisk } from "../types/risk"
+import type {
+  InstitutionRiskEntry,
+  RiskPrediction,
+  RunSummary,
+  StudentRisk,
+} from "../types/risk"
 
 export default class RiskServiceHelper {
   predictYearAsync(
@@ -58,6 +63,25 @@ export default class RiskServiceHelper {
       call: httpClient.get<StudentRisk[]>(RiskUrl.ByCourse(courseId), {
         signal: controller.signal,
         params: { trimester },
+      }),
+      controller,
+    }
+  }
+
+  /**
+   * @param academicYearId the row id of the gestión, not the calendar year. `id_academic_year` is
+   *   a SERIAL, and the sweep above is the one that takes the year itself.
+   */
+  institutionAsync(
+    academicYearId: number,
+    trimester: number,
+    places: number
+  ): UseApiCall<InstitutionRiskEntry[]> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.get<InstitutionRiskEntry[]>(RiskUrl.Institution, {
+        signal: controller.signal,
+        params: { id_academic_year: academicYearId, trimester, places },
       }),
       controller,
     }

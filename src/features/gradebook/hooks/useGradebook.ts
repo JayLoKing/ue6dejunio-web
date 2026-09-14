@@ -32,6 +32,36 @@ export function useAnnualCentralizer(
   })
 }
 
+/** El podio de un curso: los mejores promedios finales, el mejor primero. */
+export function useHonorRoll(
+  courseId: string | null | undefined,
+  places: number
+) {
+  return useQuery({
+    queryKey: ["gradebook", "honor-roll", courseId ?? "", places],
+    queryFn: courseId
+      ? () => GradebookService.honorRoll(courseId, places)
+      : skipToken,
+  })
+}
+
+/**
+ * El podio de toda la unidad educativa. Sólo Dirección.
+ *
+ * @param academicYearId la clave de la fila de la gestión, no el año calendario.
+ */
+export function useInstitutionHonorRoll(
+  academicYearId: number | null | undefined,
+  places: number
+) {
+  return useQuery({
+    queryKey: ["gradebook", "honor-roll", "institution", academicYearId ?? "", places],
+    queryFn: academicYearId
+      ? () => GradebookService.institutionHonorRoll(academicYearId, places)
+      : skipToken,
+  })
+}
+
 /** La libreta de un estudiante. El encabezado de la escuela se lee aparte, de `useInstitution`. */
 export function useReportCard(courseEnrollmentId: string | null | undefined) {
   return useQuery({

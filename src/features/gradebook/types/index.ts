@@ -45,6 +45,31 @@ export interface StudentAnnualSummary {
   finalAverage: number | null
 }
 
+/**
+ * Un lugar del cuadro de honor: quién lo ocupa, de qué aula viene y el promedio que se lo ganó.
+ *
+ * `finalAverage` nunca es null, a diferencia del resumen anual de arriba: el estudiante sin nada
+ * calificado no ocupa lugar alguno, porque no fue juzgado. El promedio es el mismo que imprime la
+ * libreta — el podio no lo recalcula, o terminaría discrepando de la hoja que la escuela ya firmó.
+ *
+ * El curso viaja con cada entrada aun en el podio de un solo curso: el lector de la lista
+ * institucional lo necesita para distinguir dos estudiantes del mismo nombre, y un payload que
+ * cambia de forma según el alcance es un payload que cada pantalla tiene que ramificar.
+ *
+ * @see HonorRollEntryResponse del lado de la API
+ */
+export interface HonorRollEntry {
+  /** El lugar en el podio, empezando en uno. */
+  position: number
+  courseEnrollmentId: string
+  studentId: string
+  fullName: string
+  courseId: string
+  gradeName: string
+  parallelName: string
+  finalAverage: number
+}
+
 /** Un área curricular de la libreta. Un trimestre en null es "nunca calificada", no un cero. */
 export interface ReportCardArea {
   classGroupId: string

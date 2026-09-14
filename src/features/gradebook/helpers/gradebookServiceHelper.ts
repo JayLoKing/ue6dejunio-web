@@ -9,6 +9,7 @@ import type {
   CourseAttendanceRow,
   CourseAttendanceStats,
   EnrollmentScore,
+  HonorRollEntry,
   StudentAnnualSummary,
   StudentReportCard,
   StudentSummary,
@@ -43,6 +44,35 @@ export default class GradebookServiceHelper {
           params: toPageParams(query, { id_course: courseId, trimester }),
         }
       ),
+      controller,
+    }
+  }
+
+  honorRollAsync(courseId: string, places: number): UseApiCall<HonorRollEntry[]> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.get<HonorRollEntry[]>(GradebookUrl.HonorRoll, {
+        signal: controller.signal,
+        params: { id_course: courseId, places },
+      }),
+      controller,
+    }
+  }
+
+  /**
+   * @param academicYearId la clave de la fila de la gestión, no el año calendario:
+   *   `id_academic_year` es un SERIAL.
+   */
+  institutionHonorRollAsync(
+    academicYearId: number,
+    places: number
+  ): UseApiCall<HonorRollEntry[]> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.get<HonorRollEntry[]>(GradebookUrl.HonorRollInstitution, {
+        signal: controller.signal,
+        params: { id_academic_year: academicYearId, places },
+      }),
       controller,
     }
   }

@@ -7,6 +7,7 @@ import { CentralizerTable } from "@/features/gradebook/components/CentralizerTab
 import { AverageRanking } from "@/features/gradebook/components/AverageRanking"
 import { AnnualSheetsPanel } from "@/features/gradebook/components/AnnualSheetsPanel"
 import { ReportCardPanel } from "@/features/gradebook/components/ReportCardPanel"
+import { PedagogicalReportPanel } from "@/features/gradebook/components/PedagogicalReportPanel"
 
 export const Route = createLazyFileRoute("/_app/reports")({
   component: ReportsPage,
@@ -55,9 +56,7 @@ function ReportsPage() {
             <AverageRanking courseId={homeroomCourseId} />
           </TabsContent>
           <TabsContent value="informe" className="pt-4">
-            <div className="rounded-md border border-dashed p-12 text-center text-muted-foreground">
-              Informe de Comisión Pedagógica — en desarrollo.
-            </div>
+            <PedagogicalReportPanel courseId={homeroomCourseId} />
           </TabsContent>
         </Tabs>
       )}

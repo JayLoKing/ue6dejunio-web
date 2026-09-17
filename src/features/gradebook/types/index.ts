@@ -179,3 +179,84 @@ export interface CourseAttendanceRow {
   fullName: string
   attendances: CourseAttendanceItem[]
 }
+
+/** Una columna `V | M | T | %` de la sección III. `percentage` en null: no hay efectivos. */
+export interface GenderTally {
+  male: number
+  female: number
+  total: number
+  percentage: number | null
+}
+
+/**
+ * Los tres conteos del informe. **No tienen por qué cerrar entre sí**: un estudiante que nadie
+ * calificó es efectivo y no está ni aprobado ni reprobado, y `male + female` puede quedar por
+ * debajo de `total` porque el género de un estudiante puede no estar registrado.
+ */
+export interface PedagogicalReportStats {
+  effective: GenderTally
+  passed: GenderTally
+  failed: GenderTally
+}
+
+/** Un área reprobada con la nota que la reprobó. Van apiladas en una sola celda del cuadro IV. */
+export interface FailedArea {
+  classGroupId: string
+  subjectName: string
+  mark: number
+}
+
+/** Una fila del cuadro IV. `actions` y `verificationSource` los escribe el docente. */
+export interface FailingStudentRow {
+  number: number
+  courseEnrollmentId: string
+  studentId: string
+  fullName: string
+  failedAreas: FailedArea[]
+  actions: string | null
+  verificationSource: string | null
+}
+
+/**
+ * El informe pedagógico de un curso en un trimestre (GET /gradebook/pedagogical-report).
+ *
+ * El encabezado de la escuela no viene acá, igual que en la libreta: es idéntico en todo documento
+ * y se lee una vez de `/institution`.
+ *
+ * `exists` en false es la hoja que todavía nadie escribió. Llega igual de completa — las secciones
+ * I, III y IV se derivan de la nómina y de las notas — y sólo la prosa viene vacía.
+ */
+export interface PedagogicalReport {
+  courseId: string
+  gradeName: string
+  parallelName: string
+  year: number
+  homeroomTeacherName: string | null
+  trimester: number
+  exists: boolean
+  achievements: string | null
+  difficulties: string | null
+  stats: PedagogicalReportStats
+  failingStudents: FailingStudentRow[]
+  updatedAt: string | null
+}
+
+/** Lo que el docente escribe de un estudiante reprobado. */
+export interface FailingStudentNotePayload {
+  idCourseEnrollment: string
+  actions: string | null
+  verificationSource: string | null
+}
+
+/**
+ * El PUT del informe. Reemplaza el documento entero.
+ *
+ * **Omitir `failingStudents` deja la sección IV como estaba; mandar `[]` la vacía.** No son lo
+ * mismo, y la diferencia importa: esos párrafos son prosa que un docente tipeó y de la que el
+ * sistema no guarda una segunda copia.
+ */
+export interface SavePedagogicalReportPayload {
+  achievements: string | null
+  difficulties: string | null
+  failingStudents?: FailingStudentNotePayload[]
+}

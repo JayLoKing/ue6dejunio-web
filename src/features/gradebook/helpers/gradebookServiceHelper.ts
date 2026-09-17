@@ -10,6 +10,8 @@ import type {
   CourseAttendanceStats,
   EnrollmentScore,
   HonorRollEntry,
+  PedagogicalReport,
+  SavePedagogicalReportPayload,
   StudentAnnualSummary,
   StudentReportCard,
   StudentSummary,
@@ -139,6 +141,47 @@ export default class GradebookServiceHelper {
         signal: controller.signal,
         params: { id_course_enrollment: courseEnrollmentId },
       }),
+      controller,
+    }
+  }
+
+  /** La hoja completa del informe, esté escrita o no: las secciones derivadas vienen siempre. */
+  pedagogicalReportAsync(
+    courseId: string,
+    trimester: number
+  ): UseApiCall<PedagogicalReport> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.get<PedagogicalReport>(GradebookUrl.PedagogicalReport, {
+        signal: controller.signal,
+        params: { id_course: courseId, trimester },
+      }),
+      controller,
+    }
+  }
+
+  /**
+   * PUT y no POST: hay un informe por curso y trimestre, y el que llama lo nombra en la consulta en
+   * vez de recibir un id de vuelta. Guardar dos veces deja el mismo documento.
+   *
+   * La respuesta es la hoja ya armada, no un acuse: quien guarda vuelve a leer lo mismo que el
+   * servidor tiene, sin una segunda consulta que podría caer sobre lo que se está tipeando.
+   */
+  savePedagogicalReportAsync(
+    courseId: string,
+    trimester: number,
+    payload: SavePedagogicalReportPayload
+  ): UseApiCall<PedagogicalReport> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.put<PedagogicalReport>(
+        GradebookUrl.PedagogicalReport,
+        payload,
+        {
+          signal: controller.signal,
+          params: { id_course: courseId, trimester },
+        }
+      ),
       controller,
     }
   }

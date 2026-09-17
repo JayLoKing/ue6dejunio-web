@@ -14,6 +14,11 @@ export const GradebookUrl = {
    */
   HonorRollInstitution: `${baseModuleUrl}/honor-roll/institution`,
   Attendance: `${baseModuleUrl}/attendance`,
+  /**
+   * El informe pedagógico del curso en un trimestre. Lo lee quien lee el curso; lo escribe sólo el
+   * docente de aula, que es el único DOCENTE que el formulario de la escuela lleva.
+   */
+  PedagogicalReport: `${baseModuleUrl}/pedagogical-report`,
 } as const
 
 // Consolidado por dimensión (fuera del prefijo /gradebook).

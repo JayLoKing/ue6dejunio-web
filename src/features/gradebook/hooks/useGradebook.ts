@@ -1,8 +1,16 @@
-import { keepPreviousData, skipToken, useQuery } from "@tanstack/react-query"
+import {
+  keepPreviousData,
+  skipToken,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
+import { toast } from "sonner"
 
 import type { PageQuery } from "@/lib/types/pagination"
 
 import { GradebookService } from "../services/gradebookService"
+import type { SavePedagogicalReportPayload } from "../types"
 
 export function useCentralizer(
   courseId: string | null | undefined,
@@ -124,6 +132,60 @@ export function useCourseAttendanceStats(
     queryFn: courseId
       ? () => GradebookService.attendanceStats(courseId, trimester)
       : skipToken,
+  })
+}
+
+const pedagogicalReportKey = (courseId: string, trimester: number) => [
+  "gradebook",
+  "pedagogical-report",
+  courseId,
+  trimester,
+]
+
+/**
+ * El informe pedagógico del curso en un trimestre.
+ *
+ * Llega entero aunque nadie lo haya escrito: las secciones I, III y IV se derivan de la nómina y
+ * de las notas, y sólo la prosa nace vacía.
+ */
+export function usePedagogicalReport(
+  courseId: string | null | undefined,
+  trimester: number
+) {
+  return useQuery({
+    queryKey: pedagogicalReportKey(courseId ?? "", trimester),
+    queryFn: courseId
+      ? () => GradebookService.pedagogicalReport(courseId, trimester)
+      : skipToken,
+  })
+}
+
+/**
+ * Guarda el informe. Sólo el docente de aula pasa el permiso de escritura.
+ *
+ * El servidor responde con la hoja ya armada, así que se escribe directo en la caché en vez de
+ * invalidar: un refetch podría aterrizar encima de lo que el docente sigue tipeando.
+ */
+export function useSavePedagogicalReport() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (v: {
+      courseId: string
+      trimester: number
+      payload: SavePedagogicalReportPayload
+    }) =>
+      GradebookService.savePedagogicalReport(
+        v.courseId,
+        v.trimester,
+        v.payload
+      ),
+    onSuccess: (sheet, v) => {
+      toast.success("Informe guardado.")
+      qc.setQueryData(pedagogicalReportKey(v.courseId, v.trimester), sheet)
+    },
+    onError: () => {
+      toast.error("No se pudo guardar el informe.")
+    },
   })
 }
 

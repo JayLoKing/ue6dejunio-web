@@ -6,6 +6,8 @@ import type {
   CourseAttendanceStats,
   EnrollmentScore,
   HonorRollEntry,
+  PedagogicalReport,
+  SavePedagogicalReportPayload,
   StudentAnnualSummary,
   StudentReportCard,
   StudentSummary,
@@ -52,6 +54,21 @@ export class GradebookService {
     courseEnrollmentId: string
   ): Promise<StudentReportCard> {
     return (await helper.reportCardAsync(courseEnrollmentId).call).data
+  }
+  static async pedagogicalReport(
+    courseId: string,
+    trimester: number
+  ): Promise<PedagogicalReport> {
+    return (await helper.pedagogicalReportAsync(courseId, trimester).call).data
+  }
+  static async savePedagogicalReport(
+    courseId: string,
+    trimester: number,
+    payload: SavePedagogicalReportPayload
+  ): Promise<PedagogicalReport> {
+    return (
+      await helper.savePedagogicalReportAsync(courseId, trimester, payload).call
+    ).data
   }
   static async attendance(
     courseId: string,

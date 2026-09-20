@@ -1,40 +1,62 @@
 import { useState } from "react"
-import { Loader2Icon, SaveIcon } from "lucide-react"
+import {
+  FileDownIcon,
+  Loader2Icon,
+  PrinterIcon,
+  SaveIcon,
+} from "lucide-react"
+import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { TrimesterSelect } from "@/components/shared/TrimesterSelect"
+import { printElementById } from "@/lib/printDocument"
+import { saveBlob } from "@/lib/saveBlob"
+import type { Institution } from "@/features/institution/types"
+import { useInstitution } from "@/features/institution/hooks/useInstitution"
 
 import {
   usePedagogicalReport,
   useSavePedagogicalReport,
 } from "../hooks/useGradebook"
+import {
+  PEDAGOGICAL_REPORT_DOCUMENT_ID,
+  PedagogicalReportPreview,
+} from "./PedagogicalReportPreview"
 import type {
   FailingStudentRow,
-  GenderTally,
   PedagogicalReport,
   SavePedagogicalReportPayload,
 } from "../types"
-
-/** Una nota reprobada, como la imprime la planilla: sin decimales de más. */
-const fmtMark = (mark: number): string =>
-  mark.toLocaleString("es-BO", { maximumFractionDigits: 2 })
-
-/** El porcentaje de la sección III. Sin nómina efectiva no hay porcentaje, y no es un cero. */
-const fmtPct = (pct: number | null): string =>
-  pct === null
-    ? "—"
-    : `${pct.toLocaleString("es-BO", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })} %`
+import { fmtMark, pedagogicalReportLabel } from "../utils/pedagogicalReport"
+import { printablePedagogicalReportOf } from "../utils/pedagogicalReportDocument"
 
 /** Una caja vaciada es un null: la columna es nullable, y `""` guardaría una cadena en su lugar. */
 const orNull = (text: string): string | null => {
   const trimmed = text.trim()
   return trimmed === "" ? null : trimmed
+}
+
+/**
+ * El informe como archivo de Word.
+ *
+ * Se escribe desde el informe y no desde el marcado de la pantalla, así lo que abre Word no depende
+ * de una hoja de estilos que nunca viajó con el archivo. La librería se carga recién cuando alguien
+ * pide el archivo: escribe documentos, y no tiene nada que hacer en el bundle que descarga todo el
+ * mundo para ver un listado.
+ */
+async function downloadReportAsDocx(
+  sheet: PedagogicalReport,
+  school: Institution
+) {
+  const [{ pedagogicalReportDocxOf }, { Packer }] = await Promise.all([
+    import("../utils/pedagogicalReportDocx"),
+    import("docx"),
+  ])
+  const blob = await Packer.toBlob(pedagogicalReportDocxOf({ sheet, school }))
+  saveBlob(blob, `${pedagogicalReportLabel(sheet)}.docx`)
 }
 
 export interface PedagogicalReportPanelProps {
@@ -47,6 +69,9 @@ export interface PedagogicalReportPanelProps {
  * Cuatro secciones, de las que el docente escribe dos: la prosa de logros y dificultades, y las
  * acciones y la fuente de verificación de cada estudiante reprobado. El resto — el curso, los
  * conteos y quién reprobó qué — sale de las notas, y por eso no tiene dónde editarse acá.
+ *
+ * Debajo del formulario va la hoja tal como se entrega, y se rehace con cada tecla: lo que el
+ * docente revisa antes de imprimir es el documento, no un resumen de lo que tipeó.
  */
 export function PedagogicalReportPanel({
   courseId,
@@ -54,6 +79,7 @@ export function PedagogicalReportPanel({
   const [trimester, setTrimester] = useState(1)
   const report = usePedagogicalReport(courseId, trimester)
   const save = useSavePedagogicalReport()
+  const { data: school } = useInstitution()
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
@@ -76,6 +102,7 @@ export function PedagogicalReportPanel({
           // sobre lo que el servidor guardó y no sobre lo que quedó tipeado.
           key={`${courseId}-${trimester}-${report.data.updatedAt ?? "nuevo"}`}
           sheet={report.data}
+          school={school}
           saving={save.isPending}
           onSave={(payload) => save.mutate({ courseId, trimester, payload })}
         />
@@ -86,14 +113,17 @@ export function PedagogicalReportPanel({
 
 interface ReportSheetProps {
   sheet: PedagogicalReport
+  /** El encabezado de la escuela. Ausente mientras se lo está pidiendo. */
+  school?: Institution
   saving: boolean
   onSave: (payload: SavePedagogicalReportPayload) => void
 }
 
-function ReportSheet({ sheet, saving, onSave }: ReportSheetProps) {
+function ReportSheet({ sheet, school, saving, onSave }: ReportSheetProps) {
   const [achievements, setAchievements] = useState(sheet.achievements ?? "")
   const [difficulties, setDifficulties] = useState(sheet.difficulties ?? "")
   const [notes, setNotes] = useState(() => notesOf(sheet.failingStudents))
+  const [writing, setWriting] = useState(false)
 
   const writeNote = (
     enrollmentId: string,
@@ -105,24 +135,102 @@ function ReportSheet({ sheet, saving, onSave }: ReportSheetProps) {
       [enrollmentId]: { ...prev[enrollmentId], [field]: value },
     }))
 
+  /*
+   * El informe con lo que hay tipeado encima. De acá salen las dos cosas que tienen que coincidir:
+   * la hoja que el docente mira y el PUT que manda. Derivarlas de la misma copia es lo que impide
+   * que imprima una versión y guarde otra.
+   */
+  const live: PedagogicalReport = {
+    ...sheet,
+    achievements: orNull(achievements),
+    difficulties: orNull(difficulties),
+    failingStudents: sheet.failingStudents.map((student) => ({
+      ...student,
+      actions: orNull(notes[student.courseEnrollmentId]?.actions ?? ""),
+      verificationSource: orNull(
+        notes[student.courseEnrollmentId]?.verificationSource ?? ""
+      ),
+    })),
+  }
+
   // El formulario tiene las dos mitades a la vista, así que manda las dos. Omitir `failingStudents`
   // dejaría la sección IV intacta, que es justo lo que el docente acaba de editar acá.
   const submit = () =>
     onSave({
-      achievements: orNull(achievements),
-      difficulties: orNull(difficulties),
-      failingStudents: sheet.failingStudents.map((s) => ({
-        idCourseEnrollment: s.courseEnrollmentId,
-        actions: orNull(notes[s.courseEnrollmentId]?.actions ?? ""),
-        verificationSource: orNull(
-          notes[s.courseEnrollmentId]?.verificationSource ?? ""
-        ),
+      achievements: live.achievements,
+      difficulties: live.difficulties,
+      failingStudents: live.failingStudents.map((student) => ({
+        idCourseEnrollment: student.courseEnrollmentId,
+        actions: student.actions,
+        verificationSource: student.verificationSource,
       })),
     })
 
+  const print = () =>
+    printElementById(
+      PEDAGOGICAL_REPORT_DOCUMENT_ID,
+      pedagogicalReportLabel(live),
+      printablePedagogicalReportOf
+    )
+
+  const download = () => {
+    if (!school) return
+    setWriting(true)
+    downloadReportAsDocx(live, school)
+      .catch(() => toast.error("No se pudo generar el documento de Word."))
+      .finally(() => setWriting(false))
+  }
+
   return (
     <div className="flex min-w-0 flex-col gap-6">
-      <Heading sheet={sheet} />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3 text-sm">
+          <span>
+            <span className="text-muted-foreground">Curso: </span>
+            <span className="font-medium">
+              {sheet.gradeName} {sheet.parallelName}
+            </span>
+          </span>
+          {sheet.exists ? (
+            <Badge variant="secondary">Guardado</Badge>
+          ) : (
+            <Badge variant="outline">Sin guardar</Badge>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={download}
+            disabled={!school || writing}
+            title={
+              school
+                ? undefined
+                : "Falta el encabezado de la unidad educativa para exportar"
+            }
+          >
+            {writing ? (
+              <Loader2Icon className="size-4 animate-spin" />
+            ) : (
+              <FileDownIcon className="size-4" />
+            )}
+            Descargar Word
+          </Button>
+          <Button
+            variant="outline"
+            onClick={print}
+            disabled={!school}
+            title={
+              school
+                ? undefined
+                : "Falta el encabezado de la unidad educativa para imprimir"
+            }
+          >
+            <PrinterIcon className="size-4" />
+            Imprimir
+          </Button>
+        </div>
+      </div>
 
       <section className="flex flex-col gap-3">
         <h2 className="text-sm font-semibold">
@@ -154,8 +262,6 @@ function ReportSheet({ sheet, saving, onSave }: ReportSheetProps) {
         </div>
       </section>
 
-      <StatsSection sheet={sheet} />
-
       <section className="flex min-w-0 flex-col gap-3">
         <h2 className="text-sm font-semibold">
           IV. Estudiantes reprobados y acciones
@@ -166,7 +272,10 @@ function ReportSheet({ sheet, saving, onSave }: ReportSheetProps) {
           </p>
         ) : (
           <div className="min-w-0 overflow-x-auto rounded-md border">
-            <table className="w-full border-collapse text-sm">
+            <table
+              aria-label="Acciones por estudiante"
+              className="w-full border-collapse text-sm"
+            >
               <thead>
                 <tr className="bg-muted">
                   <th className="w-10 border-b px-3 py-2 text-left font-medium">
@@ -254,6 +363,25 @@ function ReportSheet({ sheet, saving, onSave }: ReportSheetProps) {
           )}
         </Button>
       </div>
+
+      <section className="flex min-w-0 flex-col gap-2">
+        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+          Vista previa
+        </p>
+        {/*
+          El encabezado institucional es parte del documento, no un adorno: sin él la hoja saldría
+          con la sección I a medias. El formulario se escribe igual mientras tanto.
+        */}
+        {!school ? (
+          <div className="rounded-md border border-dashed p-12 text-center text-sm text-muted-foreground">
+            Cargando el encabezado de la unidad educativa…
+          </div>
+        ) : (
+          <div className="min-w-0 overflow-x-auto rounded-md border bg-muted/30 p-4">
+            <PedagogicalReportPreview sheet={live} school={school} />
+          </div>
+        )}
+      </section>
     </div>
   )
 }
@@ -273,80 +401,4 @@ function notesOf(
     }
   }
   return byEnrollment
-}
-
-/** Sección I. Datos referenciales: el encabezado de la escuela se imprime aparte. */
-function Heading({ sheet }: { sheet: PedagogicalReport }) {
-  return (
-    <section className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-md border bg-muted/30 px-4 py-3 text-sm">
-      <span>
-        <span className="text-muted-foreground">Curso: </span>
-        <span className="font-medium">
-          {sheet.gradeName} {sheet.parallelName}
-        </span>
-      </span>
-      <span>
-        <span className="text-muted-foreground">Gestión: </span>
-        <span className="font-medium">{sheet.year}</span>
-      </span>
-      <span>
-        <span className="text-muted-foreground">Docente: </span>
-        <span className="font-medium">
-          {sheet.homeroomTeacherName ?? "Sin docente de aula"}
-        </span>
-      </span>
-      {sheet.exists ? (
-        <Badge variant="secondary">Guardado</Badge>
-      ) : (
-        <Badge variant="outline">Sin guardar</Badge>
-      )}
-    </section>
-  )
-}
-
-/**
- * Sección III. Los tres conteos no cierran entre sí y no deben forzarse: un estudiante que nadie
- * calificó es efectivo sin estar aprobado ni reprobado, y V + M puede quedar debajo de T porque
- * el género puede no estar registrado.
- */
-function StatsSection({ sheet }: { sheet: PedagogicalReport }) {
-  const rows: Array<[string, GenderTally]> = [
-    ["Efectivos", sheet.stats.effective],
-    ["Aprobados", sheet.stats.passed],
-    ["Reprobados", sheet.stats.failed],
-  ]
-
-  return (
-    <section className="flex min-w-0 flex-col gap-3">
-      <h2 className="text-sm font-semibold">III. Estadística del curso</h2>
-      <div className="min-w-0 overflow-x-auto rounded-md border">
-        <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr className="bg-muted">
-              <th className="border-b px-3 py-2 text-left font-medium"> </th>
-              <th className="border-b px-3 py-2 text-right font-medium">V</th>
-              <th className="border-b px-3 py-2 text-right font-medium">M</th>
-              <th className="border-b px-3 py-2 text-right font-medium">T</th>
-              <th className="border-b px-3 py-2 text-right font-medium">%</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map(([label, tally]) => (
-              <tr key={label}>
-                <td className="border-b px-3 py-2">{label}</td>
-                <td className="border-b px-3 py-2 text-right">{tally.male}</td>
-                <td className="border-b px-3 py-2 text-right">
-                  {tally.female}
-                </td>
-                <td className="border-b px-3 py-2 text-right">{tally.total}</td>
-                <td className="border-b px-3 py-2 text-right">
-                  {fmtPct(tally.percentage)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  )
 }

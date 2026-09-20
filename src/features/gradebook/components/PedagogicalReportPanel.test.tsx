@@ -1,17 +1,36 @@
-import { render, screen, waitFor } from "@testing-library/react"
+import { render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
+
+import type { Institution } from "@/features/institution/types"
 
 import { PedagogicalReportPanel } from "./PedagogicalReportPanel"
 import type { PedagogicalReport } from "../types"
 
 const usePedagogicalReport = vi.hoisted(() => vi.fn())
 const useSavePedagogicalReport = vi.hoisted(() => vi.fn())
+const useInstitution = vi.hoisted(() => vi.fn())
 
 vi.mock("../hooks/useGradebook", () => ({
   usePedagogicalReport,
   useSavePedagogicalReport,
 }))
+
+// El encabezado institucional lo lee react-query, que acá no tiene provider. La vista previa lo
+// necesita completo: es la sección I del documento.
+vi.mock("@/features/institution/hooks/useInstitution", () => ({
+  useInstitution,
+}))
+
+const school: Institution = {
+  district: "Sacaba",
+  school: "6 de Junio",
+  directorName: "Rojas Mario",
+  department: "Cochabamba",
+  dependency: "Fiscal",
+  shift: "Mañana",
+  educationLevel: "Primaria Comunitaria Vocacional",
+}
 
 // El selector real lee el catálogo por react-query, que acá no tiene provider ni nada que decir
 // sobre el informe. Un botón por trimestre alcanza para probar el panel.
@@ -90,7 +109,11 @@ const mutate = vi.fn()
 beforeEach(() => {
   vi.clearAllMocks()
   useSavePedagogicalReport.mockReturnValue({ mutate, isPending: false })
+  useInstitution.mockReturnValue({ data: school })
 })
+
+/** El cuadro editable de la sección IV, que en pantalla convive con el mismo cuadro impreso. */
+const editor = () => screen.getByRole("table", { name: /acciones por estudiante/i })
 
 describe("PedagogicalReportPanel", () => {
   /**
@@ -103,7 +126,7 @@ describe("PedagogicalReportPanel", () => {
     render(<PedagogicalReportPanel courseId="c-1" />)
 
     expect(screen.getByText(/No se pudo cargar/)).toBeInTheDocument()
-    expect(screen.queryByLabelText(/Logros/)).not.toBeInTheDocument()
+    expect(screen.queryByLabelText("Logros alcanzados")).not.toBeInTheDocument()
   })
 
   it("nombra el curso y al docente que firma", () => {
@@ -112,7 +135,11 @@ describe("PedagogicalReportPanel", () => {
     render(<PedagogicalReportPanel courseId="c-1" />)
 
     expect(screen.getByText(/Quinto B/)).toBeInTheDocument()
-    expect(screen.getByText(/Mamani Rosa/)).toBeInTheDocument()
+    // El docente sale del documento, que es donde firma; el formulario no lo repite.
+    const referenciales = screen.getByRole("table", {
+      name: /datos referenciales/i,
+    })
+    expect(referenciales).toHaveTextContent("Mamani Rosa")
   })
 
   /** La sección III se deriva: nadie la escribe, y los porcentajes son los de la planilla. */
@@ -121,22 +148,20 @@ describe("PedagogicalReportPanel", () => {
 
     render(<PedagogicalReportPanel courseId="c-1" />)
 
-    const failed = screen.getByRole("row", { name: /Reprobados/ })
-    expect(failed).toHaveTextContent("2")
-    expect(failed).toHaveTextContent("1")
-    expect(failed).toHaveTextContent("3")
-    expect(failed).toHaveTextContent("13,64")
+    const estadistica = screen.getByRole("table", { name: /estadística/i })
+    expect(estadistica).toHaveTextContent("13,64")
+    expect(estadistica).toHaveTextContent("86,36")
   })
 
-  /** Las áreas van apiladas en una celda: el documento de la escuela las imprime así. */
+  /** El cuadro editable trae el área con su nota al lado: es el contexto de lo que se escribe. */
   it("apila las áreas reprobadas de un estudiante con su nota", () => {
     usePedagogicalReport.mockReturnValue(query({ data: sheet() }))
 
     render(<PedagogicalReportPanel courseId="c-1" />)
 
-    expect(screen.getByText("Quispe Ana")).toBeInTheDocument()
-    expect(screen.getByText(/Matemática/)).toHaveTextContent("45")
-    expect(screen.getByText(/Lengua/)).toHaveTextContent("48")
+    const fila = within(editor()).getByRole("row", { name: /Quispe Ana/ })
+    expect(fila).toHaveTextContent("Matemática — 45")
+    expect(fila).toHaveTextContent("Lengua — 48")
   })
 
   /** Un informe que nadie escribió todavía es la hoja en blanco, no un error ni un vacío. */
@@ -149,7 +174,7 @@ describe("PedagogicalReportPanel", () => {
 
     render(<PedagogicalReportPanel courseId="c-1" />)
 
-    expect(screen.getByLabelText(/Logros/)).toHaveValue("")
+    expect(screen.getByLabelText("Logros alcanzados")).toHaveValue("")
     expect(screen.getByText(/Sin guardar/)).toBeInTheDocument()
   })
 
@@ -163,8 +188,8 @@ describe("PedagogicalReportPanel", () => {
 
     render(<PedagogicalReportPanel courseId="c-1" />)
 
-    await user.clear(screen.getByLabelText(/Logros/))
-    await user.type(screen.getByLabelText(/Logros/), "Avanzaron.")
+    await user.clear(screen.getByLabelText("Logros alcanzados"))
+    await user.type(screen.getByLabelText("Logros alcanzados"), "Avanzaron.")
     await user.click(screen.getByRole("button", { name: /Guardar/ }))
 
     await waitFor(() => expect(mutate).toHaveBeenCalledTimes(1))
@@ -192,7 +217,7 @@ describe("PedagogicalReportPanel", () => {
 
     render(<PedagogicalReportPanel courseId="c-1" />)
 
-    await user.clear(screen.getByLabelText(/Dificultades/))
+    await user.clear(screen.getByLabelText("Dificultades encontradas"))
     await user.click(screen.getByRole("button", { name: /Guardar/ }))
 
     await waitFor(() => expect(mutate).toHaveBeenCalledTimes(1))
@@ -221,6 +246,60 @@ describe("PedagogicalReportPanel", () => {
     render(<PedagogicalReportPanel courseId="c-1" />)
 
     expect(screen.getByText(/Ningún estudiante reprobó/)).toBeInTheDocument()
-    expect(screen.getByLabelText(/Logros/)).toBeInTheDocument()
+    expect(screen.getByLabelText("Logros alcanzados")).toBeInTheDocument()
+  })
+
+  /**
+   * La vista previa es el documento que se va a imprimir, no una copia de lo guardado. Si mostrara
+   * la hoja del servidor, el docente revisaría un texto y entregaría otro.
+   */
+  it("rehace la hoja con lo que se está tipeando, sin guardar", async () => {
+    usePedagogicalReport.mockReturnValue(query({ data: sheet() }))
+    const user = userEvent.setup()
+
+    render(<PedagogicalReportPanel courseId="c-1" />)
+
+    await user.clear(screen.getByLabelText("Logros alcanzados"))
+    await user.type(screen.getByLabelText("Logros alcanzados"), "Terminaron el proyecto.")
+
+    const prosa = screen.getByRole("table", { name: /logros y dificultades/i })
+    await waitFor(() =>
+      expect(prosa).toHaveTextContent("Terminaron el proyecto.")
+    )
+    expect(mutate).not.toHaveBeenCalled()
+  })
+
+  /** Lo que el docente escribe de un estudiante también es el documento. */
+  it("lleva a la hoja lo escrito de un estudiante reprobado", async () => {
+    usePedagogicalReport.mockReturnValue(query({ data: sheet() }))
+    const user = userEvent.setup()
+
+    render(<PedagogicalReportPanel courseId="c-1" />)
+
+    await user.clear(screen.getByLabelText(/Acciones para Quispe Ana/))
+    await user.type(
+      screen.getByLabelText(/Acciones para Quispe Ana/),
+      "Tutoría diaria."
+    )
+
+    const cuadro = screen.getByRole("table", {
+      name: /cuadro de descripción/i,
+    })
+    await waitFor(() => expect(cuadro).toHaveTextContent("Tutoría diaria."))
+  })
+
+  /**
+   * Sin encabezado de la escuela la sección I saldría a medias. El formulario se escribe igual
+   * mientras tanto: lo que falta es el papel, no lo que el docente tiene para decir.
+   */
+  it("no deja imprimir ni exportar sin el encabezado de la escuela", () => {
+    usePedagogicalReport.mockReturnValue(query({ data: sheet() }))
+    useInstitution.mockReturnValue({ data: undefined })
+
+    render(<PedagogicalReportPanel courseId="c-1" />)
+
+    expect(screen.getByRole("button", { name: /Imprimir/ })).toBeDisabled()
+    expect(screen.getByRole("button", { name: /Descargar Word/ })).toBeDisabled()
+    expect(screen.getByLabelText("Logros alcanzados")).toBeInTheDocument()
   })
 })

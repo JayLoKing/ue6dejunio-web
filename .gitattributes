@@ -1,0 +1,30 @@
+# Line endings, so the declared formatter is runnable on the machine it is run on.
+#
+# `.prettierrc` sets `endOfLine: "lf"`. Without this file, git honours whatever
+# `core.autocrlf` the developer happens to have: on Windows that is `true`, so the
+# checkout writes CRLF while the repository stores LF. `prettier --check` then
+# reports every single file as unformatted -- 337 of 337 -- and every one of those
+# reports is about a carriage return, not about the code. A gate that fails on
+# everything is a gate nobody can read, so nobody ran it, and the two real
+# findings it had were buried under the other 335.
+#
+# `text=auto eol=lf` normalises on commit and checks out LF everywhere,
+# regardless of `core.autocrlf`. The stored content does not change: the index is
+# already LF, which is why this lands as one file and not as a rewrite of the tree.
+* text=auto eol=lf
+
+# Binary, and must never be touched: a substituted byte corrupts the file rather
+# than reformatting it.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.pdf binary
+*.docx binary
+*.xlsx binary

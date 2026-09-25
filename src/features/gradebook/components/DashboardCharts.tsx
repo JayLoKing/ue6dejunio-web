@@ -1,10 +1,10 @@
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BarChart } from "@/components/charts/bar-chart"
 import { Bar } from "@/components/charts/bar"
 import { BarXAxis } from "@/components/charts/bar-x-axis"
-import { BarYAxis } from "@/components/charts/bar-y-axis"
 import { Grid } from "@/components/charts/grid"
 import { ChartTooltip } from "@/components/charts/tooltip/chart-tooltip"
 import { statusOf } from "@/lib/grading"
@@ -26,8 +26,14 @@ export interface DashboardChartsProps {
 /** El curso entero: un tablero muestra a todos los estudiantes o no muestra nada útil. */
 const WHOLE_COURSE = { offset: 1, limit: 200, sort: "asc" as const }
 
+/** Como el tablero nombra cada trimestre en los títulos de las tarjetas. */
+const ORDINAL: Record<number, string> = { 1: "1er", 2: "2do", 3: "3er" }
+
 export function DashboardCharts({ courseId }: DashboardChartsProps) {
-  const { data } = useCentralizer(courseId, 1, WHOLE_COURSE)
+  // El trimestre era un 1 escrito en la llamada, no sólo en el título: el tablero no podía mostrar
+  // otro. En junio el docente miraba las notas de marzo creyendo que eran las de ahora.
+  const [trimester, setTrimester] = useState(1)
+  const { data } = useCentralizer(courseId, trimester, WHOLE_COURSE)
   const rows = useMemo(() => data?.content ?? [], [data])
 
   const avgBySubject = useMemo(() => {
@@ -60,46 +66,66 @@ export function DashboardCharts({ courseId }: DashboardChartsProps) {
   }, [rows])
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
-            Promedio por materia (1er trimestre)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {avgBySubject.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">
-              Sin notas registradas.
-            </p>
-          ) : (
-            <BarChart data={avgBySubject} xDataKey="name" aspectRatio="2 / 1">
+    <div className="space-y-4">
+      <Tabs
+        value={String(trimester)}
+        onValueChange={(v) => setTrimester(Number(v))}
+      >
+        <TabsList>
+          {[1, 2, 3].map((t) => (
+            <TabsTrigger key={t} value={String(t)}>
+              {ORDINAL[t]} trimestre
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">
+              Promedio por materia ({ORDINAL[trimester]} trimestre)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {avgBySubject.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                Sin notas registradas.
+              </p>
+            ) : (
+              /*
+                Sin BarYAxis. Ese componente rotula el eje de categorías de un gráfico de barras
+                HORIZONTAL: en uno vertical escribe el nombre de la categoría a la izquierda,
+                recortado a 70px, y era el "probados" y el "APYV" sueltos que aparecían fuera del
+                área. Los valores se leen en el tooltip y la grilla da la referencia; un eje
+                numérico de verdad todavía no existe entre estos componentes.
+              */
+              <BarChart data={avgBySubject} xDataKey="name" aspectRatio="2 / 1">
+                <Grid horizontal />
+                <Bar dataKey="average" fill="var(--univalle)" />
+                <BarXAxis />
+                <ChartTooltip />
+              </BarChart>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">
+              Aprobados vs reprobados ({ORDINAL[trimester]} trimestre)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <BarChart data={passFailCounts} xDataKey="name" aspectRatio="2 / 1">
               <Grid horizontal />
-              <Bar dataKey="average" fill="var(--univalle)" />
+              <Bar dataKey="total" fill="var(--chart-2)" />
               <BarXAxis />
-              <BarYAxis />
               <ChartTooltip />
             </BarChart>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
-            Aprobados vs reprobados (1er trimestre)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <BarChart data={passFailCounts} xDataKey="name" aspectRatio="2 / 1">
-            <Grid horizontal />
-            <Bar dataKey="total" fill="var(--chart-2)" />
-            <BarXAxis />
-            <BarYAxis />
-            <ChartTooltip />
-          </BarChart>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

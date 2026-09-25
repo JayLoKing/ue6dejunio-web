@@ -298,7 +298,11 @@ function failingTable(sheet: PedagogicalReport): Table {
       head("N°"),
       head("APELLIDOS Y NOMBRES"),
       head("ÁREAS REPROBADAS"),
-      head("CALIFICACIÓN"),
+      // Partido a mano. La columna mide 900 twips y la palabra entera no entra; Word no divide
+      // palabras por su cuenta, así que la escribía hasta montarse sobre la columna de acciones y
+      // el encabezado se leía corrido. El ancho no se toca: lo manda la grilla del formulario, y
+      // lo que esta columna no use lo necesita la de acciones, que lleva una frase entera.
+      head("CALIFI-\nCACIÓN"),
       head("Acciones, estrategias y/o adaptaciones curriculares realizadas."),
       head("Fuente de Verificación."),
     ],

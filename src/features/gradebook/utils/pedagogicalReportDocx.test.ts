@@ -88,6 +88,17 @@ describe("pedagogicalReportDocxOf", () => {
     expect(zip.file("[Content_Types].xml")).not.toBeNull()
   })
 
+  // "CALIFICACIÓN" no entra en su columna: son 900 twips, algo más de un centímetro y medio, y
+  // Word no parte palabras solo — la escribe hasta pasarse encima de la columna siguiente, que en
+  // el formulario impreso se lee como si el encabezado fuera "CALIFICACIÓN Acciones, estrategias".
+  // Se parte a mano con el guion que pide la ortografía, no se ensancha la columna: el ancho lo
+  // manda la grilla del formulario y el que sobra lo necesita la columna de acciones.
+  it("parte el encabezado de calificación para que entre en su columna", () => {
+    expect(xml).toContain("CALIFI-")
+    expect(xml).toContain("CACIÓN")
+    expect(xml).not.toContain("CALIFICACIÓN")
+  })
+
   // La frase de cierre venía copiada palabra por palabra del único .docx que dejó la escuela, y
   // ese ejemplar lo escribió una sola docente: decía "Este es lo que puedo dar fe", que no es
   // gramatical. No es la fórmula impresa del formulario — lo confirmó el usuario —, así que se

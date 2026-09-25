@@ -237,7 +237,18 @@ export function PedagogicalReportPreview({
             <th className={HEAD}>N°</th>
             <th className={HEAD}>APELLIDOS Y NOMBRES</th>
             <th className={HEAD}>ÁREAS REPROBADAS</th>
-            <th className={HEAD}>CALIFICACIÓN</th>
+            {/*
+              Partido a mano, igual que en el .docx. Esta columna es el 9% de una hoja carta con
+              márgenes de una pulgada — poco más de un centímetro y medio — y la palabra entera no
+              entra; con `table-layout: fixed` no la encoge, la desborda sobre la columna de
+              acciones y el encabezado se lee corrido. El ancho no se toca: lo manda la grilla del
+              formulario.
+            */}
+            <th className={HEAD}>
+              CALIFI-
+              <br />
+              CACIÓN
+            </th>
             <th className={HEAD}>
               Acciones, estrategias y/o adaptaciones curriculares realizadas.
             </th>

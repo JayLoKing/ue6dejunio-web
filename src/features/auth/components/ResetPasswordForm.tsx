@@ -5,14 +5,6 @@ import { ArrowLeftIcon, KeyRoundIcon, TriangleAlertIcon } from "lucide-react"
 
 import { Button } from "@/components/animate-ui/components/buttons/button"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
   Field,
   FieldError,
   FieldGroup,
@@ -35,21 +27,21 @@ export interface ResetPasswordFormProps {
 export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   if (!token) {
     return (
-      <Card className="w-full max-w-md border-destructive/30 shadow-lg">
-        <CardHeader className="text-center">
-          <TriangleAlertIcon className="mx-auto size-10 text-destructive" />
-          <CardTitle className="text-xl">Enlace inválido</CardTitle>
-          <CardDescription>
+      <div className="space-y-6">
+        <div className="flex size-11 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+          <TriangleAlertIcon className="size-5" />
+        </div>
+        <div className="space-y-1.5">
+          <p className="font-medium">Enlace inválido</p>
+          <p className="text-sm leading-relaxed text-muted-foreground">
             El enlace de recuperación no tiene token o expiró. Solicita uno
             nuevo.
-          </CardDescription>
-        </CardHeader>
-        <CardFooter>
-          <Button variant="outline" className="w-full" asChild>
-            <Link to="/auth/forgot-password">Solicitar nuevo enlace</Link>
-          </Button>
-        </CardFooter>
-      </Card>
+          </p>
+        </div>
+        <Button variant="outline" className="h-11 w-full" asChild>
+          <Link to="/auth/forgot-password">Solicitar nuevo enlace</Link>
+        </Button>
+      </div>
     )
   }
   return <ResetForm token={token} />
@@ -80,64 +72,54 @@ function ResetForm({ token }: { token: string }) {
   const loading = isSubmitting || isPending
 
   return (
-    <Card className="w-full max-w-md border-brand/20 shadow-lg">
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Nueva contraseña</CardTitle>
-        <CardDescription>Define tu nueva contraseña.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form id="reset-form" onSubmit={onSubmit} noValidate>
-          <FieldGroup>
-            <Field data-invalid={Boolean(errors.newPassword) || undefined}>
-              <FieldLabel htmlFor="newPassword">Nueva contraseña</FieldLabel>
-              <Input
-                id="newPassword"
-                type="password"
-                autoComplete="new-password"
-                aria-invalid={Boolean(errors.newPassword) || undefined}
-                {...register("newPassword")}
-              />
-              {errors.newPassword ? (
-                <FieldError>{errors.newPassword.message}</FieldError>
-              ) : null}
-              <PasswordRequirements value={newPassword} />
-            </Field>
+    <form onSubmit={onSubmit} noValidate>
+      <FieldGroup>
+        <Field data-invalid={Boolean(errors.newPassword) || undefined}>
+          <FieldLabel htmlFor="newPassword">Nueva contraseña</FieldLabel>
+          <Input
+            id="newPassword"
+            type="password"
+            autoComplete="new-password"
+            className="h-11"
+            aria-invalid={Boolean(errors.newPassword) || undefined}
+            {...register("newPassword")}
+          />
+          {errors.newPassword ? (
+            <FieldError>{errors.newPassword.message}</FieldError>
+          ) : null}
+          <PasswordRequirements value={newPassword} />
+        </Field>
 
-            <Field data-invalid={Boolean(errors.confirmPassword) || undefined}>
-              <FieldLabel htmlFor="confirmPassword">
-                Confirmar contraseña
-              </FieldLabel>
-              <Input
-                id="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                aria-invalid={Boolean(errors.confirmPassword) || undefined}
-                {...register("confirmPassword")}
-              />
-              {errors.confirmPassword ? (
-                <FieldError>{errors.confirmPassword.message}</FieldError>
-              ) : null}
-            </Field>
-          </FieldGroup>
-        </form>
-      </CardContent>
-      <CardFooter className="flex flex-col gap-2">
-        <Button
-          type="submit"
-          form="reset-form"
-          className="w-full bg-brand text-brand-foreground hover:bg-brand/90"
-          disabled={loading}
-        >
-          <KeyRoundIcon data-icon="inline-start" />
-          {loading ? "Guardando…" : "Restablecer contraseña"}
-        </Button>
-        <Button variant="ghost" className="w-full" asChild>
-          <Link to="/auth/login">
-            <ArrowLeftIcon data-icon="inline-start" />
-            Volver
-          </Link>
-        </Button>
-      </CardFooter>
-    </Card>
+        <Field data-invalid={Boolean(errors.confirmPassword) || undefined}>
+          <FieldLabel htmlFor="confirmPassword">
+            Confirmar contraseña
+          </FieldLabel>
+          <Input
+            id="confirmPassword"
+            type="password"
+            autoComplete="new-password"
+            className="h-11"
+            aria-invalid={Boolean(errors.confirmPassword) || undefined}
+            {...register("confirmPassword")}
+          />
+          {errors.confirmPassword ? (
+            <FieldError>{errors.confirmPassword.message}</FieldError>
+          ) : null}
+        </Field>
+
+        <div className="mt-2 space-y-2">
+          <Button type="submit" className="h-11 w-full" disabled={loading}>
+            <KeyRoundIcon data-icon="inline-start" />
+            {loading ? "Guardando…" : "Restablecer contraseña"}
+          </Button>
+          <Button variant="ghost" className="h-11 w-full" asChild>
+            <Link to="/auth/login">
+              <ArrowLeftIcon data-icon="inline-start" />
+              Volver
+            </Link>
+          </Button>
+        </div>
+      </FieldGroup>
+    </form>
   )
 }

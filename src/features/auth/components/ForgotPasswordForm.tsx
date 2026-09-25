@@ -6,16 +6,7 @@ import { ArrowLeftIcon, MailCheckIcon, SendIcon } from "lucide-react"
 
 import { Button } from "@/components/animate-ui/components/buttons/button"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
   Field,
-  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
@@ -53,75 +44,62 @@ export function ForgotPasswordForm() {
 
   const loading = isSubmitting || isPending
 
+  // El éxito no es un formulario vacío con un cartel arriba: es otra pantalla. El campo se va, y
+  // queda lo único que hay para hacer — ir al correo, o volver.
   if (message) {
     return (
-      <Card className="w-full max-w-md border-brand/20 shadow-lg">
-        <CardHeader className="text-center">
-          <MailCheckIcon className="mx-auto size-10 text-brand" />
-          <CardTitle className="text-xl">Revisa tu correo</CardTitle>
-          <CardDescription>{message}</CardDescription>
-        </CardHeader>
-        <CardFooter>
-          <Button variant="outline" className="w-full" asChild>
-            <Link to="/auth/login">
-              <ArrowLeftIcon data-icon="inline-start" />
-              Volver al inicio de sesión
-            </Link>
-          </Button>
-        </CardFooter>
-      </Card>
+      <div className="space-y-6">
+        <div className="flex size-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <MailCheckIcon className="size-5" />
+        </div>
+        <div className="space-y-1.5">
+          <p className="font-medium">Revisa tu correo</p>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            {message}
+          </p>
+        </div>
+        <Button variant="outline" className="h-11 w-full" asChild>
+          <Link to="/auth/login">
+            <ArrowLeftIcon data-icon="inline-start" />
+            Volver al inicio de sesión
+          </Link>
+        </Button>
+      </div>
     )
   }
 
   return (
-    <Card className="w-full max-w-md border-brand/20 shadow-lg">
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Recuperar contraseña</CardTitle>
-        <CardDescription>
-          Ingresa tu correo y te enviaremos un enlace para restablecerla.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form id="forgot-form" onSubmit={onSubmit} noValidate>
-          <FieldGroup>
-            <Field data-invalid={Boolean(errors.email) || undefined}>
-              <FieldLabel htmlFor="email">Correo</FieldLabel>
-              <Input
-                id="email"
-                type="email"
-                autoComplete="email"
-                placeholder="tucorreo@ue6.bo"
-                aria-invalid={Boolean(errors.email) || undefined}
-                {...register("email")}
-              />
-              {errors.email ? (
-                <FieldError>{errors.email.message}</FieldError>
-              ) : (
-                <FieldDescription>
-                  El correo asociado a tu cuenta.
-                </FieldDescription>
-              )}
-            </Field>
-          </FieldGroup>
-        </form>
-      </CardContent>
-      <CardFooter className="flex flex-col gap-2">
-        <Button
-          type="submit"
-          form="forgot-form"
-          className="w-full bg-brand text-brand-foreground hover:bg-brand/90"
-          disabled={loading}
-        >
-          <SendIcon data-icon="inline-start" />
-          {loading ? "Enviando…" : "Enviar enlace"}
-        </Button>
-        <Button variant="ghost" className="w-full" asChild>
-          <Link to="/auth/login">
-            <ArrowLeftIcon data-icon="inline-start" />
-            Volver
-          </Link>
-        </Button>
-      </CardFooter>
-    </Card>
+    <form onSubmit={onSubmit} noValidate>
+      <FieldGroup>
+        <Field data-invalid={Boolean(errors.email) || undefined}>
+          <FieldLabel htmlFor="email">Correo</FieldLabel>
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            placeholder="tucorreo@ue6.bo"
+            className="h-11"
+            aria-invalid={Boolean(errors.email) || undefined}
+            {...register("email")}
+          />
+          {errors.email ? (
+            <FieldError>{errors.email.message}</FieldError>
+          ) : null}
+        </Field>
+
+        <div className="mt-2 space-y-2">
+          <Button type="submit" className="h-11 w-full" disabled={loading}>
+            <SendIcon data-icon="inline-start" />
+            {loading ? "Enviando…" : "Enviar enlace"}
+          </Button>
+          <Button variant="ghost" className="h-11 w-full" asChild>
+            <Link to="/auth/login">
+              <ArrowLeftIcon data-icon="inline-start" />
+              Volver
+            </Link>
+          </Button>
+        </div>
+      </FieldGroup>
+    </form>
   )
 }

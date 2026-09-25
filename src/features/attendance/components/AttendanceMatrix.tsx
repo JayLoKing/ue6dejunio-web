@@ -35,7 +35,7 @@ const STATUS_STYLE: Record<
 > = {
   P: {
     label: "Presente",
-    cls: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+    cls: "bg-success/12 text-success",
   },
   A: { label: "Ausente", cls: "bg-destructive/15 text-destructive" },
   L: { label: "Licencia", cls: "bg-brand/15 text-brand" },
@@ -115,7 +115,7 @@ export function AttendanceMatrix({
         <CalendarDaysIcon className="size-4" />
         <span>
           Lun–Vie. Solo el día actual ({today}) es editable. Clic cíclico{" "}
-          <span className="font-semibold text-emerald-600">P</span> →{" "}
+          <span className="font-semibold text-success">P</span> →{" "}
           <span className="font-semibold text-destructive">A</span> →{" "}
           <span className="font-semibold text-brand">L</span>
         </span>

@@ -164,7 +164,7 @@ export function SubjectsPage() {
                 <Badge
                   className={cn(
                     s.technical
-                      ? "bg-amber-500/20 text-amber-700 dark:text-amber-300"
+                      ? "bg-warning/16 text-warning"
                       : "bg-muted text-muted-foreground"
                   )}
                 >

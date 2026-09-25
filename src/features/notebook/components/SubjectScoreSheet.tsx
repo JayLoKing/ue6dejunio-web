@@ -250,7 +250,7 @@ export function SubjectScoreSheet({
         <h2 className="flex items-center gap-2 text-lg font-semibold">
           {classGroup.subjectName}
           {technical ? (
-            <span className="rounded bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-300">
+            <span className="rounded bg-warning/12 px-2 py-0.5 text-xs font-medium text-warning">
               Técnica
             </span>
           ) : null}
@@ -301,8 +301,8 @@ export function SubjectScoreSheet({
               <Loader2Icon className="size-4 animate-spin" /> Cargando…
             </div>
           ) : !hasCriteria ? (
-            <div className="flex flex-col items-center gap-2 rounded-md border border-dashed border-amber-500/40 bg-amber-500/5 p-8 text-center text-sm">
-              <AlertTriangleIcon className="size-6 text-amber-600" />
+            <div className="flex flex-col items-center gap-2 rounded-md border border-dashed border-warning/40 bg-warning/5 p-8 text-center text-sm">
+              <AlertTriangleIcon className="size-6 text-warning" />
               <p className="font-medium">
                 Define criterios antes de cargar notas.
               </p>
@@ -353,7 +353,7 @@ export function SubjectScoreSheet({
                       </th>
                       <th
                         rowSpan={2}
-                        className="w-10 border-b border-l bg-rose-500/10 p-1 align-bottom font-semibold text-rose-700 dark:text-rose-400"
+                        className="w-10 border-b border-l bg-destructive/10 p-1 align-bottom font-semibold text-destructive"
                         title="Probabilidad de reprobar la materia al finalizar el año"
                       >
                         <div className={VERTICAL_HEAD}>

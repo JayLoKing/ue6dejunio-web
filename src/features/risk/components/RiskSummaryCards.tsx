@@ -28,12 +28,12 @@ export function RiskSummaryCards({ rows }: RiskSummaryCardsProps) {
         count: summary.critical,
         // Said against the total because "3 atendidos" means nothing without "de 5".
         note: `${summary.attended} de ${summary.critical} atendidos`,
-        className: "text-rose-600 dark:text-rose-400",
+        className: "text-destructive",
       },
       {
         level: "EnRiesgo",
         count: summary.warning,
-        className: "text-amber-600 dark:text-amber-400",
+        className: "text-warning",
       },
       {
         level: "SinRiesgo",
@@ -43,7 +43,7 @@ export function RiskSummaryCards({ rows }: RiskSummaryCardsProps) {
       {
         level: "Sobresaliente",
         count: summary.outstanding,
-        className: "text-emerald-600 dark:text-emerald-400",
+        className: "text-success",
       },
     ]
   }, [rows])

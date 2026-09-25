@@ -141,7 +141,7 @@ export function RiskTable({
                         onClick={() => onToggleAttended(risk, !risk.attended)}
                       >
                         {risk.attended ? (
-                          <CheckCircle2Icon className="size-4 text-emerald-600 dark:text-emerald-400" />
+                          <CheckCircle2Icon className="size-4 text-success" />
                         ) : (
                           <CircleDashedIcon className="size-4 text-muted-foreground" />
                         )}

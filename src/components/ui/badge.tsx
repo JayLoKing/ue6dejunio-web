@@ -14,6 +14,19 @@ const badgeVariants = cva(
           "bg-secondary text-secondary-foreground [a]:hover:bg-secondary/80",
         destructive:
           "bg-destructive/10 text-destructive focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:focus-visible:ring-destructive/40 [a]:hover:bg-destructive/20",
+        /*
+         * Estados, con el mismo tratamiento que `destructive`: fondo teñido y texto del color, no
+         * relleno pleno. Existen para que una materia técnica, un estudiante presente o un curso en
+         * riesgo dejen de pintarse a mano en cada pantalla con los verdes y ámbares crudos de
+         * Tailwind, que son de otra paleta y no de esta.
+         *
+         * El tinte sube en modo oscuro porque un 10% sobre negro es invisible.
+         */
+        success:
+          "bg-success/12 text-success focus-visible:ring-success/20 dark:bg-success/20 [a]:hover:bg-success/20",
+        warning:
+          "bg-warning/12 text-warning focus-visible:ring-warning/20 dark:bg-warning/20 [a]:hover:bg-warning/20",
+        info: "bg-info/12 text-info focus-visible:ring-info/20 dark:bg-info/20 [a]:hover:bg-info/20",
         outline:
           "border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground",
         ghost:

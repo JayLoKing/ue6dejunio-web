@@ -76,7 +76,7 @@ function IconButton({
         {children}
         <ParticlesEffect
           data-variant={variant}
-          className="size-1 rounded-full bg-neutral-500"
+          className="size-1 rounded-full bg-muted-foreground"
         />
       </ButtonPrimitive>
     </Particles>

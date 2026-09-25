@@ -28,6 +28,12 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -49,21 +55,21 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
-  --color-chart-label: var(----chart-label);
-  --color-chart-ring-background: var(----chart-ring-background);
-  --color-chart-marker-foreground: var(----chart-marker-foreground);
-  --color-chart-marker-border: var(----chart-marker-border);
-  --color-chart-marker-background: var(----chart-marker-background);
-  --color-chart-tooltip-muted: var(----chart-tooltip-muted);
-  --color-chart-tooltip-foreground: var(----chart-tooltip-foreground);
-  --color-chart-tooltip-background: var(----chart-tooltip-background);
-  --color-chart-grid: var(----chart-grid);
-  --color-chart-crosshair: var(----chart-crosshair);
-  --chart-line-secondary: var(----chart-line-secondary);
-  --chart-line-primary: var(----chart-line-primary);
-  --color-chart-foreground-muted: var(----chart-foreground-muted);
-  --color-chart-foreground: var(----chart-foreground);
-  --color-chart-background: var(----chart-background);
+  --color-chart-label: var(--chart-label);
+  --color-chart-ring-background: var(--chart-ring-background);
+  --color-chart-marker-foreground: var(--chart-marker-foreground);
+  --color-chart-marker-border: var(--chart-marker-border);
+  --color-chart-marker-background: var(--chart-marker-background);
+  --color-chart-tooltip-muted: var(--chart-tooltip-muted);
+  --color-chart-tooltip-foreground: var(--chart-tooltip-foreground);
+  --color-chart-tooltip-background: var(--chart-tooltip-background);
+  --color-chart-grid: var(--chart-grid);
+  --color-chart-crosshair: var(--chart-crosshair);
+  --chart-line-secondary: var(--chart-line-secondary);
+  --chart-line-primary: var(--chart-line-primary);
+  --color-chart-foreground-muted: var(--chart-foreground-muted);
+  --color-chart-foreground: var(--chart-foreground);
+  --color-chart-background: var(--chart-background);
 }
 
 /*
@@ -131,6 +137,27 @@
   --border: oklch(0.905 0.008 85);
   --input: oklch(0.905 0.008 85);
   --ring: oklch(0.52 0.08 165);
+
+  /*
+   * Estados. Existen porque sin ellos cada pantalla elegía su propio verde: había `emerald-500`,
+   * `amber-600` y `rose-400` de Tailwind sueltos en cincuenta y cinco lugares, colores de otra
+   * paleta pintando la asistencia, el riesgo y las materias técnicas.
+   *
+   * `success` ES el primario, y a propósito. En una marca cuyo color es verde, un segundo verde
+   * para "bien" no significa nada distinto — significa lo mismo dos veces. Lo que sí tiene que
+   * distinguirse es un estado de otro: presente, ausente y licencia caen en pino, ladrillo y
+   * terracota, que son tres matices bien separados.
+   *
+   * `warning` no es `brand-accent` aunque se le parezca. El acento vive en fondos; esto se usa
+   * como texto, y sobre blanco la terracota clara del acento queda en 3.5:1 — pasa para un ícono
+   * grande y no para una palabra de doce píxeles.
+   */
+  --success: var(--primary);
+  --success-foreground: var(--primary-foreground);
+  --warning: oklch(0.575 0.13 55);
+  --warning-foreground: oklch(0.985 0.006 85);
+  --info: oklch(0.5 0.085 245);
+  --info-foreground: oklch(0.985 0.006 85);
 
   /* Las series, separadas por matiz y también por claridad, porque un daltónico distingue claro de
      oscuro aunque no distinga verde de rojo — y porque el informe se imprime en blanco y negro. */
@@ -230,6 +257,14 @@
   --border: oklch(0.96 0.012 90 / 12%);
   --input: oklch(0.96 0.012 90 / 16%);
   --ring: oklch(0.6 0.085 168);
+
+  /* Los tres suben de claridad, como todo lo demás: acá se leen contra un fondo oscuro. */
+  --success: var(--primary);
+  --success-foreground: var(--primary-foreground);
+  --warning: oklch(0.78 0.12 62);
+  --warning-foreground: oklch(0.19 0.02 165);
+  --info: oklch(0.72 0.095 245);
+  --info-foreground: oklch(0.19 0.02 165);
 
   --chart-1: oklch(0.68 0.1 168);
   --chart-2: oklch(0.72 0.135 50);

@@ -130,7 +130,7 @@ function TrimesterCard({
       <div className="flex items-center justify-between">
         <span className="font-semibold">{ORDINAL[trimester]} trimestre</span>
         {existing ? (
-          <span className="rounded bg-emerald-500/15 px-2 py-0.5 text-[11px] text-emerald-700 dark:text-emerald-300">
+          <span className="rounded bg-success/12 px-2 py-0.5 text-[11px] text-success">
             Configurado
           </span>
         ) : (

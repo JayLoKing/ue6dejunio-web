@@ -37,7 +37,7 @@ const STATUS_META: Record<
   Present: {
     short: "P",
     label: "Presente",
-    cls: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+    cls: "bg-success/12 text-success",
   },
   Absent: {
     short: "F",
@@ -47,7 +47,7 @@ const STATUS_META: Record<
   Late: {
     short: "R",
     label: "Retraso",
-    cls: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+    cls: "bg-warning/12 text-warning",
   },
   Excused: {
     short: "L",

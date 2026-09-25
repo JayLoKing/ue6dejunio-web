@@ -276,7 +276,7 @@ export function AppSidebar() {
                                   </span>
                                   {!isTechnical &&
                                   isTechnicalSubject(cg.subjectName) ? (
-                                    <span className="ml-auto rounded bg-amber-500/20 px-1 text-[10px] text-amber-700 dark:text-amber-300">
+                                    <span className="ml-auto rounded bg-warning/16 px-1 text-[10px] text-warning">
                                       T
                                     </span>
                                   ) : null}

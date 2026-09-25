@@ -85,7 +85,7 @@ export function CourseInfoModal({ course, onClose }: CourseInfoModalProps) {
                       <span className="flex items-center gap-2">
                         {cg.subjectName}
                         {isTechnicalSubject(cg.subjectName) ? (
-                          <Badge className="bg-amber-500/20 text-amber-700 dark:text-amber-300">
+                          <Badge className="bg-warning/16 text-warning">
                             Técnica
                           </Badge>
                         ) : null}

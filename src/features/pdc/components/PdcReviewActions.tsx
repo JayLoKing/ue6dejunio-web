@@ -60,7 +60,7 @@ export function PdcReviewActions({
         <Button
           type="button"
           variant="outline"
-          className="text-emerald-600"
+          className="text-success"
           disabled={deciding}
           onClick={onApprove}
         >
@@ -70,7 +70,7 @@ export function PdcReviewActions({
         <Button
           type="button"
           variant="outline"
-          className="text-amber-600"
+          className="text-warning"
           disabled={deciding}
           onClick={() => setWriting(true)}
         >

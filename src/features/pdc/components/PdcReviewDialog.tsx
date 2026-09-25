@@ -65,8 +65,8 @@ export function PdcReviewDialog({
                 the previous round's observations, and reviewing it without them reads as a first
                 submission. */}
             {plan.reviewObservations ? (
-              <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-sm">
-                <p className="font-semibold text-amber-600">
+              <div className="rounded-md border border-warning/30 bg-warning/10 p-3 text-sm">
+                <p className="font-semibold text-warning">
                   Observaciones anteriores
                 </p>
                 <p className="whitespace-pre-wrap">{plan.reviewObservations}</p>

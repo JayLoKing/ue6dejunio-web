@@ -52,7 +52,7 @@ const STATUS_META: Record<
   Excused: {
     short: "L",
     label: "Licencia",
-    cls: "bg-univalle/15 text-univalle",
+    cls: "bg-brand/15 text-brand",
   },
 }
 

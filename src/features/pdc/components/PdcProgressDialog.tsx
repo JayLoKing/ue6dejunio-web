@@ -106,7 +106,7 @@ export function PdcProgressDialog({ pdc, onClose }: PdcProgressDialogProps) {
           </Field>
           <div className="flex justify-end">
             <Button
-              className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
+              className="bg-brand text-brand-foreground hover:bg-brand/90"
               disabled={add.isPending || (!content && !percentage)}
               onClick={submit}
             >

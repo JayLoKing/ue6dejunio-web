@@ -102,7 +102,7 @@ export function DashboardCharts({ courseId }: DashboardChartsProps) {
               */
               <BarChart data={avgBySubject} xDataKey="name" aspectRatio="2 / 1">
                 <Grid horizontal />
-                <Bar dataKey="average" fill="var(--univalle)" />
+                <Bar dataKey="average" fill="var(--brand)" />
                 <BarXAxis />
                 <ChartTooltip />
               </BarChart>

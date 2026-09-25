@@ -100,7 +100,7 @@ export function PdcReviewActions({
             </Button>
             <Button
               type="button"
-              className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
+              className="bg-brand text-brand-foreground hover:bg-brand/90"
               // Whitespace is not an observation: it would pass a length check here and be
               // refused by the API, which asks the Director to say what has to be corrected.
               disabled={said === "" || deciding}

@@ -92,7 +92,7 @@ export function NotificationBell() {
                   key={n.id}
                   className={cn(
                     "flex items-start justify-between gap-2 px-3 py-2.5 text-sm transition-colors hover:bg-muted/50",
-                    !n.read && "bg-univalle/5"
+                    !n.read && "bg-brand/5"
                   )}
                 >
                   {/* A button, not a clickable row: opening a notice is an action, and someone
@@ -118,7 +118,7 @@ export function NotificationBell() {
                   </button>
                   <div className="flex shrink-0 items-center gap-1.5">
                     {!n.read ? (
-                      <span className="size-2 rounded-full bg-univalle" />
+                      <span className="size-2 rounded-full bg-brand" />
                     ) : null}
                     <Button
                       variant="ghost"

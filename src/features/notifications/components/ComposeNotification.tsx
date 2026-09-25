@@ -171,7 +171,7 @@ export function ComposeNotification({
       <div className="flex justify-end">
         <Button
           type="button"
-          className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
+          className="bg-brand text-brand-foreground hover:bg-brand/90"
           disabled={!ready || sending}
           onClick={send}
         >

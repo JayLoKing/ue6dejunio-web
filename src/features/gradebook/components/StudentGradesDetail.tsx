@@ -80,7 +80,7 @@ export function StudentGradesDetail({
                   {c.label}
                 </th>
               ))}
-              <th className="min-w-20 border-b bg-univalle/10 px-3 py-2 text-center font-semibold text-univalle">
+              <th className="min-w-20 border-b bg-brand/10 px-3 py-2 text-center font-semibold text-brand">
                 Total
               </th>
             </tr>
@@ -129,7 +129,7 @@ export function StudentGradesDetail({
                         {fmt(c.pick(s))}
                       </td>
                     ))}
-                    <td className="bg-univalle/5 px-3 py-2 text-center font-semibold text-univalle">
+                    <td className="bg-brand/5 px-3 py-2 text-center font-semibold text-brand">
                       {fmt(s.totalScore)}
                     </td>
                   </tr>

@@ -168,7 +168,7 @@ export function AssignCourseSubjectsForm() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <GraduationCapIcon className="size-5 text-univalle" />
+            <GraduationCapIcon className="size-5 text-brand" />
             Curso
           </CardTitle>
           <CardDescription>
@@ -275,9 +275,7 @@ export function AssignCourseSubjectsForm() {
                     key={s.id}
                     className={cn(
                       "flex flex-col gap-3 rounded-md border p-3 transition-colors",
-                      checked
-                        ? "border-univalle/40 bg-univalle/5"
-                        : "border-border"
+                      checked ? "border-brand/40 bg-brand/5" : "border-border"
                     )}
                   >
                     <label className="flex items-start gap-3">
@@ -382,7 +380,7 @@ export function AssignCourseSubjectsForm() {
         <Button
           onClick={handleSubmit}
           disabled={!canSubmit || saving}
-          className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
+          className="bg-brand text-brand-foreground hover:bg-brand/90"
         >
           <SaveIcon data-icon="inline-start" />
           {saving ? "Guardando…" : "Guardar Curso"}

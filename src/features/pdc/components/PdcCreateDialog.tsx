@@ -152,7 +152,7 @@ export function PdcCreateDialog({
           </Button>
           <Button
             type="button"
-            className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
+            className="bg-brand text-brand-foreground hover:bg-brand/90"
             disabled={!valid || create.isPending}
             onClick={submit}
           >

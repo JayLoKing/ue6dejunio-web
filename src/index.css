@@ -6,176 +6,296 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', sans-serif;
-    --color-univalle: var(--univalle);
-    --color-univalle-foreground: var(--univalle-foreground);
-    --color-univalle-accent: var(--univalle-accent);
-    --color-sidebar-ring: var(--sidebar-ring);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar: var(--sidebar);
-    --color-chart-5: var(--chart-5);
-    --color-chart-4: var(--chart-4);
-    --color-chart-3: var(--chart-3);
-    --color-chart-2: var(--chart-2);
-    --color-chart-1: var(--chart-1);
-    --color-ring: var(--ring);
-    --color-input: var(--input);
-    --color-border: var(--border);
-    --color-destructive: var(--destructive);
-    --color-accent-foreground: var(--accent-foreground);
-    --color-accent: var(--accent);
-    --color-muted-foreground: var(--muted-foreground);
-    --color-muted: var(--muted);
-    --color-secondary-foreground: var(--secondary-foreground);
-    --color-secondary: var(--secondary);
-    --color-primary-foreground: var(--primary-foreground);
-    --color-primary: var(--primary);
-    --color-popover-foreground: var(--popover-foreground);
-    --color-popover: var(--popover);
-    --color-card-foreground: var(--card-foreground);
-    --color-card: var(--card);
-    --color-foreground: var(--foreground);
-    --color-background: var(--background);
-    --radius-sm: calc(var(--radius) * 0.6);
-    --radius-md: calc(var(--radius) * 0.8);
-    --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) * 1.4);
-    --radius-2xl: calc(var(--radius) * 1.8);
-    --radius-3xl: calc(var(--radius) * 2.2);
-    --radius-4xl: calc(var(--radius) * 2.6);
-    --color-chart-label: var(----chart-label);
-    --color-chart-ring-background: var(----chart-ring-background);
-    --color-chart-marker-foreground: var(----chart-marker-foreground);
-    --color-chart-marker-border: var(----chart-marker-border);
-    --color-chart-marker-background: var(----chart-marker-background);
-    --color-chart-tooltip-muted: var(----chart-tooltip-muted);
-    --color-chart-tooltip-foreground: var(----chart-tooltip-foreground);
-    --color-chart-tooltip-background: var(----chart-tooltip-background);
-    --color-chart-grid: var(----chart-grid);
-    --color-chart-crosshair: var(----chart-crosshair);
-    --chart-line-secondary: var(----chart-line-secondary);
-    --chart-line-primary: var(----chart-line-primary);
-    --color-chart-foreground-muted: var(----chart-foreground-muted);
-    --color-chart-foreground: var(----chart-foreground);
-    --color-chart-background: var(----chart-background);
+  --font-heading: var(--font-sans);
+  --font-sans: "Geist Variable", sans-serif;
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-accent: var(--brand-accent);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  --color-chart-label: var(----chart-label);
+  --color-chart-ring-background: var(----chart-ring-background);
+  --color-chart-marker-foreground: var(----chart-marker-foreground);
+  --color-chart-marker-border: var(----chart-marker-border);
+  --color-chart-marker-background: var(----chart-marker-background);
+  --color-chart-tooltip-muted: var(----chart-tooltip-muted);
+  --color-chart-tooltip-foreground: var(----chart-tooltip-foreground);
+  --color-chart-tooltip-background: var(----chart-tooltip-background);
+  --color-chart-grid: var(----chart-grid);
+  --color-chart-crosshair: var(----chart-crosshair);
+  --chart-line-secondary: var(----chart-line-secondary);
+  --chart-line-primary: var(----chart-line-primary);
+  --color-chart-foreground-muted: var(----chart-foreground-muted);
+  --color-chart-foreground: var(----chart-foreground);
+  --color-chart-background: var(----chart-background);
 }
 
+/*
+ * La paleta, tomada del escudo de la Unidad Educativa "6 de Junio": verde, dorado y rojo sobre
+ * blanco.
+ *
+ * COMO LEER ESTOS VALORES. Son oklch(L C H): claridad de 0 a 1, croma —cuánto color tiene— y
+ * matiz en grados. Se eligió oklch y no hex porque la claridad es perceptual: dos colores con la
+ * misma L se ven igual de claros, así que el contraste con el texto se sostiene al cambiar el
+ * matiz, y una escala se construye moviendo un número en vez de adivinando.
+ *
+ *   verde institucional  H 152   el color dominante del escudo. Es `primary`: botones de acción,
+ *                                el ítem activo del menú, el foco del teclado.
+ *   dorado               H 88    el segundo del escudo. Es `accent`: lo que hay que mirar sin que
+ *                                sea una acción — un destacado, un estado sobresaliente.
+ *   rojo                 H 27    el tercero. Queda para `destructive`, que es lo que ya
+ *                                significaba: borrar, reprobar, fallar.
+ *
+ * Y LOS NEUTROS NO SON GRISES. Llevan un croma de 0.008 a 0.02 en el matiz del verde. No se ve
+ * como color; se ve como que el gris pertenece a esta paleta y no a otra. Un gris puro al lado de
+ * un verde saturado se lee frío y despegado, que es exactamente como se veía antes.
+ */
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
-    --univalle: oklch(0.36 0.13 256);
-    --univalle-foreground: oklch(0.985 0 0);
-    --univalle-accent: oklch(0.72 0.16 70);
-    --chart-background: oklch(1 0 0);
-    --chart-foreground: oklch(0.145 0.004 285);
-    --chart-foreground-muted: oklch(0.55 0.014 260);
-    --chart-line-primary: var(--chart-1);
-    --chart-line-secondary: var(--chart-2);
-    --chart-crosshair: oklch(0.4 0.1828 274.34);
-    --chart-grid: oklch(0.9 0 0);
-    --chart-tooltip-background: oklch(0.21 0.006 285 / 0.8);
-    --chart-tooltip-foreground: oklch(0.985 0 0);
-    --chart-tooltip-muted: oklch(0.65 0.01 260);
-    --chart-marker-background: oklch(0.97 0.005 260);
-    --chart-marker-border: oklch(0.85 0.01 260);
-    --chart-marker-foreground: oklch(0.3 0.01 260);
-    --chart-ring-background: oklch(0.9 0.005 260 / 0.25);
-    --chart-label: oklch(0.45 0.01 260);
+  /* Superficies. El fondo lleva un velo verde y las tarjetas son blanco puro, así que una
+       tarjeta se separa del fondo por sí sola, sin depender del borde. */
+  --background: oklch(0.994 0.003 140);
+  --foreground: oklch(0.17 0.012 155);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.17 0.012 155);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.17 0.012 155);
+
+  /* El verde del escudo. L 0.43 contra un texto en 0.98 pasa AA holgado en texto normal. */
+  --primary: oklch(0.43 0.12 152);
+  --primary-foreground: oklch(0.985 0.008 140);
+  --secondary: oklch(0.955 0.018 145);
+  --secondary-foreground: oklch(0.3 0.06 152);
+  --muted: oklch(0.965 0.008 140);
+  --muted-foreground: oklch(0.5 0.02 150);
+
+  /* El dorado, como fondo suave y no como relleno pleno: en un bloque grande cansa la vista. */
+  --accent: oklch(0.95 0.045 92);
+  --accent-foreground: oklch(0.34 0.07 78);
+
+  --destructive: oklch(0.55 0.2 27);
+  --border: oklch(0.9 0.012 140);
+  --input: oklch(0.9 0.012 140);
+  --ring: oklch(0.55 0.1 152);
+
+  /* Las series. Los dos primeros son los del escudo porque son los que más se leen; el cuarto
+       se va al petróleo a propósito: cinco variantes de verde y dorado no se distinguen entre sí,
+       y menos todavía en una impresión en blanco y negro. */
+  --chart-1: oklch(0.52 0.13 152);
+  --chart-2: oklch(0.76 0.15 85);
+  --chart-3: oklch(0.58 0.18 28);
+  --chart-4: oklch(0.55 0.08 205);
+  --chart-5: oklch(0.68 0.1 120);
+
+  --radius: 0.625rem;
+
+  --sidebar: oklch(0.975 0.012 142);
+  --sidebar-foreground: oklch(0.2 0.015 152);
+  --sidebar-primary: oklch(0.43 0.12 152);
+  --sidebar-primary-foreground: oklch(0.985 0.008 140);
+  --sidebar-accent: oklch(0.935 0.028 145);
+  --sidebar-accent-foreground: oklch(0.3 0.06 152);
+  --sidebar-border: oklch(0.9 0.014 140);
+  --sidebar-ring: oklch(0.55 0.1 152);
+
+  /* El color de marca. Se mantiene aparte de `primary` porque marca pertenencia — un encabezado,
+       una firma — y no acción, y porque los dos pueden divergir sin arrastrarse. */
+  --brand: oklch(0.43 0.12 152);
+  --brand-foreground: oklch(0.985 0.008 140);
+  --brand-accent: oklch(0.76 0.15 85);
+
+  --chart-background: oklch(1 0 0);
+  --chart-foreground: oklch(0.2 0.015 152);
+  --chart-foreground-muted: oklch(0.52 0.02 145);
+  --chart-line-primary: var(--chart-1);
+  --chart-line-secondary: var(--chart-2);
+  --chart-crosshair: oklch(0.43 0.12 152);
+  --chart-grid: oklch(0.905 0.012 140);
+  --chart-tooltip-background: oklch(0.22 0.03 152 / 0.92);
+  --chart-tooltip-foreground: oklch(0.985 0.008 140);
+  --chart-tooltip-muted: oklch(0.72 0.02 140);
+  --chart-marker-background: oklch(0.965 0.012 140);
+  --chart-marker-border: oklch(0.86 0.02 142);
+  --chart-marker-foreground: oklch(0.3 0.03 150);
+  --chart-ring-background: oklch(0.55 0.1 152 / 0.22);
+  --chart-label: oklch(0.47 0.02 148);
+
+  /* Degradados. Variables y no clases sueltas para que el ángulo y las paradas se decidan una
+       vez: el encabezado del login, la franja de una tarjeta destacada y el fondo de un estado
+       vacío tienen que ser el mismo gesto, o se leen como tres marcas distintas. */
+  --gradient-brand: linear-gradient(
+    135deg,
+    oklch(0.43 0.12 152) 0%,
+    oklch(0.5 0.11 165) 45%,
+    oklch(0.58 0.1 185) 100%
+  );
+  --gradient-accent: linear-gradient(
+    135deg,
+    oklch(0.76 0.15 85) 0%,
+    oklch(0.66 0.15 60) 100%
+  );
+  /* Casi invisible, y esa es la idea: da profundidad a una superficie grande sin pintarla. */
+  --gradient-surface: linear-gradient(
+    180deg,
+    oklch(0.99 0.006 140) 0%,
+    oklch(0.965 0.012 145) 100%
+  );
 }
 
+/*
+ * El mismo escudo con la luz apagada, no la paleta clara invertida.
+ *
+ * El verde de `primary` sube de 0.43 a 0.74 y su texto baja a 0.19: sobre un fondo oscuro un verde
+ * oscuro no es un botón, es una mancha. El croma baja un poco en las superficies porque el color
+ * saturado se ve más intenso contra negro que contra blanco, y un fondo con el croma del modo
+ * claro vibra.
+ */
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
-    --univalle: oklch(0.55 0.14 256);
-    --univalle-foreground: oklch(0.985 0 0);
-    --univalle-accent: oklch(0.78 0.16 70);
-    --chart-background: oklch(0.145 0 0);
-    --chart-foreground: oklch(0.45 0 0);
-    --chart-foreground-muted: oklch(0.65 0.01 260);
-    --chart-crosshair: oklch(0.45 0 0);
-    --chart-grid: oklch(0.25 0 0);
-    --chart-marker-background: oklch(0.25 0.01 260);
-    --chart-marker-border: oklch(0.4 0.01 260);
-    --chart-marker-foreground: oklch(0.9 0 0);
-    --chart-ring-background: oklch(0.35 0.01 260 / 0.25);
-    --chart-label: oklch(0.75 0.01 260);
+  --background: oklch(0.165 0.012 155);
+  --foreground: oklch(0.96 0.008 140);
+  --card: oklch(0.215 0.015 155);
+  --card-foreground: oklch(0.96 0.008 140);
+  --popover: oklch(0.215 0.015 155);
+  --popover-foreground: oklch(0.96 0.008 140);
+
+  --primary: oklch(0.74 0.14 150);
+  --primary-foreground: oklch(0.19 0.03 155);
+  --secondary: oklch(0.28 0.02 152);
+  --secondary-foreground: oklch(0.96 0.008 140);
+  --muted: oklch(0.27 0.016 152);
+  --muted-foreground: oklch(0.72 0.016 142);
+
+  --accent: oklch(0.3 0.04 95);
+  --accent-foreground: oklch(0.9 0.1 92);
+
+  --destructive: oklch(0.68 0.19 25);
+  --border: oklch(0.96 0.02 140 / 12%);
+  --input: oklch(0.96 0.02 140 / 16%);
+  --ring: oklch(0.6 0.11 150);
+
+  --chart-1: oklch(0.7 0.14 150);
+  --chart-2: oklch(0.82 0.14 88);
+  --chart-3: oklch(0.67 0.17 30);
+  --chart-4: oklch(0.66 0.09 205);
+  --chart-5: oklch(0.76 0.1 122);
+
+  --sidebar: oklch(0.2 0.016 155);
+  --sidebar-foreground: oklch(0.96 0.008 140);
+  --sidebar-primary: oklch(0.7 0.14 150);
+  --sidebar-primary-foreground: oklch(0.19 0.03 155);
+  --sidebar-accent: oklch(0.28 0.025 152);
+  --sidebar-accent-foreground: oklch(0.96 0.008 140);
+  --sidebar-border: oklch(0.96 0.02 140 / 12%);
+  --sidebar-ring: oklch(0.6 0.11 150);
+
+  --brand: oklch(0.7 0.14 150);
+  --brand-foreground: oklch(0.19 0.03 155);
+  --brand-accent: oklch(0.82 0.14 88);
+
+  --chart-background: oklch(0.165 0.012 155);
+  --chart-foreground: oklch(0.62 0.02 145);
+  --chart-foreground-muted: oklch(0.7 0.018 142);
+  --chart-crosshair: oklch(0.7 0.14 150);
+  --chart-grid: oklch(0.29 0.014 152);
+  --chart-tooltip-background: oklch(0.14 0.02 155 / 0.94);
+  --chart-tooltip-foreground: oklch(0.96 0.008 140);
+  --chart-tooltip-muted: oklch(0.7 0.018 142);
+  --chart-marker-background: oklch(0.26 0.018 152);
+  --chart-marker-border: oklch(0.42 0.03 150);
+  --chart-marker-foreground: oklch(0.92 0.01 140);
+  --chart-ring-background: oklch(0.6 0.11 150 / 0.25);
+  --chart-label: oklch(0.74 0.018 145);
+
+  /* Más oscuros que en claro: un degradado pensado para fondo blanco, puesto sobre negro, se
+       convierte en una fuente de luz y se come todo lo que tiene encima. */
+  --gradient-brand: linear-gradient(
+    135deg,
+    oklch(0.32 0.1 152) 0%,
+    oklch(0.36 0.09 168) 45%,
+    oklch(0.4 0.08 190) 100%
+  );
+  --gradient-accent: linear-gradient(
+    135deg,
+    oklch(0.52 0.12 85) 0%,
+    oklch(0.44 0.12 58) 100%
+  );
+  --gradient-surface: linear-gradient(
+    180deg,
+    oklch(0.225 0.016 152) 0%,
+    oklch(0.19 0.014 155) 100%
+  );
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    }
+  }
   body {
     @apply bg-background text-foreground;
-    }
+  }
   html {
     @apply font-sans;
-    }
+  }
+}
+
+/*
+ * Los degradados, como utilidades. Escritos una vez acá en vez de repetidos con `bg-[linear-...]`
+ * en cada pantalla: el ángulo y las paradas son una decisión de marca, y repetida a mano diverge
+ * en la tercera copia.
+ */
+@layer utilities {
+  .bg-brand-gradient {
+    background-image: var(--gradient-brand);
+  }
+  .bg-accent-gradient {
+    background-image: var(--gradient-accent);
+  }
+  .bg-surface-gradient {
+    background-image: var(--gradient-surface);
+  }
+  /* El degradado recortado al texto. Para un título de marca y nada más: en un párrafo baja el
+     contraste hasta donde no se puede leer. */
+  .text-brand-gradient {
+    background-image: var(--gradient-brand);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
 }
 
 /*

@@ -50,7 +50,7 @@ export function LoginForm() {
   const loading = isSubmitting || isPending
 
   return (
-    <Card className="w-full max-w-md border-univalle/20 shadow-lg">
+    <Card className="w-full max-w-md border-brand/20 shadow-lg">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">Unidad Educativa 6 de Junio</CardTitle>
         <CardDescription>Ingresa tus credenciales</CardDescription>
@@ -95,7 +95,7 @@ export function LoginForm() {
         <Button
           type="submit"
           form="login-form"
-          className="w-full bg-univalle text-univalle-foreground hover:bg-univalle/90"
+          className="w-full bg-brand text-brand-foreground hover:bg-brand/90"
           disabled={loading}
         >
           <LogInIcon data-icon="inline-start" />
@@ -103,7 +103,7 @@ export function LoginForm() {
         </Button>
         <Link
           to="/auth/forgot-password"
-          className="text-sm text-muted-foreground underline-offset-4 hover:text-univalle hover:underline"
+          className="text-sm text-muted-foreground underline-offset-4 hover:text-brand hover:underline"
         >
           ¿Olvidaste tu contraseña?
         </Link>

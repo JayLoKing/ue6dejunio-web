@@ -70,7 +70,7 @@ function CourseGradebookPage() {
                   courseId,
                   enrollmentId: row.courseEnrollmentId,
                 }}
-                className="text-univalle underline-offset-4 hover:underline"
+                className="text-brand underline-offset-4 hover:underline"
               >
                 {row.fullName}
               </Link>

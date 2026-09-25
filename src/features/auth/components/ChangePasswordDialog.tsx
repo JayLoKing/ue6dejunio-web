@@ -68,7 +68,7 @@ export function ChangePasswordDialog({ open }: ChangePasswordDialogProps) {
         showCloseButton={false}
       >
         <DialogHeader>
-          <div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-full bg-univalle/10 text-univalle">
+          <div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-full bg-brand/10 text-brand">
             <KeyRoundIcon className="size-6" />
           </div>
           <DialogTitle className="text-center">
@@ -134,7 +134,7 @@ export function ChangePasswordDialog({ open }: ChangePasswordDialogProps) {
           <DialogFooter className="mt-6">
             <Button
               type="submit"
-              className="w-full bg-univalle text-univalle-foreground hover:bg-univalle/90"
+              className="w-full bg-brand text-brand-foreground hover:bg-brand/90"
               disabled={isPending}
             >
               {isPending ? "Actualizando…" : "Actualizar y cerrar sesión"}

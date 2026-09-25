@@ -279,7 +279,7 @@ function DimensionBlock({
             <Button
               size="sm"
               disabled={!canAdd}
-              className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
+              className="bg-brand text-brand-foreground hover:bg-brand/90"
               onClick={submitCriterion}
             >
               <PlusIcon data-icon="inline-start" /> Agregar

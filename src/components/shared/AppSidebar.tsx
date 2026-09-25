@@ -189,7 +189,7 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link to="/dashboard">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-univalle text-univalle-foreground">
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-brand text-brand-foreground">
                   <SchoolIcon className="size-5" />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">

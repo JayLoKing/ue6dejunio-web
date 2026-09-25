@@ -71,7 +71,7 @@ export function AnnualRanking({ rows, isLoading = false }: AnnualRankingProps) {
                     {idx + 1}
                   </TableCell>
                   <TableCell className="font-medium">{row.fullName}</TableCell>
-                  <TableCell className="text-center font-semibold text-univalle">
+                  <TableCell className="text-center font-semibold text-brand">
                     {formatMark(final)}
                   </TableCell>
                   <TableCell className="text-center">

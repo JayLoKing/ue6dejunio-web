@@ -90,9 +90,9 @@ export function AutomatedEnrollForm({
     <div className="flex flex-col gap-4">
       <label
         htmlFor="pdf-upload"
-        className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed border-univalle/30 bg-univalle/5 p-6 text-sm hover:border-univalle/60"
+        className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed border-brand/30 bg-brand/5 p-6 text-sm hover:border-brand/60"
       >
-        <UploadCloudIcon className="size-8 text-univalle" />
+        <UploadCloudIcon className="size-8 text-brand" />
         <span className="font-medium">
           {file ? file.name : "Subir nómina PDF"}
         </span>
@@ -125,7 +125,7 @@ export function AutomatedEnrollForm({
       {rows.length > 0 ? (
         <>
           <div className="flex items-center gap-3 text-sm">
-            <FileTextIcon className="size-4 text-univalle" />
+            <FileTextIcon className="size-4 text-brand" />
             <span className="font-medium">{rows.length} estudiantes</span>
             <Badge variant="secondary">{maleCount} niños</Badge>
             <Badge variant="secondary">{femaleCount} niñas</Badge>
@@ -177,7 +177,7 @@ export function AutomatedEnrollForm({
       <div className="flex justify-end gap-2 pt-2">
         <Button
           type="button"
-          className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
+          className="bg-brand text-brand-foreground hover:bg-brand/90"
           disabled={
             enroll.isPending || parsing || rows.length === 0 || !courseId
           }

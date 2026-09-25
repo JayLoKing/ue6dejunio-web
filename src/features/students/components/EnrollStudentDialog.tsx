@@ -29,7 +29,7 @@ export function EnrollStudentDialog({ courseId }: EnrollStudentDialogProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
-          className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
+          className="bg-brand text-brand-foreground hover:bg-brand/90"
           disabled={!courseId}
         >
           <PlusIcon data-icon="inline-start" />

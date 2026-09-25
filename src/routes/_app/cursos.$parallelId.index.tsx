@@ -58,7 +58,7 @@ function ParallelCoursesPage() {
           {courses.map((c) => (
             <div
               key={c.id}
-              className="flex flex-col gap-4 rounded-lg border bg-card p-4 transition-colors hover:border-univalle/40"
+              className="flex flex-col gap-4 rounded-lg border bg-card p-4 transition-colors hover:border-brand/40"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex flex-col">
@@ -67,7 +67,7 @@ function ParallelCoursesPage() {
                     Paralelo {parallelName}
                   </span>
                 </div>
-                <span className="flex size-10 items-center justify-center rounded-lg bg-univalle/10 text-univalle">
+                <span className="flex size-10 items-center justify-center rounded-lg bg-brand/10 text-brand">
                   <GraduationCapIcon className="size-5" />
                 </span>
               </div>
@@ -95,7 +95,7 @@ function ParallelCoursesPage() {
                 </Button>
                 <Button
                   size="sm"
-                  className="flex-1 bg-univalle text-univalle-foreground hover:bg-univalle/90"
+                  className="flex-1 bg-brand text-brand-foreground hover:bg-brand/90"
                   asChild
                 >
                   <Link

@@ -91,7 +91,7 @@ export function CentralizerTable({
                     </div>
                   </th>
                 ))}
-                <th className="min-w-24 border-r border-b bg-univalle/10 px-3 py-2 text-center font-semibold text-univalle">
+                <th className="min-w-24 border-r border-b bg-brand/10 px-3 py-2 text-center font-semibold text-brand">
                   PROM.
                 </th>
                 <th className="min-w-32 border-b bg-muted/50 px-3 py-2 text-center font-medium">
@@ -151,7 +151,7 @@ export function CentralizerTable({
                           </td>
                         )
                       })}
-                      <td className="border-r bg-univalle/5 px-3 py-2 text-center font-semibold text-univalle">
+                      <td className="border-r bg-brand/5 px-3 py-2 text-center font-semibold text-brand">
                         {avg.toFixed(2)}
                       </td>
                       <td className={cn("px-3 py-2 text-center", rowBg)}>

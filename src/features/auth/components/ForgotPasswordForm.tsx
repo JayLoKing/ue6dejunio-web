@@ -55,9 +55,9 @@ export function ForgotPasswordForm() {
 
   if (message) {
     return (
-      <Card className="w-full max-w-md border-univalle/20 shadow-lg">
+      <Card className="w-full max-w-md border-brand/20 shadow-lg">
         <CardHeader className="text-center">
-          <MailCheckIcon className="mx-auto size-10 text-univalle" />
+          <MailCheckIcon className="mx-auto size-10 text-brand" />
           <CardTitle className="text-xl">Revisa tu correo</CardTitle>
           <CardDescription>{message}</CardDescription>
         </CardHeader>
@@ -74,7 +74,7 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <Card className="w-full max-w-md border-univalle/20 shadow-lg">
+    <Card className="w-full max-w-md border-brand/20 shadow-lg">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">Recuperar contraseña</CardTitle>
         <CardDescription>
@@ -109,7 +109,7 @@ export function ForgotPasswordForm() {
         <Button
           type="submit"
           form="forgot-form"
-          className="w-full bg-univalle text-univalle-foreground hover:bg-univalle/90"
+          className="w-full bg-brand text-brand-foreground hover:bg-brand/90"
           disabled={loading}
         >
           <SendIcon data-icon="inline-start" />

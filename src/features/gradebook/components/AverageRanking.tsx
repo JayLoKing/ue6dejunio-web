@@ -102,7 +102,7 @@ export function AverageRanking({ courseId }: AverageRankingProps) {
                       {i + 1}
                     </TableCell>
                     <TableCell className="font-medium">{r.fullName}</TableCell>
-                    <TableCell className="text-center font-semibold text-univalle">
+                    <TableCell className="text-center font-semibold text-brand">
                       {avg.toFixed(2)}
                     </TableCell>
                     <TableCell className="text-center">

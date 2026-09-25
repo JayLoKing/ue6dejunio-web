@@ -38,7 +38,7 @@ const STATUS_STYLE: Record<
     cls: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
   },
   A: { label: "Ausente", cls: "bg-destructive/15 text-destructive" },
-  L: { label: "Licencia", cls: "bg-univalle/15 text-univalle" },
+  L: { label: "Licencia", cls: "bg-brand/15 text-brand" },
 }
 
 const WEEKDAY_LETTER = ["D", "L", "M", "M", "J", "V", "S"]
@@ -117,7 +117,7 @@ export function AttendanceMatrix({
           Lun–Vie. Solo el día actual ({today}) es editable. Clic cíclico{" "}
           <span className="font-semibold text-emerald-600">P</span> →{" "}
           <span className="font-semibold text-destructive">A</span> →{" "}
-          <span className="font-semibold text-univalle">L</span>
+          <span className="font-semibold text-brand">L</span>
         </span>
       </div>
 
@@ -136,7 +136,7 @@ export function AttendanceMatrix({
                       key={c.iso}
                       className={cn(
                         "min-w-11 border-r border-b px-2 py-1.5 text-center font-medium last:border-r-0",
-                        isToday ? "bg-univalle/15 text-univalle" : "bg-muted/50"
+                        isToday ? "bg-brand/15 text-brand" : "bg-muted/50"
                       )}
                     >
                       <div className="flex flex-col leading-tight">
@@ -200,8 +200,7 @@ export function AttendanceMatrix({
                               }
                               className={cn(
                                 "size-8 rounded-md text-xs font-semibold transition-colors",
-                                editable &&
-                                  "hover:ring-2 hover:ring-univalle/40",
+                                editable && "hover:ring-2 hover:ring-brand/40",
                                 !editable && "cursor-default",
                                 style?.cls ??
                                   "bg-muted/60 text-muted-foreground"

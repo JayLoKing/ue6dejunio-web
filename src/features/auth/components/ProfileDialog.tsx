@@ -29,7 +29,7 @@ function Row({
 }) {
   return (
     <div className="flex items-center gap-3 rounded-md border bg-muted/30 px-3 py-2">
-      <Icon className="size-4 text-univalle" />
+      <Icon className="size-4 text-brand" />
       <div className="flex flex-col">
         <span className="text-xs text-muted-foreground">{label}</span>
         <span className="text-sm font-medium">{value}</span>
@@ -68,7 +68,7 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-3">
                   <Avatar className="size-12">
-                    <AvatarFallback className="bg-univalle text-univalle-foreground">
+                    <AvatarFallback className="bg-brand text-brand-foreground">
                       {displayName.slice(0, 1).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>

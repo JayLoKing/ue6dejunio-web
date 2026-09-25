@@ -94,7 +94,7 @@ export function CreateUserDialog() {
       }}
     >
       <DialogTrigger asChild>
-        <Button className="bg-univalle text-univalle-foreground hover:bg-univalle/90">
+        <Button className="bg-brand text-brand-foreground hover:bg-brand/90">
           <PlusIcon data-icon="inline-start" />
           Nuevo usuario
         </Button>
@@ -247,7 +247,7 @@ export function CreateUserDialog() {
             </Button>
             <Button
               type="submit"
-              className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
+              className="bg-brand text-brand-foreground hover:bg-brand/90"
               disabled={isPending}
             >
               {isPending ? "Creando…" : "Crear usuario"}

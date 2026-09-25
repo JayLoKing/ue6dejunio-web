@@ -167,7 +167,7 @@ function TrimesterCard({
       <div className="flex items-center gap-2">
         <Button
           size="sm"
-          className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
+          className="bg-brand text-brand-foreground hover:bg-brand/90"
           disabled={!valid || saving}
           onClick={save}
         >

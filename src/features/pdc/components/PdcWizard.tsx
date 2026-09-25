@@ -125,8 +125,8 @@ export function PdcWizard({ planId, onClose }: PdcWizardProps) {
               className={cn(
                 "rounded-full border px-3 py-1 text-xs transition-colors",
                 index === current
-                  ? "border-univalle bg-univalle text-univalle-foreground"
-                  : "text-muted-foreground hover:border-univalle/40"
+                  ? "border-brand bg-brand text-brand-foreground"
+                  : "text-muted-foreground hover:border-brand/40"
               )}
             >
               {index + 1}. {labelOf(s, plan)}
@@ -222,7 +222,7 @@ export function PdcWizard({ planId, onClose }: PdcWizardProps) {
                 </Button>
                 <Button
                   type="button"
-                  className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
+                  className="bg-brand text-brand-foreground hover:bg-brand/90"
                   disabled={!editable || publish.isPending}
                   onClick={() =>
                     publish.mutate(plan.id, { onSuccess: onClose })
@@ -330,7 +330,7 @@ function GeneralStep({ plan, saving, onSave, onCancel }: GeneralStepProps) {
         </Button>
         <Button
           type="button"
-          className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
+          className="bg-brand text-brand-foreground hover:bg-brand/90"
           disabled={saving}
           onClick={() =>
             onSave({
@@ -399,7 +399,7 @@ function ClosingStep({ plan, saving, onSave, onBack }: ClosingStepProps) {
         </Button>
         <Button
           type="button"
-          className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
+          className="bg-brand text-brand-foreground hover:bg-brand/90"
           disabled={saving}
           onClick={() =>
             onSave({

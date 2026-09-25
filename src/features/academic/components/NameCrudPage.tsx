@@ -125,7 +125,7 @@ export function NameCrudPage<T extends NameEntity>({
 
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-univalle text-univalle-foreground hover:bg-univalle/90">
+            <Button className="bg-brand text-brand-foreground hover:bg-brand/90">
               <PlusIcon data-icon="inline-start" />
               Nuevo {label.toLowerCase()}
             </Button>
@@ -151,7 +151,7 @@ export function NameCrudPage<T extends NameEntity>({
               <DialogFooter className="mt-6">
                 <Button
                   type="submit"
-                  className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
+                  className="bg-brand text-brand-foreground hover:bg-brand/90"
                   disabled={mutations.create.isPending}
                 >
                   {mutations.create.isPending ? "Creando…" : "Crear"}
@@ -175,7 +175,7 @@ export function NameCrudPage<T extends NameEntity>({
           {rows.map((row) => (
             <div
               key={row.id}
-              className="group flex items-center justify-between gap-2 rounded-lg border bg-card p-4 transition-colors hover:border-univalle/40"
+              className="group flex items-center justify-between gap-2 rounded-lg border bg-card p-4 transition-colors hover:border-brand/40"
             >
               <span className="min-w-0 truncate font-medium">{row.name}</span>
               <div className="flex shrink-0 gap-1 opacity-70 transition-opacity group-hover:opacity-100">
@@ -249,7 +249,7 @@ export function NameCrudPage<T extends NameEntity>({
               </Button>
               <Button
                 type="submit"
-                className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
+                className="bg-brand text-brand-foreground hover:bg-brand/90"
                 disabled={mutations.update.isPending}
               >
                 {mutations.update.isPending ? "Guardando…" : "Guardar"}

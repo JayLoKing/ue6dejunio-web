@@ -53,7 +53,7 @@ export function NavUser() {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="size-8 rounded-lg">
-                <AvatarFallback className="rounded-lg bg-univalle text-univalle-foreground">
+                <AvatarFallback className="rounded-lg bg-brand text-brand-foreground">
                   {initial}
                 </AvatarFallback>
               </Avatar>
@@ -78,7 +78,7 @@ export function NavUser() {
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="size-8 rounded-lg">
-                  <AvatarFallback className="rounded-lg bg-univalle text-univalle-foreground">
+                  <AvatarFallback className="rounded-lg bg-brand text-brand-foreground">
                     {initial}
                   </AvatarFallback>
                 </Avatar>

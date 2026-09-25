@@ -58,7 +58,7 @@ export function AnnualCentralizerTable({
               ))}
               <th
                 rowSpan={2}
-                className="min-w-28 border-r border-b bg-univalle/10 px-3 py-2 text-center align-bottom font-semibold text-univalle"
+                className="min-w-28 border-r border-b bg-brand/10 px-3 py-2 text-center align-bottom font-semibold text-brand"
               >
                 PROMEDIO FINAL
               </th>
@@ -76,9 +76,7 @@ export function AnnualCentralizerTable({
                     key={`${s.classGroupId}-${head}`}
                     className={cn(
                       "min-w-12 border-r border-b px-2 py-1 text-center text-xs font-medium",
-                      head === "PR"
-                        ? "bg-univalle/5 text-univalle"
-                        : "bg-muted/30"
+                      head === "PR" ? "bg-brand/5 text-brand" : "bg-muted/30"
                     )}
                   >
                     {head}
@@ -143,13 +141,13 @@ export function AnnualCentralizerTable({
                         )),
                         <td
                           key={`${s.classGroupId}-pr`}
-                          className="border-r bg-univalle/5 px-2 py-2 text-center font-semibold text-univalle"
+                          className="border-r bg-brand/5 px-2 py-2 text-center font-semibold text-brand"
                         >
                           {formatMark(cell?.average ?? null)}
                         </td>,
                       ]
                     })}
-                    <td className="border-r bg-univalle/10 px-3 py-2 text-center font-semibold text-univalle">
+                    <td className="border-r bg-brand/10 px-3 py-2 text-center font-semibold text-brand">
                       {formatMark(final)}
                     </td>
                     <td className={cn("px-3 py-2 text-center", rowBg)}>

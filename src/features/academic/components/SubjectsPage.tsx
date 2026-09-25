@@ -114,7 +114,7 @@ export function SubjectsPage() {
           </p>
         </div>
         <Button
-          className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
+          className="bg-brand text-brand-foreground hover:bg-brand/90"
           onClick={openCreate}
         >
           <PlusIcon data-icon="inline-start" />
@@ -135,7 +135,7 @@ export function SubjectsPage() {
           {rows.map((s) => (
             <div
               key={s.id}
-              className="group flex flex-col gap-3 rounded-lg border bg-card p-4 transition-colors hover:border-univalle/40"
+              className="group flex flex-col gap-3 rounded-lg border bg-card p-4 transition-colors hover:border-brand/40"
             >
               <div className="flex items-start justify-between gap-2">
                 <span className="min-w-0 truncate font-medium">{s.name}</span>
@@ -287,7 +287,7 @@ export function SubjectsPage() {
               </Button>
               <Button
                 type="submit"
-                className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
+                className="bg-brand text-brand-foreground hover:bg-brand/90"
                 disabled={saving}
               >
                 {saving ? "Guardando…" : "Guardar"}

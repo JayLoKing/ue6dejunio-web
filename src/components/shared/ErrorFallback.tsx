@@ -36,7 +36,7 @@ export function ErrorFallback({ error, reset }: ErrorFallbackProps) {
 
   return (
     <div className="flex min-h-svh items-center justify-center bg-background p-6">
-      <Card className="w-full max-w-md border-univalle/30">
+      <Card className="w-full max-w-md border-brand/30">
         <CardHeader className="flex flex-col items-center gap-3 text-center">
           <div className="flex size-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
             <AlertTriangleIcon data-icon className="size-6" />

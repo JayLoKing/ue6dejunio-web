@@ -98,7 +98,7 @@ function SetHomeroomForm({ course, onClose }: SetHomeroomFormProps) {
           Cancelar
         </Button>
         <Button
-          className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
+          className="bg-brand text-brand-foreground hover:bg-brand/90"
           disabled={!teacherId || setHomeroom.isPending}
           onClick={submit}
         >

@@ -158,7 +158,7 @@ export function ManualEnrollForm({
       <div className="flex justify-end gap-2 pt-2">
         <Button
           type="submit"
-          className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
+          className="bg-brand text-brand-foreground hover:bg-brand/90"
           disabled={enroll.isPending || !courseId}
         >
           {enroll.isPending ? "Inscribiendo…" : "Inscribir estudiante"}

@@ -80,7 +80,7 @@ function ResetForm({ token }: { token: string }) {
   const loading = isSubmitting || isPending
 
   return (
-    <Card className="w-full max-w-md border-univalle/20 shadow-lg">
+    <Card className="w-full max-w-md border-brand/20 shadow-lg">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">Nueva contraseña</CardTitle>
         <CardDescription>Define tu nueva contraseña.</CardDescription>
@@ -125,7 +125,7 @@ function ResetForm({ token }: { token: string }) {
         <Button
           type="submit"
           form="reset-form"
-          className="w-full bg-univalle text-univalle-foreground hover:bg-univalle/90"
+          className="w-full bg-brand text-brand-foreground hover:bg-brand/90"
           disabled={loading}
         >
           <KeyRoundIcon data-icon="inline-start" />

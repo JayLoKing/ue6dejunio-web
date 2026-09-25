@@ -117,7 +117,7 @@ function GradesPage() {
           </p>
         </div>
         <Button
-          className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
+          className="bg-brand text-brand-foreground hover:bg-brand/90"
           onClick={openCreate}
         >
           <PlusIcon data-icon="inline-start" />
@@ -138,7 +138,7 @@ function GradesPage() {
           {rows.map((g) => (
             <div
               key={g.id}
-              className="group flex items-start justify-between gap-2 rounded-lg border bg-card p-4 transition-colors hover:border-univalle/40"
+              className="group flex items-start justify-between gap-2 rounded-lg border bg-card p-4 transition-colors hover:border-brand/40"
             >
               <div className="flex min-w-0 flex-col">
                 <span className="truncate font-medium">{g.name}</span>
@@ -245,7 +245,7 @@ function GradesPage() {
               </Button>
               <Button
                 type="submit"
-                className="bg-univalle text-univalle-foreground hover:bg-univalle/90"
+                className="bg-brand text-brand-foreground hover:bg-brand/90"
                 disabled={saving}
               >
                 {saving ? "Guardando…" : "Guardar"}

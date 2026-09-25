@@ -112,7 +112,7 @@ function SubjectTable({
     <table
       className={cn(
         "w-full table-fixed border-collapse",
-        active && "outline outline-2 outline-univalle"
+        active && "outline outline-2 outline-brand"
       )}
     >
       <thead>

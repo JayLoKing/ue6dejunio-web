@@ -151,7 +151,7 @@ function InboxRow({ notification, busy, onOpen, onRemove }: InboxRowProps) {
       className={cn(
         "flex items-start justify-between gap-3 rounded-md border p-3 text-sm",
         // Unread is the only state worth marking: everything else is history.
-        !notification.read && "border-univalle/40 bg-univalle/5"
+        !notification.read && "border-brand/40 bg-brand/5"
       )}
     >
       <button
@@ -162,9 +162,7 @@ function InboxRow({ notification, busy, onOpen, onRemove }: InboxRowProps) {
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-medium">{headingOf(notification)}</span>
           {!notification.read ? (
-            <Badge className="bg-univalle text-univalle-foreground">
-              Nueva
-            </Badge>
+            <Badge className="bg-brand text-brand-foreground">Nueva</Badge>
           ) : null}
         </div>
         {/* Spans, not paragraphs: a button may only hold phrasing content, and a <p> inside one

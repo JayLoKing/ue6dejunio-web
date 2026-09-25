@@ -80,7 +80,7 @@ export function TrimesterAveragesTable({
                       {formatMark(row.trimesterAverages[i])}
                     </TableCell>
                   ))}
-                  <TableCell className="text-center font-semibold text-univalle">
+                  <TableCell className="text-center font-semibold text-brand">
                     {formatMark(final)}
                   </TableCell>
                   <TableCell className="text-center">

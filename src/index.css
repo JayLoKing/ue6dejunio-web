@@ -398,6 +398,39 @@
  * en la tercera copia.
  */
 /*
+ * DÓNDE ESTOY, EN EL MENÚ.
+ *
+ * El ítem activo se marcaba sólo con un fondo apenas más claro que el del panel, y en una lista de
+ * doce enlaces eso hay que buscarlo. Ahora lleva además una barra de tres píxeles a la izquierda y
+ * el texto en el color primario: la misma señal que usan los avisos y las notificaciones sin leer,
+ * así la regla se aprende una vez y sirve en los tres lugares.
+ *
+ * En CSS y no en el componente porque el sidebar viene de un registro externo: tocarlo se pierde
+ * en la próxima actualización, y `data-active` es su contrato público.
+ */
+[data-slot="sidebar"] [data-active="true"] {
+  position: relative;
+  font-weight: 500;
+  color: var(--sidebar-primary);
+}
+
+[data-slot="sidebar"] [data-active="true"]::before {
+  content: "";
+  position: absolute;
+  inset-block: 0.25rem;
+  inset-inline-start: 0;
+  width: 3px;
+  border-radius: 9999px;
+  background: var(--sidebar-primary);
+}
+
+/* Plegado a íconos no hay lugar para la barra, y pegada al borde del ícono se lee como un error
+   de dibujo. Ahí el fondo del ítem alcanza, que es lo único que se ve. */
+[data-slot="sidebar"][data-collapsible="icon"] [data-active="true"]::before {
+  display: none;
+}
+
+/*
  * El acuse de que llegó algo. Una sola pasada, no un latido.
  *
  * El contador de la campana se monta de nuevo cada vez que cambia el número —lleva el propio

@@ -189,7 +189,9 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link to="/dashboard">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-brand text-brand-foreground">
+                {/* El degradado, y no el plano: es la marca de la escuela y el único lugar del
+                    menú donde algo puede permitirse tener peso. */}
+                <div className="bg-brand-gradient flex aspect-square size-8 items-center justify-center rounded-lg text-white shadow-sm">
                   <SchoolIcon className="size-5" />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">

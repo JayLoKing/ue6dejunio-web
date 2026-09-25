@@ -17,11 +17,19 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
   )
 }
 
+/**
+ * El encabezado se distingue por superficie, no por negrita.
+ *
+ * Sólo tenía una línea abajo, así que la primera fila de datos y los nombres de las columnas se
+ * leían como el mismo bloque. Un fondo tenue los separa sin gritar, y sin recurrir a mayúsculas:
+ * en esta aplicación hay encabezados como "Acciones, estrategias y/o adaptaciones curriculares",
+ * y en versalitas eso deja de ser legible.
+ */
 function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return (
     <thead
       data-slot="table-header"
-      className={cn("[&_tr]:border-b", className)}
+      className={cn("bg-muted/50 [&_tr]:border-b", className)}
       {...props}
     />
   )
@@ -50,12 +58,19 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
   )
 }
 
+/**
+ * El borde de la fila es más tenue que el resto.
+ *
+ * Una tabla de treinta estudiantes con el borde pleno es treinta líneas negras: la reja se ve antes
+ * que los datos. A media opacidad la fila sigue separada y lo que se lee primero son los nombres.
+ * La fila señalada por el teclado o el mouse se marca con color, que es cuando hace falta.
+ */
 function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
   return (
     <tr
       data-slot="table-row"
       className={cn(
-        "border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted",
+        "border-b border-border/60 transition-colors hover:bg-muted/60 has-aria-expanded:bg-muted/60 data-[state=selected]:bg-primary/[0.07]",
         className
       )}
       {...props}
@@ -68,7 +83,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0",
+        "h-11 px-3 text-left align-middle text-xs font-medium tracking-wide whitespace-nowrap text-muted-foreground [&:has([role=checkbox])]:pr-0",
         className
       )}
       {...props}
@@ -76,12 +91,23 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   )
 }
 
+/**
+ * `tabular-nums` es el detalle que hace legible una tabla de notas.
+ *
+ * Por defecto una fuente usa cifras proporcionales: el 1 es más angosto que el 8, así que en una
+ * columna de calificaciones las unidades no caen alineadas y el ojo no puede comparar dos números
+ * mirándolos uno debajo del otro — hay que leerlos. Las cifras tabulares tienen todas el mismo
+ * ancho, la columna se alinea sola y la tabla pasa a poder recorrerse en vertical.
+ *
+ * Va en cada celda y no sólo en las numéricas porque una celda no sabe qué le van a poner adentro,
+ * y en el texto corriente la diferencia es invisible.
+ */
 function TableCell({ className, ...props }: React.ComponentProps<"td">) {
   return (
     <td
       data-slot="table-cell"
       className={cn(
-        "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0",
+        "px-3 py-2.5 align-middle whitespace-nowrap tabular-nums [&:has([role=checkbox])]:pr-0",
         className
       )}
       {...props}

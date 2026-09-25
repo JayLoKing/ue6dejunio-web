@@ -1,6 +1,7 @@
 import { motion } from "motion/react"
 import type { ReactNode } from "react"
 
+import { GravityStarsBackground } from "@/components/animate-ui/components/backgrounds/gravity-stars"
 import { cn } from "@/lib/utils"
 
 export interface AuthLayoutProps {
@@ -25,7 +26,8 @@ export interface AuthLayoutProps {
  * entraba apretado en dos renglones, y deja el formulario sin encabezado institucional — el
  * formulario pregunta el correo, no explica dónde estás.
  *
- * LA TRAMA es una hoja cuadriculada, a un tercio de opacidad. Es el material del lugar: todo lo que
+ * EL FONDO son dos capas: las estrellas con gravedad, ahora contenidas en el panel en vez de
+ * cubriendo la pantalla entera, y sobre ellas una hoja cuadriculada tenue. Es el material del lugar: todo lo que
  * este sistema reemplaza estaba escrito en una hoja así. Cuesta dos degradados repetidos y ningún
  * archivo.
  *
@@ -46,13 +48,31 @@ export function AuthLayout({
     <div className={cn("grid min-h-svh lg:grid-cols-[1.05fr_1fr]", className)}>
       <aside className="bg-brand-gradient relative flex flex-col justify-between overflow-hidden px-8 py-10 text-white lg:px-14 lg:py-16">
         {/*
+          Las estrellas, contenidas en el panel y no detrás de toda la pantalla. Acá tienen contra
+          qué verse — el degradado oscuro — y dejan de competir con el formulario, que es lo único
+          que alguien vino a usar. `overflow-hidden` del aside las recorta; el color lo toman del
+          `color` computado del contenedor, que es el blanco del panel.
+
+          Menos y más lentas que antes: el panel es la mitad del ancho que tenían, y la misma
+          densidad acá se lee como ruido en vez de como atmósfera.
+        */}
+        <GravityStarsBackground
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-70"
+          glowIntensity={10}
+          mouseGravity="attract"
+          movementSpeed={0.18}
+          starsCount={55}
+          starsOpacity={0.55}
+        />
+        {/*
           La hoja cuadriculada. `repeating-linear-gradient` y no una imagen: escala sola a cualquier
-          tamaño de panel y no pesa nada. El aria-hidden importa — un lector de pantalla no tiene
-          nada que hacer acá.
+          tamaño de panel y no pesa nada. Bajada de 0.16 a 0.09 ahora que hay estrellas: dos tramas
+          a la misma intensidad se anulan y el panel se ve sucio.
         */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.16]"
+          className="pointer-events-none absolute inset-0 opacity-[0.09]"
           style={{
             backgroundImage:
               "repeating-linear-gradient(0deg, rgba(255,255,255,0.7) 0 1px, transparent 1px 28px), repeating-linear-gradient(90deg, rgba(255,255,255,0.7) 0 1px, transparent 1px 28px)",

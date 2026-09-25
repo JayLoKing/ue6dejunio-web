@@ -39,7 +39,10 @@ createRoot(document.getElementById("root")!).render(
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <RouterProvider router={router} />
-          <Toaster richColors position="top-right" />
+          {/* Sin `richColors`: pintaba el aviso entero del color del tipo, con los verdes y rojos
+              de sonner y no los de esta paleta, y con el texto perdiendo contraste justo cuando
+              algo salía mal. El tipo ahora se dice con la barra y el ícono — ver `.cn-toast`. */}
+          <Toaster position="top-right" />
         </TooltipProvider>
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>

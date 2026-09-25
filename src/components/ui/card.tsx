@@ -2,6 +2,18 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Una tarjeta se apoya en la página; no está dibujada sobre ella.
+ *
+ * Antes era `ring-1 ring-foreground/10` y nada más: un rectángulo con una línea alrededor, del
+ * mismo color que el fondo, plano. Ahora lleva borde y **dos sombras**, que es como se ve un objeto
+ * apoyado en el mundo real: una corta y casi opaca justo debajo —el contacto con la superficie— y
+ * otra larga, muy difusa y muy transparente —la sombra proyectada—. Una sola sombra grande se ve
+ * como una nube gris; las dos juntas se leen como altura.
+ *
+ * Los valores son deliberadamente chicos. En una pantalla con quince tarjetas, una sombra que se
+ * note en una se convierte en niebla en las quince.
+ */
 function Card({
   className,
   size = "default",
@@ -12,7 +24,7 @@ function Card({
       data-slot="card"
       data-size={size}
       className={cn(
-        "group/card flex flex-col gap-4 overflow-hidden rounded-xl bg-card py-4 text-sm text-card-foreground ring-1 ring-foreground/10 has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:gap-3 data-[size=sm]:py-3 data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
+        "group/card flex flex-col gap-4 overflow-hidden rounded-xl border border-border/70 bg-card py-4 text-sm text-card-foreground shadow-[0_1px_2px_oklch(0_0_0/0.04),0_8px_24px_-16px_oklch(0_0_0/0.12)] transition-shadow duration-200 has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:gap-3 data-[size=sm]:py-3 data-[size=sm]:has-data-[slot=card-footer]:pb-0 dark:shadow-[0_1px_2px_oklch(0_0_0/0.3),0_8px_24px_-16px_oklch(0_0_0/0.5)] *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
         className
       )}
       {...props}

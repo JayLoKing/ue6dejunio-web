@@ -297,6 +297,67 @@
 }
 
 /*
+ * LOS AVISOS.
+ *
+ * Venían con `richColors` de sonner, que pinta el aviso entero del color del tipo: un rectángulo
+ * verde lleno para "guardado", uno rojo lleno para un error. Dos problemas. El primero es que esos
+ * verdes y rojos son los de sonner y no los de esta paleta, así que cada aviso traía colores de
+ * otro sistema. El segundo es de lectura: sobre un fondo saturado el texto pierde contraste justo
+ * cuando más importa, que es cuando algo salió mal.
+ *
+ * Así que el aviso es una superficie normal —la del popover, la misma que un menú— y el tipo se
+ * dice con una barra de tres píxeles a la izquierda y el color del ícono. Es la convención de los
+ * editores de código para marcar una línea: se reconoce de reojo, y deja el texto sobre el fondo
+ * donde mejor se lee.
+ */
+.cn-toast {
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    0 1px 2px oklch(0 0 0 / 0.05),
+    0 12px 32px -18px oklch(0 0 0 / 0.25);
+}
+
+/* La barra. Un pseudo-elemento y no un `border-left`, porque el borde se suma al ancho y correría
+   el texto tres píxeles sólo en los avisos que tienen tipo. */
+.cn-toast::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 3px;
+  background: var(--muted-foreground);
+}
+
+.cn-toast[data-type="success"]::before {
+  background: var(--primary);
+}
+.cn-toast[data-type="error"]::before {
+  background: var(--destructive);
+}
+.cn-toast[data-type="warning"]::before {
+  background: var(--brand-accent);
+}
+.cn-toast[data-type="info"]::before {
+  background: var(--chart-4);
+}
+
+/* El ícono repite el color de la barra. Dos señales del mismo hecho, para quien no distingue la
+   barra por color: el ícono además tiene forma — un tilde, una cruz, un triángulo. */
+.cn-toast[data-type="success"] [data-icon] {
+  color: var(--primary);
+}
+.cn-toast[data-type="error"] [data-icon] {
+  color: var(--destructive);
+}
+.cn-toast[data-type="warning"] [data-icon] {
+  color: var(--brand-accent);
+}
+.cn-toast[data-type="info"] [data-icon] {
+  color: var(--chart-4);
+}
+
+/*
  * Los degradados, como utilidades. Escritos una vez acá en vez de repetidos con `bg-[linear-...]`
  * en cada pantalla: el ángulo y las paradas son una decisión de marca, y repetida a mano diverge
  * en la tercera copia.

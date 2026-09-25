@@ -397,7 +397,42 @@
  * en cada pantalla: el ángulo y las paradas son una decisión de marca, y repetida a mano diverge
  * en la tercera copia.
  */
+/*
+ * El acuse de que llegó algo. Una sola pasada, no un latido.
+ *
+ * El contador de la campana se monta de nuevo cada vez que cambia el número —lleva el propio
+ * número como `key`—, así que esta animación corre exactamente cuando llega un aviso y nunca más.
+ * Un `animate-ping` en bucle diría lo mismo para siempre, y lo que está siempre encendido deja de
+ * avisar: se vuelve parte del fondo.
+ *
+ * `prefers-reduced-motion` la apaga. A quien le molesta el movimiento le sigue quedando el número,
+ * que es la información; la animación sólo dice "esto acaba de cambiar".
+ */
+@keyframes notify-pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  55% {
+    transform: scale(1.18);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 @layer utilities {
+  .animate-notify-pop {
+    animation: notify-pop 380ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-notify-pop {
+      animation: none;
+    }
+  }
+
   .bg-brand-gradient {
     background-image: var(--gradient-brand);
   }

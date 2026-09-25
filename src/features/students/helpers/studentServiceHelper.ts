@@ -22,10 +22,7 @@ export default class StudentServiceHelper {
     }
   }
 
-  withdrawAsync(
-    id: string,
-    payload: WithdrawStudentRequest
-  ): UseApiCall<void> {
+  withdrawAsync(id: string, payload: WithdrawStudentRequest): UseApiCall<void> {
     const controller = loadAbort()
     return {
       call: httpClient.post<void>(StudentUrl.Withdraw(id), payload, {

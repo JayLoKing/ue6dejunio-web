@@ -24,9 +24,7 @@ const tally = (male: number, female: number, percentage: number | null) => ({
   percentage,
 })
 
-const failing = (
-  over: Partial<FailingStudentRow> = {}
-): FailingStudentRow => ({
+const failing = (over: Partial<FailingStudentRow> = {}): FailingStudentRow => ({
   number: 1,
   courseEnrollmentId: "ce-1",
   studentId: "st-1",
@@ -92,7 +90,10 @@ describe("pedagogicalReportDocxOf", () => {
   it("titula la hoja con el trimestre en letras", async () => {
     expect(xml).toContain("INFORME PEDAGÓGICO DEL PRIMER TRIMESTRE")
 
-    const tercero = await documentXmlOf({ sheet: sheet({ trimester: 3 }), school })
+    const tercero = await documentXmlOf({
+      sheet: sheet({ trimester: 3 }),
+      school,
+    })
     expect(tercero).toContain("INFORME PEDAGÓGICO DEL TERCER TRIMESTRE")
   })
 

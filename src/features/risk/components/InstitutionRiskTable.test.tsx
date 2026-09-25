@@ -4,7 +4,9 @@ import { describe, expect, it } from "vitest"
 import { InstitutionRiskTable } from "./InstitutionRiskTable"
 import type { InstitutionRiskEntry } from "../types/risk"
 
-const entry = (over: Partial<InstitutionRiskEntry> = {}): InstitutionRiskEntry => ({
+const entry = (
+  over: Partial<InstitutionRiskEntry> = {}
+): InstitutionRiskEntry => ({
   position: 1,
   predictionId: "rp-1",
   studentId: "st-1",

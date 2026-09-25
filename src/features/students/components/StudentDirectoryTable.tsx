@@ -98,9 +98,7 @@ export function StudentDirectoryTable({
                   <TableCell>{s.academicYear ?? EMPTY_CELL}</TableCell>
                   <TableCell>
                     <Badge
-                      variant={
-                        s.status === WITHDRAWN ? "outline" : "secondary"
-                      }
+                      variant={s.status === WITHDRAWN ? "outline" : "secondary"}
                     >
                       {/* Un estado que no está en el mapa se muestra tal cual: inventar una
                           traducción para algo que el backend agregó después dice menos. */}

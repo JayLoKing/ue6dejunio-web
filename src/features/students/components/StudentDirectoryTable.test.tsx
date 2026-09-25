@@ -67,7 +67,11 @@ describe("StudentDirectoryTable", () => {
   it("offers the withdrawal on a student still on the roll", async () => {
     const onWithdraw = vi.fn()
     render(
-      <StudentDirectoryTable {...props} rows={[row()]} onWithdraw={onWithdraw} />
+      <StudentDirectoryTable
+        {...props}
+        rows={[row()]}
+        onWithdraw={onWithdraw}
+      />
     )
 
     await userEvent.click(

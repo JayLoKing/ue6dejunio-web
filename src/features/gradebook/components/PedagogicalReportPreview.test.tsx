@@ -59,7 +59,12 @@ const sheet = (over: Partial<PedagogicalReport> = {}): PedagogicalReport => ({
 describe("PedagogicalReportPreview", () => {
   /** El documento se titula con el trimestre en letras, no con su número. */
   it("titula la hoja con el trimestre escrito como lo escribe la escuela", () => {
-    render(<PedagogicalReportPreview sheet={sheet({ trimester: 3 })} school={school} />)
+    render(
+      <PedagogicalReportPreview
+        sheet={sheet({ trimester: 3 })}
+        school={school}
+      />
+    )
 
     expect(
       screen.getByText(/INFORME PEDAGÓGICO DEL TERCER TRIMESTRE/i)
@@ -211,7 +216,9 @@ describe("PedagogicalReportPreview", () => {
       />
     )
 
-    const cuadro = screen.getByRole("table", { name: /estudiantes reprobados/i })
+    const cuadro = screen.getByRole("table", {
+      name: /estudiantes reprobados/i,
+    })
     // El encabezado y una fila vacía: el cuadro se imprime, no se reemplaza por un cartel.
     expect(within(cuadro).getAllByRole("row")).toHaveLength(2)
     expect(cuadro).not.toHaveTextContent(/Ningún estudiante/i)

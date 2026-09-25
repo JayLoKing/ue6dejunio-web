@@ -304,9 +304,7 @@ function failingTable(sheet: PedagogicalReport): Table {
     sheet.failingStudents.length === 0
       ? [
           new TableRow({
-            children: FAILING_COLUMNS.map(() =>
-              cell({ children: [text("")] })
-            ),
+            children: FAILING_COLUMNS.map(() => cell({ children: [text("")] })),
           }),
         ]
       : sheet.failingStudents.map(failingRow)

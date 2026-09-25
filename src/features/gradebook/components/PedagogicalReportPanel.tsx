@@ -1,10 +1,5 @@
 import { useState } from "react"
-import {
-  FileDownIcon,
-  Loader2Icon,
-  PrinterIcon,
-  SaveIcon,
-} from "lucide-react"
+import { FileDownIcon, Loader2Icon, PrinterIcon, SaveIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"

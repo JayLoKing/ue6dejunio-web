@@ -76,7 +76,9 @@ export function AnnualCentralizerTable({
                     key={`${s.classGroupId}-${head}`}
                     className={cn(
                       "min-w-12 border-r border-b px-2 py-1 text-center text-xs font-medium",
-                      head === "PR" ? "bg-univalle/5 text-univalle" : "bg-muted/30"
+                      head === "PR"
+                        ? "bg-univalle/5 text-univalle"
+                        : "bg-muted/30"
                     )}
                   >
                     {head}
@@ -107,7 +109,9 @@ export function AnnualCentralizerTable({
             ) : (
               rows.map((row, idx) => {
                 const rowBg = idx % 2 === 0 ? "bg-card" : "bg-muted"
-                const byId = new Map(row.subjects.map((s) => [s.classGroupId, s]))
+                const byId = new Map(
+                  row.subjects.map((s) => [s.classGroupId, s])
+                )
                 const final = row.finalAverage
                 const status = final == null ? null : statusOf(Number(final))
                 return (
@@ -126,7 +130,10 @@ export function AnnualCentralizerTable({
                         ...trimesterMarksOf(cell).map((mark, i) => (
                           <td
                             key={`${s.classGroupId}-t${i + 1}`}
-                            className={cn("border-r px-2 py-2 text-center", rowBg)}
+                            className={cn(
+                              "border-r px-2 py-2 text-center",
+                              rowBg
+                            )}
                           >
                             {/* Dos decimales, igual que el resto de la hoja. Redondear a entero
                                 mostraría 50.6 como 51, que es la nota de aprobación: la planilla

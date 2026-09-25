@@ -58,9 +58,7 @@ describe("WithdrawStudentDialog", () => {
     await userEvent.click(screen.getByRole("option", { name: "Otro" }))
 
     expect(screen.getByRole("button", { name: "Dar de baja" })).toBeDisabled()
-    expect(
-      screen.getByText(/exige decir cuál es/i)
-    ).toBeInTheDocument()
+    expect(screen.getByText(/exige decir cuál es/i)).toBeInTheDocument()
     expect(mutate).not.toHaveBeenCalled()
   })
 

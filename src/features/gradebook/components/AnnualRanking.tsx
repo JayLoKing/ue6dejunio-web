@@ -43,13 +43,19 @@ export function AnnualRanking({ rows, isLoading = false }: AnnualRankingProps) {
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={5} className="text-center text-muted-foreground">
+              <TableCell
+                colSpan={5}
+                className="text-center text-muted-foreground"
+              >
                 <Loader2Icon className="mx-auto size-4 animate-spin" />
               </TableCell>
             </TableRow>
           ) : ranked.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} className="text-center text-muted-foreground">
+              <TableCell
+                colSpan={5}
+                className="text-center text-muted-foreground"
+              >
                 Sin datos.
               </TableCell>
             </TableRow>
@@ -57,7 +63,8 @@ export function AnnualRanking({ rows, isLoading = false }: AnnualRankingProps) {
             ranked.map((row, idx) => {
               const final = row.finalAverage
               const status = final == null ? null : statusOf(Number(final))
-              const band = final == null ? null : qualitativeBandOf(Number(final))
+              const band =
+                final == null ? null : qualitativeBandOf(Number(final))
               return (
                 <TableRow key={row.courseEnrollmentId}>
                   <TableCell className="font-mono text-xs text-muted-foreground">
@@ -69,7 +76,9 @@ export function AnnualRanking({ rows, isLoading = false }: AnnualRankingProps) {
                   </TableCell>
                   <TableCell className="text-center">
                     {band == null ? (
-                      <span className="text-muted-foreground">Sin calificar</span>
+                      <span className="text-muted-foreground">
+                        Sin calificar
+                      </span>
                     ) : (
                       <>
                         {band.code} — {band.label}

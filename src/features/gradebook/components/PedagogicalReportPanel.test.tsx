@@ -113,7 +113,8 @@ beforeEach(() => {
 })
 
 /** El cuadro editable de la sección IV, que en pantalla convive con el mismo cuadro impreso. */
-const editor = () => screen.getByRole("table", { name: /acciones por estudiante/i })
+const editor = () =>
+  screen.getByRole("table", { name: /acciones por estudiante/i })
 
 describe("PedagogicalReportPanel", () => {
   /**
@@ -260,7 +261,10 @@ describe("PedagogicalReportPanel", () => {
     render(<PedagogicalReportPanel courseId="c-1" />)
 
     await user.clear(screen.getByLabelText("Logros alcanzados"))
-    await user.type(screen.getByLabelText("Logros alcanzados"), "Terminaron el proyecto.")
+    await user.type(
+      screen.getByLabelText("Logros alcanzados"),
+      "Terminaron el proyecto."
+    )
 
     const prosa = screen.getByRole("table", { name: /logros y dificultades/i })
     await waitFor(() =>
@@ -299,7 +303,9 @@ describe("PedagogicalReportPanel", () => {
     render(<PedagogicalReportPanel courseId="c-1" />)
 
     expect(screen.getByRole("button", { name: /Imprimir/ })).toBeDisabled()
-    expect(screen.getByRole("button", { name: /Descargar Word/ })).toBeDisabled()
+    expect(
+      screen.getByRole("button", { name: /Descargar Word/ })
+    ).toBeDisabled()
     expect(screen.getByLabelText("Logros alcanzados")).toBeInTheDocument()
   })
 })

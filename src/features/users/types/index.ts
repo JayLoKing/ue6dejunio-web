@@ -39,9 +39,7 @@ export const teachesSubjects = (roleId: number | undefined): boolean =>
  * estar diciendo que no tiene ninguno.
  */
 export const roleOptionsFor = (currentRoleName: string): RoleOption[] => {
-  const current = ROLES.find(
-    (r) => r.name === currentRoleName.toUpperCase()
-  )
+  const current = ROLES.find((r) => r.name === currentRoleName.toUpperCase())
   if (!current || ASSIGNABLE_ROLES.includes(current)) {
     return [...ASSIGNABLE_ROLES]
   }

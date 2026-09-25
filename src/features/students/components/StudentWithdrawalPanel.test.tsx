@@ -59,7 +59,10 @@ describe("StudentWithdrawalPanel", () => {
   it("does not invent an author it was not given", () => {
     render(
       <StudentWithdrawalPanel
-        student={withdrawn({ statusChangedByName: null, statusChangedById: null })}
+        student={withdrawn({
+          statusChangedByName: null,
+          statusChangedById: null,
+        })}
       />
     )
 

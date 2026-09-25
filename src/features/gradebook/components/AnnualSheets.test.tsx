@@ -133,10 +133,7 @@ describe("AnnualCentralizerTable", () => {
     // A short row must never shrink the header for the whole page.
     render(
       <AnnualCentralizerTable
-        rows={[
-          { ...joana, subjects: [joana.subjects[0]] },
-          nelsy,
-        ]}
+        rows={[{ ...joana, subjects: [joana.subjects[0]] }, nelsy]}
       />
     )
 
@@ -196,8 +193,9 @@ describe("AnnualRanking", () => {
 
     const row = rowOf("ALVAREZ CRUZ JOANA")
     expect(within(row).getByText("85.00")).toBeInTheDocument()
-    expect(within(row).getByText(/desarrollo|óptimo|satisfactorio/i))
-      .toBeInTheDocument()
+    expect(
+      within(row).getByText(/desarrollo|óptimo|satisfactorio/i)
+    ).toBeInTheDocument()
   })
 
   it("sinks a student with no annual average to the bottom instead of treating it as a zero", () => {

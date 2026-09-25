@@ -2,7 +2,11 @@ import { Fragment } from "react"
 
 import type { Institution } from "@/features/institution/types"
 
-import { fmtMark, fmtPct, pedagogicalReportTitle } from "../utils/pedagogicalReport"
+import {
+  fmtMark,
+  fmtPct,
+  pedagogicalReportTitle,
+} from "../utils/pedagogicalReport"
 import type {
   FailingStudentRow,
   GenderTally,
@@ -124,10 +128,7 @@ export function PedagogicalReportPreview({
             value={school.educationLevel}
           />
           <ReferenceRow label="Año de escolaridad:" value={sheet.gradeName} />
-          <ReferenceRow
-            label="Paralelos:"
-            value={`“${sheet.parallelName}”`}
-          />
+          <ReferenceRow label="Paralelos:" value={`“${sheet.parallelName}”`} />
           {/* Un curso sin docente de aula imprime la fila vacía; inventar un nombre en el
               documento que firma esa persona es peor que entregarlo en blanco. */}
           <ReferenceRow

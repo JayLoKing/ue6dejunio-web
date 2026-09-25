@@ -145,9 +145,7 @@ export function StudentDirectoryFilters({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {(
-              Object.keys(SCOPE_LABEL) as StudentDirectoryScope[]
-            ).map((s) => (
+            {(Object.keys(SCOPE_LABEL) as StudentDirectoryScope[]).map((s) => (
               <SelectItem key={s} value={s}>
                 {SCOPE_LABEL[s]}
               </SelectItem>

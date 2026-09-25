@@ -30,7 +30,10 @@ export function AnnualSheetsPanel({ courseId }: AnnualSheetsPanelProps) {
   )
   const { data, isLoading, isFetching } = useAnnualCentralizer(courseId, query)
 
-  const rows = useMemo<StudentAnnualSummary[]>(() => data?.content ?? [], [data])
+  const rows = useMemo<StudentAnnualSummary[]>(
+    () => data?.content ?? [],
+    [data]
+  )
 
   const counters = useMemo(() => {
     let passed = 0

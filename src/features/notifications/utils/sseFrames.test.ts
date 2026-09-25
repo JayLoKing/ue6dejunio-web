@@ -53,7 +53,9 @@ describe("readSseFrames", () => {
   })
 
   it("joins the data lines of one frame with a newline, as the spec says", () => {
-    const { events } = readSseFrames("event: notification\ndata: a\ndata: b\n\n")
+    const { events } = readSseFrames(
+      "event: notification\ndata: a\ndata: b\n\n"
+    )
 
     expect(events).toEqual([{ event: "notification", data: "a\nb" }])
   })

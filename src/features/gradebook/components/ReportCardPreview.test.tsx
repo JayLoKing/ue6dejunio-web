@@ -79,8 +79,9 @@ describe("ReportCardPreview", () => {
     expect(screen.getByText(/6 de Junio/)).toBeInTheDocument()
     expect(screen.getByText(/Cochabamba/)).toBeInTheDocument()
     expect(screen.getByText(/Sacaba/)).toBeInTheDocument()
-    expect(screen.getByText(/Educación Primaria Comunitaria Vocacional/))
-      .toBeInTheDocument()
+    expect(
+      screen.getByText(/Educación Primaria Comunitaria Vocacional/)
+    ).toBeInTheDocument()
     // The RUDE identifies the student above their own name; a libreta without it is not one.
     expect(screen.getByText("7042002820239055")).toBeInTheDocument()
     expect(screen.getByText("NELSY AIZA ARICOMA")).toBeInTheDocument()
@@ -118,8 +119,9 @@ describe("ReportCardPreview", () => {
     const row = screen.getByRole("row", { name: /Promedio Trimestral/ })
     const cells = within(row).getAllByRole("cell")
     expect(cells[cells.length - 1]).toHaveTextContent("70")
-    expect(screen.getByText(/Promedio Anual \(literal\)/).parentElement)
-      .toHaveTextContent("Setenta")
+    expect(
+      screen.getByText(/Promedio Anual \(literal\)/).parentElement
+    ).toHaveTextContent("Setenta")
   })
 
   it("reports the failed-area counts the API sent, not its own tally", () => {
@@ -162,8 +164,9 @@ describe("ReportCardPreview", () => {
     // The label stays on the sheet; what must not appear is a word for a mark nobody gave.
     const literal = screen.getByText(/Promedio Anual \(literal\)/).parentElement
     expect(literal).toHaveTextContent("Promedio Anual (literal):")
-    expect(literal?.textContent?.replace("Promedio Anual (literal):", "").trim())
-      .toBe("")
+    expect(
+      literal?.textContent?.replace("Promedio Anual (literal):", "").trim()
+    ).toBe("")
 
     const row = screen.getByRole("row", { name: /Promedio Trimestral/ })
     const cells = within(row).getAllByRole("cell")

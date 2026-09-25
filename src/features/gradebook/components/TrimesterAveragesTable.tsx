@@ -49,13 +49,19 @@ export function TrimesterAveragesTable({
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-center text-muted-foreground">
+              <TableCell
+                colSpan={7}
+                className="text-center text-muted-foreground"
+              >
                 <Loader2Icon className="mx-auto size-4 animate-spin" />
               </TableCell>
             </TableRow>
           ) : rows.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-center text-muted-foreground">
+              <TableCell
+                colSpan={7}
+                className="text-center text-muted-foreground"
+              >
                 Sin datos.
               </TableCell>
             </TableRow>

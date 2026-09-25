@@ -5,6 +5,7 @@ import type { Institution } from "@/features/institution/types"
 import {
   fmtMark,
   fmtPct,
+  PEDAGOGICAL_REPORT_CLOSING,
   pedagogicalReportTitle,
 } from "../utils/pedagogicalReport"
 import type {
@@ -266,8 +267,7 @@ export function PedagogicalReportPreview({
       </table>
 
       <p className="ip-closing mt-6 text-justify">
-        Este es lo que puedo dar fe, con respecto a mis estudiantes, saludo a
-        usted con las consideraciones del caso.
+        {PEDAGOGICAL_REPORT_CLOSING}
       </p>
       <p className="mt-2">Atentamente:</p>
 

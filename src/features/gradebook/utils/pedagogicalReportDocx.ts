@@ -15,7 +15,12 @@ import {
 
 import type { Institution } from "@/features/institution/types"
 
-import { fmtMark, fmtPct, pedagogicalReportTitle } from "./pedagogicalReport"
+import {
+  fmtMark,
+  fmtPct,
+  PEDAGOGICAL_REPORT_CLOSING,
+  pedagogicalReportTitle,
+} from "./pedagogicalReport"
 import type {
   FailingStudentRow,
   GenderTally,
@@ -355,6 +360,16 @@ export function pedagogicalReportDocxOf({
   school,
 }: PedagogicalReportDocxParams): Document {
   const children = [
+    // El documento arranca en el título, sin membrete, y es una decisión tomada y no un pendiente.
+    //
+    // El ejemplar que dejó la escuela trae un `word/header1.xml` con tres imágenes y las líneas
+    // DIRECCIÓN DEPARTAMENTAL / DISTRITAL SACABA / UNIDAD EDUCATIVA "6 DE JUNIO". No se reproduce:
+    // esos tres datos ya salen impresos como campos en la sección I, leídos de la institución, así
+    // que el membrete los repetiría; y los logos son decoración institucional que el repositorio no
+    // tiene y que nadie pidió. Confirmado con el usuario el 2026-09-25.
+    //
+    // Si alguna vez se agrega, van embebidos como data URI: la ventana de impresión no comparte el
+    // origen de la aplicación y una ruta relativa sale rota.
     text(pedagogicalReportTitle(sheet), {
       bold: true,
       size: TITLE,
@@ -369,10 +384,7 @@ export function pedagogicalReportDocxOf({
     sectionRule("IV . CUADRO DE DESCRIPCIÓN DE ESTUDIANTES REPROBADOS."),
     failingTable(sheet),
     new Paragraph({ children: [] }),
-    text(
-      "Este es lo que puedo dar fe, con respecto a mis estudiantes, saludo a usted con las consideraciones del caso.",
-      { alignment: AlignmentType.JUSTIFIED }
-    ),
+    text(PEDAGOGICAL_REPORT_CLOSING, { alignment: AlignmentType.JUSTIFIED }),
     text("Atentamente:"),
     new Paragraph({ children: [] }),
     new Paragraph({ children: [] }),

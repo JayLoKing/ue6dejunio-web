@@ -11,6 +11,24 @@ export function trimesterOrdinal(trimester: number): string {
   return ORDINAL[trimester] ?? String(trimester)
 }
 
+/**
+ * La despedida con la que cierra el informe, antes de la firma.
+ *
+ * Venía copiada palabra por palabra del único ejemplar que dejó la escuela — "Este es lo que puedo
+ * dar fe, con respecto a mis estudiantes..." — y ese ejemplar lo escribió la docente de Quinto "B".
+ * No es la fórmula impresa del formulario, así que la falta de concordancia era de ella y no del
+ * documento oficial: se corrige.
+ *
+ * Sigue siendo una sola para todos los cursos y trimestres, y eso es deliberado: es la despedida
+ * del documento, no algo que cada docente redacte. Lo que cada una escribe son los logros, las
+ * dificultades y las acciones, que sí son campos.
+ *
+ * Vive acá, y no en cada salida, porque el preview y el .docx imprimen el mismo papel. Escrita dos
+ * veces, corregir una dejaba a la otra diciendo otra cosa sobre los mismos estudiantes.
+ */
+export const PEDAGOGICAL_REPORT_CLOSING =
+  "De esto doy fe, con respecto a mis estudiantes, y saludo a usted con las consideraciones del caso."
+
 /** El título que encabeza la hoja, con el trimestre en letras como lo escribe la escuela. */
 export function pedagogicalReportTitle(
   sheet: Pick<PedagogicalReport, "trimester">

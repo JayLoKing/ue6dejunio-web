@@ -4,6 +4,7 @@ import { beforeAll, describe, expect, it } from "vitest"
 
 import type { Institution } from "@/features/institution/types"
 
+import { PEDAGOGICAL_REPORT_CLOSING } from "./pedagogicalReport"
 import { pedagogicalReportDocxOf } from "./pedagogicalReportDocx"
 import type { FailingStudentRow, PedagogicalReport } from "../types"
 
@@ -85,6 +86,22 @@ describe("pedagogicalReportDocxOf", () => {
 
     expect(zip.file("word/document.xml")).not.toBeNull()
     expect(zip.file("[Content_Types].xml")).not.toBeNull()
+  })
+
+  // La frase de cierre venía copiada palabra por palabra del único .docx que dejó la escuela, y
+  // ese ejemplar lo escribió una sola docente: decía "Este es lo que puedo dar fe", que no es
+  // gramatical. No es la fórmula impresa del formulario — lo confirmó el usuario —, así que se
+  // corrige. Sigue siendo la misma para todos porque es la despedida del documento, no algo que
+  // cada docente redacte.
+  it("cierra con la fórmula corregida", () => {
+    expect(xml).toContain("De esto doy fe")
+    expect(xml).not.toContain("Este es lo que puedo dar fe")
+  })
+
+  // El preview y el .docx imprimen el mismo papel. Con la frase escrita dos veces, corregir una
+  // dejaba la otra hablando distinto sobre los mismos estudiantes, y nada lo habría detectado.
+  it("usa la misma constante que el preview", () => {
+    expect(xml).toContain(PEDAGOGICAL_REPORT_CLOSING)
   })
 
   it("titula la hoja con el trimestre en letras", async () => {

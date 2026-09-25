@@ -67,197 +67,220 @@
 }
 
 /*
- * La paleta, tomada del escudo de la Unidad Educativa "6 de Junio": verde, dorado y rojo sobre
- * blanco.
+ * LA PALETA: tinta, pino y terracota.
  *
- * COMO LEER ESTOS VALORES. Son oklch(L C H): claridad de 0 a 1, croma —cuánto color tiene— y
- * matiz en grados. Se eligió oklch y no hex porque la claridad es perceptual: dos colores con la
- * misma L se ven igual de claros, así que el contraste con el texto se sostiene al cambiar el
- * matiz, y una escala se construye moviendo un número en vez de adivinando.
+ * El escudo de la escuela es verde, dorado y rojo, y la primera versión de esta paleta los usó tal
+ * cual. Se veía como una bandera, no como una herramienta: tres colores saturados compitiendo en
+ * una pantalla donde alguien pasa la mañana cargando notas. Un escudo se mira tres segundos; una
+ * interfaz se mira tres horas, y lo que aguanta tres horas no es lo mismo que lo que luce en un
+ * estandarte.
  *
- *   verde institucional  H 152   el color dominante del escudo. Es `primary`: botones de acción,
- *                                el ítem activo del menú, el foco del teclado.
- *   dorado               H 88    el segundo del escudo. Es `accent`: lo que hay que mirar sin que
- *                                sea una acción — un destacado, un estado sobresaliente.
- *   rojo                 H 27    el tercero. Queda para `destructive`, que es lo que ya
- *                                significaba: borrar, reprobar, fallar.
+ * Así que el escudo queda como parentesco y no como receta. El verde sigue estando y sigue siendo
+ * el color de la escuela, pero profundo y con poco croma — pino, no bandera. El dorado brillante se
+ * vuelve terracota, que es el mismo calor sin el brillo. Y el blanco deja de ser blanco de monitor
+ * para volverse blanco de papel.
  *
- * Y LOS NEUTROS NO SON GRISES. Llevan un croma de 0.008 a 0.02 en el matiz del verde. No se ve
- * como color; se ve como que el gris pertenece a esta paleta y no a otra. Un gris puro al lado de
- * un verde saturado se lee frío y despegado, que es exactamente como se veía antes.
+ * LAS TRES DECISIONES, Y POR QUÉ
+ *
+ * 1. CROMA BAJO EN LO QUE SE REPITE. El primario tiene croma 0.075 y no 0.12. Un color se ve tanto
+ *    más intenso cuanto más veces aparece, y el primario aparece en cada botón, cada fila activa y
+ *    cada foco. Saturado, a la media hora la pantalla cansa; apagado, se lee como decisión.
+ *
+ * 2. LOS NEUTROS SON CÁLIDOS, HACIA EL AMARILLO. Antes tiraban al verde para "pertenecer" a la
+ *    paleta. El efecto era un gris enfermo. Un neutro cálido (H 85) se lee como papel, no como
+ *    pantalla, y debajo de una tabla llena de números eso es la diferencia entre un documento y una
+ *    planilla.
+ *
+ * 3. UN SOLO ACENTO, Y CASI NUNCA. La terracota no compite con el verde porque no comparten
+ *    trabajo: el verde es lo que se puede hacer, la terracota es lo que hay que mirar. Dos colores
+ *    con el mismo rango se pelean; con rangos distintos, se ordenan.
+ *
+ * CÓMO LEER LOS VALORES. oklch(L C H): claridad de 0 a 1, croma —cuánto color— y matiz en grados.
+ * La claridad es perceptual, así que dos colores con la misma L se ven igual de claros y el
+ * contraste con el texto se sostiene al cambiar el matiz.
+ *
+ *   pino        H 165   el verde de la escuela, bajado de tono. `primary`: acciones, ítem activo,
+ *                       anillo de foco.
+ *   terracota   H 50    el calor del dorado sin el brillo. `accent`: lo que merece la vista.
+ *   ladrillo    H 27    `destructive`, que ya era eso: borrar, reprobar, fallar.
+ *   papel       H 85    todos los neutros. Blancos cálidos, grises con temperatura.
  */
 :root {
-  /* Superficies. El fondo lleva un velo verde y las tarjetas son blanco puro, así que una
-       tarjeta se separa del fondo por sí sola, sin depender del borde. */
-  --background: oklch(0.994 0.003 140);
-  --foreground: oklch(0.17 0.012 155);
+  /* Superficies. El fondo es blanco de papel y la tarjeta blanco puro: la tarjeta se levanta del
+     fondo por sí sola, sin pedirle el trabajo al borde ni a una sombra. */
+  --background: oklch(0.988 0.005 85);
+  --foreground: oklch(0.2 0.014 165);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.17 0.012 155);
+  --card-foreground: oklch(0.2 0.014 165);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.17 0.012 155);
+  --popover-foreground: oklch(0.2 0.014 165);
 
-  /* El verde del escudo. L 0.43 contra un texto en 0.98 pasa AA holgado en texto normal. */
-  --primary: oklch(0.43 0.12 152);
-  --primary-foreground: oklch(0.985 0.008 140);
-  --secondary: oklch(0.955 0.018 145);
-  --secondary-foreground: oklch(0.3 0.06 152);
-  --muted: oklch(0.965 0.008 140);
-  --muted-foreground: oklch(0.5 0.02 150);
+  /* Pino. L 0.40 contra texto en 0.985: contraste 8:1, AA holgado también en texto chico. */
+  --primary: oklch(0.4 0.075 165);
+  --primary-foreground: oklch(0.985 0.006 85);
+  --secondary: oklch(0.955 0.012 120);
+  --secondary-foreground: oklch(0.32 0.05 165);
+  --muted: oklch(0.963 0.007 85);
+  --muted-foreground: oklch(0.505 0.015 120);
 
-  /* El dorado, como fondo suave y no como relleno pleno: en un bloque grande cansa la vista. */
-  --accent: oklch(0.95 0.045 92);
-  --accent-foreground: oklch(0.34 0.07 78);
+  /* Terracota, como fondo suave. Pleno sólo cabe en un badge; en un bloque grande grita. */
+  --accent: oklch(0.945 0.04 65);
+  --accent-foreground: oklch(0.42 0.11 50);
 
-  --destructive: oklch(0.55 0.2 27);
-  --border: oklch(0.9 0.012 140);
-  --input: oklch(0.9 0.012 140);
-  --ring: oklch(0.55 0.1 152);
+  --destructive: oklch(0.545 0.19 27);
+  --border: oklch(0.905 0.008 85);
+  --input: oklch(0.905 0.008 85);
+  --ring: oklch(0.52 0.08 165);
 
-  /* Las series. Los dos primeros son los del escudo porque son los que más se leen; el cuarto
-       se va al petróleo a propósito: cinco variantes de verde y dorado no se distinguen entre sí,
-       y menos todavía en una impresión en blanco y negro. */
-  --chart-1: oklch(0.52 0.13 152);
-  --chart-2: oklch(0.76 0.15 85);
-  --chart-3: oklch(0.58 0.18 28);
-  --chart-4: oklch(0.55 0.08 205);
-  --chart-5: oklch(0.68 0.1 120);
+  /* Las series, separadas por matiz y también por claridad, porque un daltónico distingue claro de
+     oscuro aunque no distinga verde de rojo — y porque el informe se imprime en blanco y negro. */
+  --chart-1: oklch(0.47 0.085 168);
+  --chart-2: oklch(0.64 0.135 48);
+  --chart-3: oklch(0.79 0.12 88);
+  --chart-4: oklch(0.55 0.075 245);
+  --chart-5: oklch(0.7 0.055 150);
 
   --radius: 0.625rem;
 
-  --sidebar: oklch(0.975 0.012 142);
-  --sidebar-foreground: oklch(0.2 0.015 152);
-  --sidebar-primary: oklch(0.43 0.12 152);
-  --sidebar-primary-foreground: oklch(0.985 0.008 140);
-  --sidebar-accent: oklch(0.935 0.028 145);
-  --sidebar-accent-foreground: oklch(0.3 0.06 152);
-  --sidebar-border: oklch(0.9 0.014 140);
-  --sidebar-ring: oklch(0.55 0.1 152);
+  /* La barra lateral es más oscura que el contenido y no más clara: enmarca, y un marco que pesa
+     menos que lo que enmarca no enmarca nada. */
+  --sidebar: oklch(0.968 0.008 100);
+  --sidebar-foreground: oklch(0.24 0.016 165);
+  --sidebar-primary: oklch(0.4 0.075 165);
+  --sidebar-primary-foreground: oklch(0.985 0.006 85);
+  --sidebar-accent: oklch(0.925 0.018 130);
+  --sidebar-accent-foreground: oklch(0.3 0.05 165);
+  --sidebar-border: oklch(0.9 0.01 90);
+  --sidebar-ring: oklch(0.52 0.08 165);
 
-  /* El color de marca. Se mantiene aparte de `primary` porque marca pertenencia — un encabezado,
-       una firma — y no acción, y porque los dos pueden divergir sin arrastrarse. */
-  --brand: oklch(0.43 0.12 152);
-  --brand-foreground: oklch(0.985 0.008 140);
-  --brand-accent: oklch(0.76 0.15 85);
+  /* Marca. Aparte de `primary` porque significa pertenencia — un encabezado, una firma — y no
+     acción, y porque los dos tienen que poder moverse sin arrastrarse. */
+  --brand: oklch(0.4 0.075 165);
+  --brand-foreground: oklch(0.985 0.006 85);
+  --brand-accent: oklch(0.64 0.135 48);
 
   --chart-background: oklch(1 0 0);
-  --chart-foreground: oklch(0.2 0.015 152);
-  --chart-foreground-muted: oklch(0.52 0.02 145);
+  --chart-foreground: oklch(0.24 0.016 165);
+  --chart-foreground-muted: oklch(0.52 0.015 120);
   --chart-line-primary: var(--chart-1);
   --chart-line-secondary: var(--chart-2);
-  --chart-crosshair: oklch(0.43 0.12 152);
-  --chart-grid: oklch(0.905 0.012 140);
-  --chart-tooltip-background: oklch(0.22 0.03 152 / 0.92);
-  --chart-tooltip-foreground: oklch(0.985 0.008 140);
-  --chart-tooltip-muted: oklch(0.72 0.02 140);
-  --chart-marker-background: oklch(0.965 0.012 140);
-  --chart-marker-border: oklch(0.86 0.02 142);
-  --chart-marker-foreground: oklch(0.3 0.03 150);
-  --chart-ring-background: oklch(0.55 0.1 152 / 0.22);
-  --chart-label: oklch(0.47 0.02 148);
+  --chart-crosshair: oklch(0.4 0.075 165);
+  --chart-grid: oklch(0.915 0.008 90);
+  --chart-tooltip-background: oklch(0.24 0.02 165 / 0.93);
+  --chart-tooltip-foreground: oklch(0.985 0.006 85);
+  --chart-tooltip-muted: oklch(0.73 0.012 100);
+  --chart-marker-background: oklch(0.968 0.008 90);
+  --chart-marker-border: oklch(0.87 0.014 100);
+  --chart-marker-foreground: oklch(0.32 0.03 165);
+  --chart-ring-background: oklch(0.52 0.08 165 / 0.2);
+  --chart-label: oklch(0.48 0.015 120);
 
-  /* Degradados. Variables y no clases sueltas para que el ángulo y las paradas se decidan una
-       vez: el encabezado del login, la franja de una tarjeta destacada y el fondo de un estado
-       vacío tienen que ser el mismo gesto, o se leen como tres marcas distintas. */
+  /*
+   * Degradados. Variables y no clases sueltas, para que el ángulo y las paradas se decidan una vez.
+   *
+   * El de marca recorre pino → petróleo: dos matices vecinos y no opuestos. Un degradado entre
+   * colores lejanos pasa por un gris sucio en el medio — el punto donde los dos se cancelan — y ese
+   * gris es lo que hace que un fondo se vea barato.
+   */
   --gradient-brand: linear-gradient(
     135deg,
-    oklch(0.43 0.12 152) 0%,
-    oklch(0.5 0.11 165) 45%,
-    oklch(0.58 0.1 185) 100%
+    oklch(0.34 0.07 170) 0%,
+    oklch(0.41 0.075 185) 55%,
+    oklch(0.47 0.07 205) 100%
   );
   --gradient-accent: linear-gradient(
     135deg,
-    oklch(0.76 0.15 85) 0%,
-    oklch(0.66 0.15 60) 100%
+    oklch(0.68 0.13 58) 0%,
+    oklch(0.58 0.14 36) 100%
   );
-  /* Casi invisible, y esa es la idea: da profundidad a una superficie grande sin pintarla. */
+  /* Casi invisible, y esa es la intención: da profundidad a una superficie grande sin pintarla. */
   --gradient-surface: linear-gradient(
     180deg,
-    oklch(0.99 0.006 140) 0%,
-    oklch(0.965 0.012 145) 100%
+    oklch(0.995 0.004 85) 0%,
+    oklch(0.962 0.009 90) 100%
   );
 }
 
 /*
- * El mismo escudo con la luz apagada, no la paleta clara invertida.
+ * El mismo material con la luz apagada, no la paleta clara invertida.
  *
- * El verde de `primary` sube de 0.43 a 0.74 y su texto baja a 0.19: sobre un fondo oscuro un verde
- * oscuro no es un botón, es una mancha. El croma baja un poco en las superficies porque el color
- * saturado se ve más intenso contra negro que contra blanco, y un fondo con el croma del modo
- * claro vibra.
+ * El pino sube de 0.40 a 0.72 y su texto baja: sobre fondo oscuro un verde oscuro no es un botón,
+ * es una mancha. Y el fondo se queda cálido — el mismo matiz de papel, apenas 0.17 de claridad —
+ * porque un negro frío bajo un verde tibio parece dos temas pegados con cinta.
  */
 .dark {
-  --background: oklch(0.165 0.012 155);
-  --foreground: oklch(0.96 0.008 140);
-  --card: oklch(0.215 0.015 155);
-  --card-foreground: oklch(0.96 0.008 140);
-  --popover: oklch(0.215 0.015 155);
-  --popover-foreground: oklch(0.96 0.008 140);
+  --background: oklch(0.172 0.008 120);
+  --foreground: oklch(0.955 0.006 85);
+  --card: oklch(0.218 0.01 130);
+  --card-foreground: oklch(0.955 0.006 85);
+  --popover: oklch(0.218 0.01 130);
+  --popover-foreground: oklch(0.955 0.006 85);
 
-  --primary: oklch(0.74 0.14 150);
-  --primary-foreground: oklch(0.19 0.03 155);
-  --secondary: oklch(0.28 0.02 152);
-  --secondary-foreground: oklch(0.96 0.008 140);
-  --muted: oklch(0.27 0.016 152);
-  --muted-foreground: oklch(0.72 0.016 142);
+  --primary: oklch(0.72 0.105 168);
+  --primary-foreground: oklch(0.19 0.02 165);
+  --secondary: oklch(0.285 0.014 140);
+  --secondary-foreground: oklch(0.955 0.006 85);
+  --muted: oklch(0.272 0.011 130);
+  --muted-foreground: oklch(0.725 0.014 100);
 
-  --accent: oklch(0.3 0.04 95);
-  --accent-foreground: oklch(0.9 0.1 92);
+  --accent: oklch(0.315 0.04 55);
+  --accent-foreground: oklch(0.86 0.1 65);
 
-  --destructive: oklch(0.68 0.19 25);
-  --border: oklch(0.96 0.02 140 / 12%);
-  --input: oklch(0.96 0.02 140 / 16%);
-  --ring: oklch(0.6 0.11 150);
+  --destructive: oklch(0.665 0.185 27);
+  --border: oklch(0.96 0.012 90 / 12%);
+  --input: oklch(0.96 0.012 90 / 16%);
+  --ring: oklch(0.6 0.085 168);
 
-  --chart-1: oklch(0.7 0.14 150);
-  --chart-2: oklch(0.82 0.14 88);
-  --chart-3: oklch(0.67 0.17 30);
-  --chart-4: oklch(0.66 0.09 205);
-  --chart-5: oklch(0.76 0.1 122);
+  --chart-1: oklch(0.68 0.1 168);
+  --chart-2: oklch(0.72 0.135 50);
+  --chart-3: oklch(0.84 0.12 90);
+  --chart-4: oklch(0.66 0.085 245);
+  --chart-5: oklch(0.78 0.055 150);
 
-  --sidebar: oklch(0.2 0.016 155);
-  --sidebar-foreground: oklch(0.96 0.008 140);
-  --sidebar-primary: oklch(0.7 0.14 150);
-  --sidebar-primary-foreground: oklch(0.19 0.03 155);
-  --sidebar-accent: oklch(0.28 0.025 152);
-  --sidebar-accent-foreground: oklch(0.96 0.008 140);
-  --sidebar-border: oklch(0.96 0.02 140 / 12%);
-  --sidebar-ring: oklch(0.6 0.11 150);
+  --sidebar: oklch(0.203 0.01 128);
+  --sidebar-foreground: oklch(0.955 0.006 85);
+  --sidebar-primary: oklch(0.68 0.1 168);
+  --sidebar-primary-foreground: oklch(0.19 0.02 165);
+  --sidebar-accent: oklch(0.285 0.016 140);
+  --sidebar-accent-foreground: oklch(0.955 0.006 85);
+  --sidebar-border: oklch(0.96 0.012 90 / 12%);
+  --sidebar-ring: oklch(0.6 0.085 168);
 
-  --brand: oklch(0.7 0.14 150);
-  --brand-foreground: oklch(0.19 0.03 155);
-  --brand-accent: oklch(0.82 0.14 88);
+  --brand: oklch(0.68 0.1 168);
+  --brand-foreground: oklch(0.19 0.02 165);
+  --brand-accent: oklch(0.72 0.135 50);
 
-  --chart-background: oklch(0.165 0.012 155);
-  --chart-foreground: oklch(0.62 0.02 145);
-  --chart-foreground-muted: oklch(0.7 0.018 142);
-  --chart-crosshair: oklch(0.7 0.14 150);
-  --chart-grid: oklch(0.29 0.014 152);
-  --chart-tooltip-background: oklch(0.14 0.02 155 / 0.94);
-  --chart-tooltip-foreground: oklch(0.96 0.008 140);
-  --chart-tooltip-muted: oklch(0.7 0.018 142);
-  --chart-marker-background: oklch(0.26 0.018 152);
-  --chart-marker-border: oklch(0.42 0.03 150);
-  --chart-marker-foreground: oklch(0.92 0.01 140);
-  --chart-ring-background: oklch(0.6 0.11 150 / 0.25);
-  --chart-label: oklch(0.74 0.018 145);
+  --chart-background: oklch(0.172 0.008 120);
+  --chart-foreground: oklch(0.63 0.015 110);
+  --chart-foreground-muted: oklch(0.71 0.014 100);
+  --chart-crosshair: oklch(0.68 0.1 168);
+  --chart-grid: oklch(0.295 0.01 130);
+  --chart-tooltip-background: oklch(0.145 0.012 125 / 0.95);
+  --chart-tooltip-foreground: oklch(0.955 0.006 85);
+  --chart-tooltip-muted: oklch(0.71 0.014 100);
+  --chart-marker-background: oklch(0.265 0.012 130);
+  --chart-marker-border: oklch(0.42 0.022 140);
+  --chart-marker-foreground: oklch(0.92 0.008 90);
+  --chart-ring-background: oklch(0.6 0.085 168 / 0.25);
+  --chart-label: oklch(0.745 0.014 105);
 
-  /* Más oscuros que en claro: un degradado pensado para fondo blanco, puesto sobre negro, se
-       convierte en una fuente de luz y se come todo lo que tiene encima. */
+  /* Más oscuros que en claro. Un degradado pensado para fondo blanco, puesto sobre negro, se
+     convierte en una fuente de luz y se come todo lo que tiene encima. */
   --gradient-brand: linear-gradient(
     135deg,
-    oklch(0.32 0.1 152) 0%,
-    oklch(0.36 0.09 168) 45%,
-    oklch(0.4 0.08 190) 100%
+    oklch(0.255 0.05 170) 0%,
+    oklch(0.295 0.055 188) 55%,
+    oklch(0.335 0.05 208) 100%
   );
   --gradient-accent: linear-gradient(
     135deg,
-    oklch(0.52 0.12 85) 0%,
-    oklch(0.44 0.12 58) 100%
+    oklch(0.45 0.1 58) 0%,
+    oklch(0.38 0.11 36) 100%
   );
   --gradient-surface: linear-gradient(
     180deg,
-    oklch(0.225 0.016 152) 0%,
-    oklch(0.19 0.014 155) 100%
+    oklch(0.228 0.011 130) 0%,
+    oklch(0.192 0.009 125) 100%
   );
 }
 

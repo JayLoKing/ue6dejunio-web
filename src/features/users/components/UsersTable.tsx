@@ -21,17 +21,7 @@ import { useUsers } from "../hooks/useUsers"
 import { useDeactivateUser } from "../hooks/useDeactivateUser"
 import { EditUserDialog } from "./EditUserDialog"
 import type { UsersListItem } from "../models/response/user-response"
-
-function roleVariant(role: string): "default" | "secondary" | "outline" {
-  switch (role.toUpperCase()) {
-    case "DIRECTOR":
-      return "default"
-    case "SECRETARY":
-      return "secondary"
-    default:
-      return "outline"
-  }
-}
+import { roleBadgeVariant, roleLabel } from "@/lib/labels"
 
 export function UsersTable() {
   const [search, setSearch] = useState("")
@@ -122,7 +112,9 @@ export function UsersTable() {
                   <TableCell>{u.email}</TableCell>
                   <TableCell>{u.phone ?? "—"}</TableCell>
                   <TableCell>
-                    <Badge variant={roleVariant(u.role)}>{u.role}</Badge>
+                    <Badge variant={roleBadgeVariant(u.role)}>
+                      {roleLabel(u.role)}
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <Badge variant={u.active ? "secondary" : "outline"}>

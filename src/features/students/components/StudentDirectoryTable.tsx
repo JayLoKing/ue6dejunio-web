@@ -13,14 +13,10 @@ import {
 import { DataTablePagination } from "@/components/shared/DataTablePagination"
 
 import type { StudentDirectoryResponse } from "../models/response/student-directory-response"
+import { enrollmentStatusLabel } from "@/lib/labels"
 
 const WITHDRAWN = "Withdrawn"
 const EFFECTIVE = "Effective"
-
-const STATUS_LABEL: Record<string, string> = {
-  Effective: "Activo",
-  Withdrawn: "Dado de baja",
-}
 
 /** Lo que se muestra donde el estudiante todavía no tiene curso en la gestión consultada. */
 const EMPTY_CELL = "—"
@@ -100,9 +96,7 @@ export function StudentDirectoryTable({
                     <Badge
                       variant={s.status === WITHDRAWN ? "outline" : "secondary"}
                     >
-                      {/* Un estado que no está en el mapa se muestra tal cual: inventar una
-                          traducción para algo que el backend agregó después dice menos. */}
-                      {STATUS_LABEL[s.status] ?? s.status}
+                      {enrollmentStatusLabel(s.status)}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">

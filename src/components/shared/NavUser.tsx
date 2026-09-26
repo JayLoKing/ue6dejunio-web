@@ -25,6 +25,7 @@ import {
 import { ProfileDialog } from "@/features/auth/components/ProfileDialog"
 import { ChangePasswordMenuDialog } from "@/features/auth/components/ChangePasswordMenuDialog"
 import { useAuthStore } from "@/features/auth/store/authStore"
+import { roleLabel } from "@/lib/labels"
 
 export function NavUser() {
   const fullName = useAuthStore((s) => s.fullName)
@@ -62,7 +63,7 @@ export function NavUser() {
                   {fullName ?? "Usuario"}
                 </span>
                 <span className="truncate text-xs text-muted-foreground">
-                  {role ?? "Sin rol"}
+                  {roleLabel(role) || "Sin rol"}
                 </span>
               </div>
               <ChevronsUpDownIcon className="ml-auto size-4" />

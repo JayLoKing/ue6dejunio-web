@@ -16,15 +16,10 @@ import { DataTablePagination } from "@/components/shared/DataTablePagination"
 import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue"
 
 import type { StudentRow } from "../types"
+import { enrollmentStatusLabel } from "@/lib/labels"
 
 /** El estado que el backend escribe cuando se da de baja a un estudiante. */
 const WITHDRAWN = "Withdrawn"
-
-/** Lo que la columna guarda, en las palabras con las que se lee el padrón. */
-const STATUS_LABEL: Record<string, string> = {
-  Effective: "Activo",
-  Withdrawn: "Dado de baja",
-}
 
 export interface StudentsTableProps {
   data: StudentRow[]
@@ -112,9 +107,7 @@ export function StudentsTable({
                   <TableCell>{s.fullName}</TableCell>
                   <TableCell>
                     <Badge variant="secondary">
-                      {/* Un estado que no está en el mapa se muestra tal cual: inventar una
-                          traducción para algo que el backend agregó después dice menos. */}
-                      {STATUS_LABEL[s.status] ?? s.status}
+                      {enrollmentStatusLabel(s.status)}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">

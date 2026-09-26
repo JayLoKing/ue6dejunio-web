@@ -10,7 +10,17 @@ export const Route = createFileRoute("/_app/dashboard")({
   component: DashboardPage,
 })
 
-function Notice({ children }: { children: string }) {
+/**
+ * El aviso de la página entera, que no es el de una tarjeta.
+ *
+ * Ocupa el lugar del tablero completo, así que lleva el recuadro punteado; `QueryState` rotula el
+ * hueco de un gráfico dentro de una tarjeta que ya tiene borde propio.
+ */
+interface PageNoticeProps {
+  children: string
+}
+
+function PageNotice({ children }: PageNoticeProps) {
   return (
     <div className="rounded-md border border-dashed p-12 text-center text-muted-foreground">
       {children}
@@ -41,18 +51,18 @@ function DashboardPage() {
         (homeroomCourseId ? (
           <DashboardCharts courseId={homeroomCourseId} />
         ) : (
-          <Notice>
+          <PageNotice>
             Docente técnico: sin curso de aula. Indicadores por materia en
             desarrollo.
-          </Notice>
+          </PageNotice>
         ))}
 
       {(isDirector || isSecretary) &&
         (academicYearId === null ? (
-          <Notice>
+          <PageNotice>
             Sin gestión registrada. Los indicadores se calculan sobre una
             gestión.
-          </Notice>
+          </PageNotice>
         ) : isDirector ? (
           <DirectorDashboardCharts academicYearId={academicYearId} />
         ) : (

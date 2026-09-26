@@ -9,6 +9,7 @@ import { DonutChart } from "@/components/charts/donut-chart"
 import { Grid } from "@/components/charts/grid"
 import { TrendChart } from "@/components/charts/trend-chart"
 import { ChartTooltip } from "@/components/charts/tooltip/chart-tooltip"
+import { QueryState } from "@/components/shared/QueryState"
 import { useRiskCourseSummary } from "@/features/risk/hooks/useRisk"
 
 import { useCourseSummary } from "../hooks/useGradebook"
@@ -26,38 +27,6 @@ export interface DirectorDashboardChartsProps {
 
 /** Como el tablero nombra cada trimestre en los títulos de las tarjetas. */
 const ORDINAL: Record<number, string> = { 1: "1er", 2: "2do", 3: "3er" }
-
-function Notice({ children }: { children: string }) {
-  return (
-    <p className="py-8 text-center text-sm text-muted-foreground">{children}</p>
-  )
-}
-
-/**
- * Qué mostrar dentro de una tarjeta, según en qué estado está la consulta.
- *
- * Las tres situaciones son distintas y se veían iguales: mientras carga, el arreglo está vacío, y
- * sin esta rama la tarjeta decía "ningún curso tiene notas" hasta que llegaba la respuesta. Un
- * error decía lo mismo, que es peor: afirma que la escuela está bien cuando no se pudo preguntar.
- */
-function CardBody({
-  isPending,
-  isError,
-  isEmpty,
-  empty,
-  children,
-}: {
-  isPending: boolean
-  isError: boolean
-  isEmpty: boolean
-  empty: string
-  children: React.ReactNode
-}) {
-  if (isError) return <Notice>No se pudo cargar la información.</Notice>
-  if (isPending) return <Notice>Cargando…</Notice>
-  if (isEmpty) return <Notice>{empty}</Notice>
-  return <>{children}</>
-}
 
 /**
  * El tablero de Dirección: la escuela entera, un curso por fila.
@@ -125,6 +94,19 @@ export function DirectorDashboardCharts({
 
   const byGrade = useMemo(() => enrolmentByGrade(rows), [rows])
 
+  // Los grados vienen en el orden del repositorio (`ORDER BY c.grade.id, c.parallel.id`), así que
+  // el color de cada porción es estable entre consultas. Ordenarlos acá por nombre sería peor:
+  // daría "Cuarto, Primero, Quinto", que no es el orden en que la escuela lee sus grados.
+  const gradeSlices = useMemo(
+    () =>
+      byGrade.map((g, i) => ({
+        label: g.name,
+        value: g.estudiantes,
+        color: `var(--chart-${(i % 5) + 1})`,
+      })),
+    [byGrade]
+  )
+
   const ord = ORDINAL[trimester]
 
   return (
@@ -150,7 +132,7 @@ export function DirectorDashboardCharts({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <CardBody
+            <QueryState
               isPending={academic.isPending}
               isError={academic.isError}
               isEmpty={averages.length === 0}
@@ -162,7 +144,7 @@ export function DirectorDashboardCharts({
                 <BarXAxis />
                 <ChartTooltip />
               </BarChart>
-            </CardBody>
+            </QueryState>
           </CardContent>
         </Card>
 
@@ -173,7 +155,7 @@ export function DirectorDashboardCharts({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <CardBody
+            <QueryState
               isPending={academic.isPending}
               isError={academic.isError}
               isEmpty={passFail.length === 0}
@@ -193,7 +175,7 @@ export function DirectorDashboardCharts({
                 <BarXAxis />
                 <ChartTooltip />
               </BarChart>
-            </CardBody>
+            </QueryState>
           </CardContent>
         </Card>
 
@@ -204,7 +186,7 @@ export function DirectorDashboardCharts({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <CardBody
+            <QueryState
               isPending={risk.isPending}
               isError={risk.isError}
               isEmpty={riskByCourse.length === 0}
@@ -228,7 +210,7 @@ export function DirectorDashboardCharts({
                 <BarXAxis />
                 <ChartTooltip />
               </BarChart>
-            </CardBody>
+            </QueryState>
           </CardContent>
         </Card>
 
@@ -241,14 +223,12 @@ export function DirectorDashboardCharts({
           <CardContent>
             {/* Ponderado por matrícula, no promedio de promedios: un paralelo de ocho no pesa lo
                 mismo que uno de treinta. Un trimestre sin calificar es un hueco en la línea. */}
-            <CardBody
+            <QueryState
               isPending={t1.isPending || t2.isPending || t3.isPending}
               isError={t1.isError || t2.isError || t3.isError}
-              isEmpty={false}
-              empty=""
             >
               <TrendChart maxY={100} series={evolution} unit=" pts" />
-            </CardBody>
+            </QueryState>
           </CardContent>
         </Card>
 
@@ -257,21 +237,14 @@ export function DirectorDashboardCharts({
             <CardTitle className="text-base">Matrícula por grado</CardTitle>
           </CardHeader>
           <CardContent>
-            <CardBody
+            <QueryState
               isPending={academic.isPending}
               isError={academic.isError}
               isEmpty={byGrade.length === 0}
               empty="Sin cursos en la gestión."
             >
-              <DonutChart
-                centerLabel="estudiantes"
-                data={byGrade.map((g, i) => ({
-                  label: g.name,
-                  value: g.estudiantes,
-                  color: `var(--chart-${(i % 5) + 1})`,
-                }))}
-              />
-            </CardBody>
+              <DonutChart centerLabel="estudiantes" data={gradeSlices} />
+            </QueryState>
           </CardContent>
         </Card>
       </div>

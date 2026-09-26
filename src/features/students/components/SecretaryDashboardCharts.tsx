@@ -8,10 +8,15 @@ import { DonutChart } from "@/components/charts/donut-chart"
 import { Grid } from "@/components/charts/grid"
 import { TrendChart } from "@/components/charts/trend-chart"
 import { ChartTooltip } from "@/components/charts/tooltip/chart-tooltip"
+import { QueryState } from "@/components/shared/QueryState"
 import { useAllCourses } from "@/features/courses/hooks/useCourses"
 
 import { useStudentMovementSummary } from "../hooks/useStudent"
-import { movementByMonth, runningEnrolment } from "../utils/movementStats"
+import {
+  movementByMonth,
+  parallelsByGrade,
+  runningEnrolment,
+} from "../utils/movementStats"
 
 export interface SecretaryDashboardChartsProps {
   /** La gestión, por su id de fila. No el año calendario. */
@@ -25,38 +30,6 @@ export interface SecretaryDashboardChartsProps {
  * columna, no lo tienen. Meterlas en "Otro" las contaría como una decisión que alguien tomó.
  */
 const NO_REASON = "Sin motivo registrado"
-
-function Notice({ children }: { children: string }) {
-  return (
-    <p className="py-8 text-center text-sm text-muted-foreground">{children}</p>
-  )
-}
-
-/**
- * Qué mostrar dentro de una tarjeta, según en qué estado está la consulta.
- *
- * Mientras carga el arreglo está vacío, y sin esta rama la tarjeta decía "sin movimiento
- * registrado" hasta que llegaba la respuesta. Un error decía lo mismo, que es peor: afirma que no
- * pasó nada cuando lo cierto es que no se pudo preguntar.
- */
-function CardBody({
-  isPending,
-  isError,
-  isEmpty,
-  empty,
-  children,
-}: {
-  isPending: boolean
-  isError: boolean
-  isEmpty: boolean
-  empty: string
-  children: React.ReactNode
-}) {
-  if (isError) return <Notice>No se pudo cargar la información.</Notice>
-  if (isPending) return <Notice>Cargando…</Notice>
-  if (isEmpty) return <Notice>{empty}</Notice>
-  return <>{children}</>
-}
 
 /**
  * El tablero de Secretaría: quién entra, quién sale y qué cursos hay para recibirlos.
@@ -85,18 +58,17 @@ export function SecretaryDashboardCharts({
     [movement.data]
   )
 
-  // Cuántos paralelos tiene cada grado: es la capacidad instalada, que es contra lo que Secretaría
-  // decide dónde entra un estudiante nuevo.
-  const byGrade = useMemo(() => {
-    const totals = new Map<string, number>()
-    for (const c of courses.data?.content ?? []) {
-      totals.set(c.gradeName, (totals.get(c.gradeName) ?? 0) + 1)
-    }
-    return [...totals.entries()].map(([name, paralelos]) => ({
-      name,
-      paralelos,
-    }))
-  }, [courses.data])
+  const enrolmentSeries = useMemo(
+    () => [
+      { label: "Estudiantes", color: "var(--chart-1)", points: enrolment },
+    ],
+    [enrolment]
+  )
+
+  const byGrade = useMemo(
+    () => parallelsByGrade(courses.data?.content ?? []),
+    [courses.data]
+  )
 
   return (
     <div className="grid gap-4 lg:grid-cols-2">
@@ -105,7 +77,7 @@ export function SecretaryDashboardCharts({
           <CardTitle className="text-base">Altas y bajas por mes</CardTitle>
         </CardHeader>
         <CardContent>
-          <CardBody
+          <QueryState
             isPending={movement.isPending}
             isError={movement.isError}
             isEmpty={byMonth.length === 0}
@@ -120,7 +92,7 @@ export function SecretaryDashboardCharts({
               <BarXAxis />
               <ChartTooltip />
             </BarChart>
-          </CardBody>
+          </QueryState>
         </CardContent>
       </Card>
 
@@ -129,7 +101,7 @@ export function SecretaryDashboardCharts({
           <CardTitle className="text-base">Matrícula acumulada</CardTitle>
         </CardHeader>
         <CardContent>
-          <CardBody
+          <QueryState
             isPending={movement.isPending}
             isError={movement.isError}
             isEmpty={enrolment.length === 0}
@@ -137,16 +109,8 @@ export function SecretaryDashboardCharts({
           >
             {/* Los meses sin movimiento no están, y está bien: la API manda sólo los que tuvieron
                 alguno, y una gestión que empieza en febrero no debe mostrar un enero en cero. */}
-            <TrendChart
-              series={[
-                {
-                  label: "Estudiantes",
-                  color: "var(--chart-1)",
-                  points: enrolment,
-                },
-              ]}
-            />
-          </CardBody>
+            <TrendChart series={enrolmentSeries} />
+          </QueryState>
         </CardContent>
       </Card>
 
@@ -155,14 +119,14 @@ export function SecretaryDashboardCharts({
           <CardTitle className="text-base">Bajas por motivo</CardTitle>
         </CardHeader>
         <CardContent>
-          <CardBody
+          <QueryState
             isPending={movement.isPending}
             isError={movement.isError}
             isEmpty={byReason.length === 0}
             empty="Ninguna baja en la gestión."
           >
             <DonutChart centerLabel="bajas" data={byReason} />
-          </CardBody>
+          </QueryState>
         </CardContent>
       </Card>
 
@@ -171,7 +135,7 @@ export function SecretaryDashboardCharts({
           <CardTitle className="text-base">Paralelos por grado</CardTitle>
         </CardHeader>
         <CardContent>
-          <CardBody
+          <QueryState
             isPending={courses.isPending}
             isError={courses.isError}
             isEmpty={byGrade.length === 0}
@@ -183,7 +147,7 @@ export function SecretaryDashboardCharts({
               <BarXAxis />
               <ChartTooltip />
             </BarChart>
-          </CardBody>
+          </QueryState>
         </CardContent>
       </Card>
     </div>

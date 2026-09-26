@@ -60,3 +60,26 @@ export function movementByMonth(
     Bajas: m.withdrawn,
   }))
 }
+
+/**
+ * Cuántos paralelos tiene abiertos cada grado.
+ *
+ * Es la capacidad instalada, que es contra lo que Secretaría decide dónde entra un estudiante
+ * nuevo. Cuenta cursos, no estudiantes: un paralelo con dos chicos sigue siendo un paralelo.
+ *
+ * Conserva el orden en que llegan los cursos, que la API ya devuelve por grado
+ * (`ORDER BY c.grade.id, c.parallel.id`). No los ordena por nombre a propósito: alfabéticamente
+ * daría "Cuarto, Primero, Quinto, Segundo", y el gráfico se lee como una escalera de grados.
+ */
+export function parallelsByGrade(
+  courses: { gradeName: string }[]
+): { name: string; paralelos: number }[] {
+  const totals = new Map<string, number>()
+  for (const c of courses) {
+    totals.set(c.gradeName, (totals.get(c.gradeName) ?? 0) + 1)
+  }
+  return [...totals.entries()].map(([name, paralelos]) => ({
+    name,
+    paralelos,
+  }))
+}

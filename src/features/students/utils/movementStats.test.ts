@@ -4,6 +4,7 @@ import {
   inCalendarOrder,
   monthLabel,
   movementByMonth,
+  parallelsByGrade,
   runningEnrolment,
 } from "./movementStats"
 
@@ -82,5 +83,31 @@ describe("movementByMonth", () => {
       { name: "Feb", Altas: 30, Bajas: 1 },
       { name: "Mar", Altas: 5, Bajas: 2 },
     ])
+  })
+})
+
+describe("parallelsByGrade", () => {
+  it("junta los paralelos de un grado en una fila", () => {
+    const courses = [
+      { gradeName: "Quinto" },
+      { gradeName: "Quinto" },
+      { gradeName: "Sexto" },
+    ]
+
+    expect(parallelsByGrade(courses)).toEqual([
+      { name: "Quinto", paralelos: 2 },
+      { name: "Sexto", paralelos: 1 },
+    ])
+  })
+
+  /** Cuenta cursos, no estudiantes: un paralelo con dos chicos sigue siendo un paralelo. */
+  it("no se entera de cuánta gente hay adentro", () => {
+    expect(parallelsByGrade([{ gradeName: "Quinto" }])).toEqual([
+      { name: "Quinto", paralelos: 1 },
+    ])
+  })
+
+  it("sin cursos abiertos responde vacío", () => {
+    expect(parallelsByGrade([])).toEqual([])
   })
 })

@@ -54,8 +54,14 @@ const setupInterceptors = (httpClient: AxiosInstance) => {
       const status = error.response?.status ?? 0
 
       if (status === 401) {
-        useAuthStore.getState().logout()
-        window.location.href = "/auth/login"
+        // Marca la sesión como vencida y deja que la interfaz lo cuente. Antes acá había un
+        // `window.location.href = "/auth/login"`: una recarga entera del navegador, disparada en
+        // mitad de lo que la persona estuviera escribiendo, sin una palabra de por qué. Lo
+        // guardado sobrevivía; el párrafo a medio tipear, no, y nadie entendía qué había pasado.
+        //
+        // `SessionExpiryNotice` mira esta bandera y muestra el cartel con la puerta. La redirección
+        // pasa a ser algo que la persona aprieta, no algo que le ocurre.
+        useAuthStore.getState().expireSession()
         return Promise.reject(error)
       }
 

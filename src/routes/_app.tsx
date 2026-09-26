@@ -14,6 +14,7 @@ import {
   SidebarTrigger,
 } from "@/components/animate-ui/components/radix/sidebar"
 import { ChangePasswordDialog } from "@/features/auth/components/ChangePasswordDialog"
+import { SessionExpiryNotice } from "@/features/auth/components/SessionExpiryNotice"
 import { NotificationBell } from "@/features/notifications/components/NotificationBell"
 import { useAuthStore } from "@/features/auth/store/authStore"
 
@@ -56,6 +57,9 @@ function AppLayout() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset className="min-w-0">
+        {/* Arriba de todo y fuera del header: el aviso tiene que verse esté donde esté el scroll,
+            y el header ya está lleno. Cuando no hay nada que avisar no renderiza nada. */}
+        <SessionExpiryNotice />
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4 self-center!" />

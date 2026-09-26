@@ -17,6 +17,7 @@ const initialState = {
   parallelName: null,
   courseId: null,
   isTechnical: null,
+  sessionExpired: false,
 } as const
 
 export const useAuthStore = create<AuthState>()(
@@ -37,8 +38,12 @@ export const useAuthStore = create<AuthState>()(
           parallelName: user.parallelName,
           courseId: user.courseId,
           isTechnical: user.technical,
+          // Entrar baja el cartel. Sin esto, el 401 de una contraseña mal escrita dejaba la
+          // bandera levantada y "tu sesión expiró" aparecía encima de la sesión recién abierta.
+          sessionExpired: false,
         }),
       logout: () => set({ ...initialState }),
+      expireSession: () => set({ ...initialState, sessionExpired: true }),
     }),
     {
       name: "ue6dejunio-auth-storage",

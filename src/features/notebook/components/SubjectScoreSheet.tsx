@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TrimesterSelect } from "@/components/shared/TrimesterSelect"
 import { useCourseStudents } from "@/features/courses/hooks/useCourses"
 import type { ClassGroupItem } from "@/features/courses/types/course"
-import { isTechnicalSubject } from "@/features/courses/types/course"
+import { isTechnicalSubject } from "@/features/courses/utils/subject"
 import {
   useClassGroupRisk,
   usePredictClassGroupRisk,

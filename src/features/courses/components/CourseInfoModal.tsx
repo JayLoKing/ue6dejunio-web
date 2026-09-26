@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/dialog"
 
 import { useCourseOverview } from "../hooks/useCourses"
-import { isTechnicalSubject, type Course } from "../types/course"
+import type { Course } from "../types/course"
+import { isTechnicalSubject } from "../utils/subject"
 
 export interface CourseInfoModalProps {
   course: Course | null
@@ -23,7 +24,9 @@ export function CourseInfoModal({ course, onClose }: CourseInfoModalProps) {
   const overview = useCourseOverview(course?.id ?? null, 1)
   const data = overview.data
 
-  const totalStudents = data?.students.total ?? 0
+  // La matrícula de hoy, no `students.total`: ese conserva al estudiante retirado, y puesto
+  // encima de varones y mujeres daba una suma que no cerraba sin explicar por qué.
+  const totalStudents = data?.activeStudents ?? 0
   const classGroups = data?.classGroups ?? []
   // Docente actualizado desde el overview (refleja reasignaciones); prop como respaldo.
   const homeroomName =
@@ -61,9 +64,8 @@ export function CourseInfoModal({ course, onClose }: CourseInfoModalProps) {
               </div>
               <Stat label="Total estudiantes" value={String(totalStudents)} />
               <Stat label="Año" value={course ? String(course.year) : "—"} />
-              {/* gender aún no expuesto por el backend en el listado del curso */}
-              <Stat label="Varones" value="—" hint="pendiente backend" />
-              <Stat label="Mujeres" value="—" hint="pendiente backend" />
+              <Stat label="Varones" value={String(data?.males ?? 0)} />
+              <Stat label="Mujeres" value={String(data?.females ?? 0)} />
             </div>
 
             {/* Materias + encargado */}
@@ -105,22 +107,17 @@ export function CourseInfoModal({ course, onClose }: CourseInfoModalProps) {
   )
 }
 
-function Stat({
-  label,
-  value,
-  hint,
-}: {
+interface StatProps {
   label: string
   value: string
-  hint?: string
-}) {
+}
+
+/** Un número con su etiqueta. El `hint` que tenía murió con el "pendiente backend". */
+function Stat({ label, value }: StatProps) {
   return (
     <div className="rounded-md border p-2">
       <div className="text-xs text-muted-foreground">{label}</div>
       <div className="text-lg font-semibold">{value}</div>
-      {hint ? (
-        <div className="text-[10px] text-muted-foreground">{hint}</div>
-      ) : null}
     </div>
   )
 }

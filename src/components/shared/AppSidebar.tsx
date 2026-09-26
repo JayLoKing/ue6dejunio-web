@@ -48,7 +48,7 @@ import { useAuthStore } from "@/features/auth/store/authStore"
 import { isRole, type UserRole } from "@/features/auth/types"
 import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
 import { useCourseOverview } from "@/features/courses/hooks/useCourses"
-import { isTechnicalSubject } from "@/features/courses/types/course"
+import { isTechnicalSubject } from "@/features/courses/utils/subject"
 import { useParallels } from "@/features/catalog/hooks/useCatalog"
 
 interface NavLink {

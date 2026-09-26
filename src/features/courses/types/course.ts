@@ -30,7 +30,7 @@ export interface SubjectAssignment {
   id_teacher: string
 }
 
-/** POST /courses: crea curso + class_groups en 1 transaccion (anio auto). */
+/** POST /courses: crea curso + class_groups en 1 transacción (año auto). */
 export interface CreateCoursePayload {
   id_grade: number
   id_parallel: number
@@ -49,6 +49,15 @@ export interface CourseOverview {
   course: Course
   classGroups: ClassGroupItem[]
   students: PagedResponse<StudentSummary>
+  /** Cuenta de matrículas activas por género, calculada en el backend (no por página). */
+  males: number
+  females: number
+  /**
+   * Los que están en el curso hoy. No es `students.total`, que conserva al retirado porque las
+   * notas que sacó antes de irse siguen siendo del año. Este es el que va al lado de varones y
+   * mujeres: los tres cuentan a la misma gente.
+   */
+  activeStudents: number
 }
 
 /** ClassGroup = materia dentro de un curso. */
@@ -62,16 +71,4 @@ export interface ClassGroupItem {
   teacherId: string
   teacherName: string
   active: boolean
-}
-
-// Materias tecnicas (marcado visual). Ajustar nombres si el backend cambia.
-const TECHNICAL_SUBJECTS = ["religion", "musica", "educacion musical"]
-
-// Quita acentos para que "Religión"/"Música" coincidan igual que sin tilde.
-const normalize = (s: string): string =>
-  s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
-
-export const isTechnicalSubject = (subjectName: string): boolean => {
-  const n = normalize(subjectName)
-  return TECHNICAL_SUBJECTS.some((t) => n.includes(t))
 }

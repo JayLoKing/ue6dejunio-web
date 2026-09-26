@@ -18,7 +18,9 @@ import {
 } from "@/features/attendance/components/AttendanceMatrix"
 import {
   useDailyAttendance,
+  useDailyAttendanceBatch,
   useSessionAttendance,
+  useSessionAttendanceBatch,
 } from "@/features/attendance/hooks/useAttendance"
 import type { AttendanceCellStatus } from "@/features/attendance/types"
 import { cellFromApi } from "@/features/attendance/utils/attendanceStatus"
@@ -137,6 +139,7 @@ function DailyCourseAttendance({
   const studentsQuery = useCourseStudents(courseId, WHOLE_COURSE_PAGE)
   const attQuery = useCourseAttendance(courseId, WHOLE_COURSE_PAGE)
   const daily = useDailyAttendance()
+  const dailyBatch = useDailyAttendanceBatch()
 
   const students = useMemo<AttendanceStudentRow[]>(
     () =>
@@ -177,6 +180,15 @@ function DailyCourseAttendance({
       onMark={(ce, date, status) =>
         daily.mutateAsync({ id_course_enrollment: ce, date, status })
       }
+      onMarkAll={(date, status) =>
+        dailyBatch.mutateAsync({
+          date,
+          records: students.map((s) => ({
+            id_course_enrollment: s.courseEnrollmentId,
+            status,
+          })),
+        })
+      }
     />
   )
 }
@@ -195,6 +207,7 @@ function SessionAttendance({ year, month }: SessionAttendanceProps) {
 
   const studentsQuery = useCourseStudents(cg?.courseId, WHOLE_COURSE_PAGE)
   const session = useSessionAttendance()
+  const sessionBatch = useSessionAttendanceBatch()
 
   const students = useMemo<AttendanceStudentRow[]>(
     () =>
@@ -241,6 +254,16 @@ function SessionAttendance({ year, month }: SessionAttendanceProps) {
               id_class_group: cg.id,
               date,
               status,
+            })
+          }
+          onMarkAll={(date, status) =>
+            sessionBatch.mutateAsync({
+              id_class_group: cg.id,
+              date,
+              records: students.map((s) => ({
+                id_course_enrollment: s.courseEnrollmentId,
+                status,
+              })),
             })
           }
         />

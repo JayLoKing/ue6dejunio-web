@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react"
 import { CalendarDaysIcon } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 
@@ -27,6 +28,16 @@ export interface AttendanceMatrixProps {
     isoDate: string,
     status: AttendanceApiStatus
   ) => void | Promise<unknown>
+  /**
+   * Marca de una vez a todos los estudiantes del día editable.
+   *
+   * Opcional: sin ella los botones de marcado masivo no aparecen, en vez de aparecer y resolverse
+   * con treinta llamadas sueltas. Quien la provee manda un lote, que es una transacción sola.
+   */
+  onMarkAll?: (
+    isoDate: string,
+    status: AttendanceApiStatus
+  ) => void | Promise<unknown>
 }
 
 const STATUS_STYLE: Record<
@@ -40,6 +51,18 @@ const STATUS_STYLE: Record<
   A: { label: "Ausente", cls: "bg-destructive/15 text-destructive" },
   L: { label: "Licencia", cls: "bg-brand/15 text-brand" },
 }
+
+/**
+ * Las tres letras, en el orden en que el clic las recorre.
+ *
+ * Derivado de `STATUS_STYLE` y no escrito otra vez: la leyenda, los botones de marcado masivo y las
+ * celdas tienen que decir lo mismo, y tres listas paralelas divergen la primera vez que alguien
+ * cambie una etiqueta en una sola de ellas.
+ */
+const LEGEND = (["P", "A", "L"] as const).map((cell) => ({
+  cell,
+  label: STATUS_STYLE[cell].label,
+}))
 
 const WEEKDAY_LETTER = ["D", "L", "M", "M", "J", "V", "S"]
 const pad = (n: number) => String(n).padStart(2, "0")
@@ -71,6 +94,7 @@ export function AttendanceMatrix({
   month,
   initialData,
   onMark,
+  onMarkAll,
 }: AttendanceMatrixProps) {
   // What the teacher clicked, kept apart from what the server sent. Mirroring the server into a
   // single draft meant every refetch overwrote clicks the mutation had not yet come back for, so a
@@ -109,17 +133,105 @@ export function AttendanceMatrix({
     })
   }
 
+  /**
+   * Marca a todos y refleja el resultado sin esperar al refetch.
+   *
+   * El estado local se escribe primero porque el lote tarda: sin eso la grilla queda igual medio
+   * segundo después del clic y el docente vuelve a apretar. Si el servidor rechaza, se devuelve
+   * todo lo que este clic había puesto — no se limpia la columna entera, porque puede haber marcas
+   * anteriores que no eran de este lote.
+   */
+  const markAll = (status: Exclude<AttendanceCellStatus, null>) => {
+    if (!onMarkAll) return
+    const previous = Object.fromEntries(
+      students.map((s) => [
+        s.courseEnrollmentId,
+        cellOf(s.courseEnrollmentId, today),
+      ])
+    )
+    setMarked((prev) => {
+      const next = { ...prev }
+      for (const s of students) {
+        next[s.courseEnrollmentId] = {
+          ...(prev[s.courseEnrollmentId] ?? {}),
+          [today]: status,
+        }
+      }
+      return next
+    })
+    void Promise.resolve(onMarkAll(today, CELL_TO_API[status])).catch(() => {
+      setMarked((prev) => {
+        const back = { ...prev }
+        for (const s of students) {
+          if ((prev[s.courseEnrollmentId]?.[today] ?? null) !== status) continue
+          back[s.courseEnrollmentId] = {
+            ...(prev[s.courseEnrollmentId] ?? {}),
+            [today]: previous[s.courseEnrollmentId] ?? null,
+          }
+        }
+        return back
+      })
+    })
+  }
+
   return (
     <div className="flex min-w-0 flex-col gap-3">
-      <div className="flex items-center gap-3 text-sm text-muted-foreground">
-        <CalendarDaysIcon className="size-4" />
-        <span>
-          Lun–Vie. Solo el día actual ({today}) es editable. Clic cíclico{" "}
-          <span className="font-semibold text-success">P</span> →{" "}
-          <span className="font-semibold text-destructive">A</span> →{" "}
-          <span className="font-semibold text-brand">L</span>
+      {/*
+        La leyenda dice qué significa cada letra y cómo se cambia. Antes decía "Clic cíclico P → A →
+        L", que sólo se entiende si ya sabés qué es cada una: nombraba el mecanismo y no el
+        significado, y P, A y L no son evidentes para alguien que abre esto por primera vez.
+      */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border bg-muted/40 px-3 py-2.5 text-sm">
+        <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+          <CalendarDaysIcon className="size-4" />
+          Lun a Vie. Solo hoy ({today}) se puede editar.
+        </span>
+        <span className="inline-flex flex-wrap items-center gap-x-3 gap-y-1">
+          {LEGEND.map((item) => (
+            <span key={item.cell} className="inline-flex items-center gap-1.5">
+              <span
+                className={cn(
+                  "inline-flex size-5 items-center justify-center rounded text-xs font-semibold",
+                  STATUS_STYLE[item.cell].cls
+                )}
+              >
+                {item.cell}
+              </span>
+              <span className="text-muted-foreground">{item.label}</span>
+            </span>
+          ))}
+        </span>
+        <span className="text-muted-foreground">
+          Haz clic en una celda para ir cambiando entre las tres.
         </span>
       </div>
+
+      {onMarkAll ? (
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="text-muted-foreground">
+            Marcar todo el curso hoy:
+          </span>
+          {LEGEND.map((item) => (
+            <Button
+              key={item.cell}
+              onClick={() => markAll(item.cell)}
+              size="sm"
+              type="button"
+              variant="outline"
+            >
+              <span
+                className={cn(
+                  "mr-1 inline-flex size-4 items-center justify-center rounded text-[10px] font-semibold",
+                  STATUS_STYLE[item.cell].cls
+                )}
+              >
+                {item.cell}
+              </span>
+              {item.label}
+            </Button>
+          ))}
+        </div>
+      ) : null}
 
       <div className="min-w-0 overflow-hidden rounded-md border bg-card">
         <ScrollArea className="w-full whitespace-nowrap">

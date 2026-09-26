@@ -169,4 +169,91 @@ describe("AttendanceMatrix", () => {
 
     expect(editableCell()).toHaveTextContent("A")
   })
+
+  // ---------------------------------------------------------------- marcado masivo
+
+  /**
+   * Treinta estudiantes presentes es el caso normal de una mañana, y marcarlos de a uno son treinta
+   * clics para decir lo mismo treinta veces.
+   */
+  it("marca a todo el curso de una vez y manda un solo lote", async () => {
+    const user = userEvent.setup()
+    const onMarkAll = vi.fn().mockResolvedValue({ total: 2, saved: 2 })
+    const onMark = vi.fn()
+    render(
+      <AttendanceMatrix
+        students={[
+          { courseEnrollmentId: "ce-1", fullName: "Ana Quispe" },
+          { courseEnrollmentId: "ce-2", fullName: "Bruno Mamani" },
+        ]}
+        year={2026}
+        month={8}
+        initialData={noData()}
+        onMark={onMark}
+        onMarkAll={onMarkAll}
+      />
+    )
+
+    await user.click(screen.getByRole("button", { name: /presente/i }))
+
+    expect(onMarkAll).toHaveBeenCalledExactlyOnceWith(TODAY_ISO, "Present")
+    // Y una sola llamada: el lote no se resuelve mandando una marca por estudiante.
+    expect(onMark).not.toHaveBeenCalled()
+    expect(editableCell()).toHaveTextContent("P")
+  })
+
+  /** Rechazado el lote, la columna vuelve a como estaba y no se queda mostrando lo que no se guardó. */
+  it("devuelve las marcas cuando el lote es rechazado", async () => {
+    const user = userEvent.setup()
+    render(
+      <AttendanceMatrix
+        students={students}
+        year={2026}
+        month={8}
+        initialData={{ "ce-1": { [TODAY_ISO]: "L" } }}
+        onMark={vi.fn()}
+        onMarkAll={vi.fn().mockRejectedValue(new Error("403"))}
+      />
+    )
+
+    await user.click(screen.getByRole("button", { name: /ausente/i }))
+
+    await waitFor(() => expect(editableCell()).toHaveTextContent("L"))
+  })
+
+  /** Sin la prop no hay botones: sería ofrecer un atajo que se resolvería con treinta peticiones. */
+  it("no ofrece marcado masivo cuando el contenedor no lo soporta", () => {
+    render(
+      <AttendanceMatrix
+        students={students}
+        year={2026}
+        month={8}
+        initialData={noData()}
+        onMark={vi.fn()}
+      />
+    )
+
+    expect(screen.queryByRole("button", { name: /presente/i })).toBeNull()
+  })
+
+  /**
+   * La leyenda dice qué es cada letra. Antes sólo estaba "Clic cíclico P → A → L", que nombra el
+   * mecanismo y no el significado: quien abre la pantalla por primera vez no sabe qué es una L.
+   */
+  it("explica qué significa cada letra y cómo se cambia", () => {
+    render(
+      <AttendanceMatrix
+        students={students}
+        year={2026}
+        month={8}
+        initialData={noData()}
+        onMark={vi.fn()}
+      />
+    )
+
+    expect(screen.getByText("Presente")).toBeInTheDocument()
+    expect(screen.getByText("Ausente")).toBeInTheDocument()
+    expect(screen.getByText("Licencia")).toBeInTheDocument()
+    expect(screen.getByText(/clic en una celda/i)).toBeInTheDocument()
+  })
 })

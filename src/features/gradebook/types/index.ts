@@ -260,3 +260,19 @@ export interface SavePedagogicalReportPayload {
   difficulties: string | null
   failingStudents?: FailingStudentNotePayload[]
 }
+
+/**
+ * Una fila de la tabla de Dirección: `GET /gradebook/course-summary`.
+ *
+ * `average` es nullable de verdad y hay que tratarlo como tal: un curso que nadie calificó no tiene
+ * promedio, y pintarlo como cero diría que el curso reprobó.
+ */
+export interface CourseAcademicSummary {
+  courseId: string
+  gradeName: string
+  parallelName: string
+  students: number
+  passed: number
+  failed: number
+  average: number | null
+}

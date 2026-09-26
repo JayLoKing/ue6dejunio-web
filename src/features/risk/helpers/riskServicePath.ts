@@ -18,6 +18,11 @@ export const RiskUrl = {
    * resolve ownership against.
    */
   Institution: "/risk/institution",
+  /**
+   * A row per course of the gestión: how many of its students sit in each risk band. Director
+   * only. See `CourseRiskSummary` for what the counts mean and do not mean.
+   */
+  CourseSummary: "/risk/course-summary",
   PredictClassGroup: (classGroupId: string) =>
     `/class-groups/${classGroupId}/risk/predict`,
   ByClassGroup: (classGroupId: string) => `/class-groups/${classGroupId}/risk`,

@@ -6,6 +6,7 @@ import { toPageParams } from "@/lib/types/pagination"
 
 import { CourseStatsUrl, GradebookUrl, ScoreUrl } from "./gradebookPath"
 import type {
+  CourseAcademicSummary,
   CourseAttendanceRow,
   CourseAttendanceStats,
   EnrollmentScore,
@@ -110,6 +111,21 @@ export default class GradebookServiceHelper {
       call: httpClient.get<StudentReportCard>(GradebookUrl.ReportCard, {
         signal: controller.signal,
         params: { id_course_enrollment: courseEnrollmentId },
+      }),
+      controller,
+    }
+  }
+
+  /** La tabla de Dirección: una fila por curso de la gestión. */
+  courseSummaryAsync(
+    academicYearId: number,
+    trimester: number
+  ): UseApiCall<CourseAcademicSummary[]> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.get<CourseAcademicSummary[]>(GradebookUrl.CourseSummary, {
+        signal: controller.signal,
+        params: { id_academic_year: academicYearId, trimester },
       }),
       controller,
     }

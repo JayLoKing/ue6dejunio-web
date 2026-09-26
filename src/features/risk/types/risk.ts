@@ -86,6 +86,34 @@ export interface RiskPrediction {
 }
 
 /**
+ * One row of the Director's course-wide risk table (`GET /risk/course-summary`).
+ *
+ * The five bands count students, not predictions: the model files one row per subject, so a
+ * student failing three subjects is one student, counted once, in whichever band matches their
+ * worst prediction.
+ *
+ * `unpredicted` is how much of the course roll the sweep has not reached yet. It exists so a
+ * reader can tell an unswept classroom from a genuinely safe one.
+ *
+ * Do not derive the enrolment by adding the five together. They usually sum to the roll but are
+ * not guaranteed to: a withdrawn student keeps their predictions after leaving the roll, and
+ * `unpredicted` is floored at zero rather than going negative. Read the enrolment off the matching
+ * `CourseAcademicSummary.students` instead.
+ *
+ * @see CourseRiskSummaryResponse on the API side
+ */
+export interface CourseRiskSummary {
+  courseId: string
+  gradeName: string
+  parallelName: string
+  critical: number
+  atRisk: number
+  safe: number
+  outstanding: number
+  unpredicted: number
+}
+
+/**
  * What a run did, so the caller can tell "nothing to predict" from "nothing happened".
  *
  * @see RiskRunResponse on the API side

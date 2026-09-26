@@ -4,6 +4,7 @@ import type { UseApiCall } from "@/lib/useApicall"
 
 import { RiskUrl } from "./riskServicePath"
 import type {
+  CourseRiskSummary,
   InstitutionRiskEntry,
   RiskPrediction,
   RunSummary,
@@ -82,6 +83,25 @@ export default class RiskServiceHelper {
       call: httpClient.get<InstitutionRiskEntry[]>(RiskUrl.Institution, {
         signal: controller.signal,
         params: { id_academic_year: academicYearId, trimester, places },
+      }),
+      controller,
+    }
+  }
+
+  /**
+   * The Director's table: one row per course of the gestión.
+   *
+   * @param academicYearId the row id of the gestión, not the calendar year.
+   */
+  courseSummaryAsync(
+    academicYearId: number,
+    trimester: number
+  ): UseApiCall<CourseRiskSummary[]> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.get<CourseRiskSummary[]>(RiskUrl.CourseSummary, {
+        signal: controller.signal,
+        params: { id_academic_year: academicYearId, trimester },
       }),
       controller,
     }

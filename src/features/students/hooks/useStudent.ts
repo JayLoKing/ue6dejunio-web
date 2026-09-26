@@ -15,3 +15,18 @@ export function useStudentDetail(id: string | null | undefined) {
     staleTime: 60_000,
   })
 }
+
+/**
+ * Movimiento matricular de una gestión: altas y bajas por mes, y bajas por motivo. Sólo Dirección
+ * y Secretaría.
+ *
+ * `academicYearId` ausente es una consulta válida, no una espera: sin él la API responde por la
+ * gestión actual. Por eso, a diferencia de `useStudentDetail`, este hook no usa `skipToken` — la
+ * clave de la consulta sí distingue "sin gestión elegida" de una gestión puntual.
+ */
+export function useStudentMovementSummary(academicYearId?: number) {
+  return useQuery({
+    queryKey: ["students", "movement-summary", academicYearId ?? "current"],
+    queryFn: () => StudentService.movementSummary(academicYearId),
+  })
+}

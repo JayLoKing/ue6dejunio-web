@@ -13,6 +13,13 @@ export const GradebookUrl = {
    * 2026, cosa que la escuela nunca hace.
    */
   HonorRollInstitution: `${baseModuleUrl}/honor-roll/institution`,
+  /**
+   * Una fila por curso de la gestión: estudiantes, aprobados, reprobados y promedio.
+   *
+   * Sólo Dirección. Existe para que el tablero no llame al centralizador una vez por curso, que es
+   * lo que hacía falta antes y son treinta peticiones para dibujar una tabla.
+   */
+  CourseSummary: `${baseModuleUrl}/course-summary`,
   Attendance: `${baseModuleUrl}/attendance`,
   /**
    * El informe pedagógico del curso en un trimestre. Lo lee quien lee el curso; lo escribe sólo el

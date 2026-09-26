@@ -200,3 +200,21 @@ export function useEnrollmentScores(
       : skipToken,
   })
 }
+
+/**
+ * La tabla académica de Dirección: una fila por curso de la gestión.
+ *
+ * Una sola consulta para toda la escuela. Antes esto se armaba llamando al centralizador curso por
+ * curso desde el navegador, que son treinta peticiones para dibujar una tabla.
+ */
+export function useCourseSummary(
+  academicYearId: number | null | undefined,
+  trimester: number
+) {
+  return useQuery({
+    queryKey: ["gradebook", "course-summary", academicYearId ?? "", trimester],
+    queryFn: academicYearId
+      ? () => GradebookService.courseSummary(academicYearId, trimester)
+      : skipToken,
+  })
+}

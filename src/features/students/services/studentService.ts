@@ -5,7 +5,7 @@ import type {
 } from "../models/requests/enroll-request"
 import type { WithdrawStudentRequest } from "../models/requests/withdraw-request"
 import type { EnrollResponse } from "../models/response/enroll-response"
-import type { StudentDetail } from "../types"
+import type { StudentDetail, StudentMovementSummary } from "../types"
 
 const helper = new StudentServiceHelper()
 
@@ -38,5 +38,12 @@ export class StudentService {
     const { call } = helper.enrollBatchAsync(payload)
     const { data } = await call
     return data
+  }
+
+  static async movementSummary(
+    academicYearId?: number
+  ): Promise<StudentMovementSummary> {
+    const { call } = helper.movementSummaryAsync(academicYearId)
+    return (await call).data
   }
 }

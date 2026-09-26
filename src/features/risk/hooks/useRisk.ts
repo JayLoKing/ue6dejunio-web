@@ -74,6 +74,23 @@ export function useInstitutionRisk(
   })
 }
 
+/**
+ * The Director's school-wide risk table: one row per course of the gestión.
+ *
+ * @param academicYearId the row id of the gestión, not the calendar year.
+ */
+export function useRiskCourseSummary(
+  academicYearId: number | null | undefined,
+  trimester: number
+) {
+  return useQuery({
+    queryKey: [RISK_KEY, "course-summary", academicYearId ?? "", trimester],
+    queryFn: academicYearId
+      ? () => RiskService.courseSummary(academicYearId, trimester)
+      : skipToken,
+  })
+}
+
 export function usePredictClassGroupRisk() {
   const invalidate = useInvalidateRisk()
   return useMutation({

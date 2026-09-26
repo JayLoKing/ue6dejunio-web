@@ -9,7 +9,7 @@ import type {
 } from "../models/requests/enroll-request"
 import type { WithdrawStudentRequest } from "../models/requests/withdraw-request"
 import type { EnrollResponse } from "../models/response/enroll-response"
-import type { StudentDetail } from "../types"
+import type { StudentDetail, StudentMovementSummary } from "../types"
 
 export default class StudentServiceHelper {
   getByIdAsync(id: string): UseApiCall<StudentDetail> {
@@ -47,6 +47,27 @@ export default class StudentServiceHelper {
     return {
       call: httpClient.post<EnrollResponse>(EnrollmentUrl.Sync, payload, {
         signal: controller.signal,
+      }),
+      controller,
+    }
+  }
+
+  /**
+   * Movimiento matricular de una gestión: altas y bajas por mes, y bajas por motivo.
+   *
+   * `academicYearId` es opcional: sin él, la API responde por la gestión actual.
+   */
+  movementSummaryAsync(
+    academicYearId?: number
+  ): UseApiCall<StudentMovementSummary> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.get<StudentMovementSummary>(StudentUrl.MovementSummary, {
+        signal: controller.signal,
+        params:
+          academicYearId === undefined
+            ? undefined
+            : { id_academic_year: academicYearId },
       }),
       controller,
     }

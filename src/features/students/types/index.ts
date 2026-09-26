@@ -102,3 +102,39 @@ export interface TeacherSubject {
   subjectName: string
   classGroupId: string
 }
+
+/**
+ * Una fila de `byMonth` en el resumen de movimiento matricular.
+ *
+ * Sólo aparecen los meses con movimiento: una gestión que arrancó en febrero no trae enero en
+ * ceros, porque un cero inventado diría que la escuela ya funcionaba y estaba quieta, cuando en
+ * realidad todavía no había empezado.
+ */
+export interface StudentMovementMonth {
+  year: number
+  month: number
+  enrolled: number
+  withdrawn: number
+}
+
+/**
+ * Una fila de `byReason` en el resumen de movimiento matricular.
+ *
+ * `reason` es nullable de verdad: una baja registrada antes de la migración V14, que agregó la
+ * columna, no tiene motivo. No convertir a string vacío ni a una categoría inventada.
+ */
+export interface StudentMovementReason {
+  reason: string | null
+  students: number
+}
+
+/**
+ * El resumen de movimiento matricular de una gestión (GET /students/movement-summary). Sólo
+ * Dirección y Secretaría.
+ *
+ * El parámetro de gestión es opcional: sin él, la API responde por la gestión actual.
+ */
+export interface StudentMovementSummary {
+  byMonth: StudentMovementMonth[]
+  byReason: StudentMovementReason[]
+}

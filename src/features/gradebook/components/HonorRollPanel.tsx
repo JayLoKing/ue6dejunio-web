@@ -4,7 +4,7 @@ import { Loader2Icon } from "lucide-react"
 import { useInstitution } from "@/features/institution/hooks/useInstitution"
 
 import { useHonorRoll, useInstitutionHonorRoll } from "../hooks/useGradebook"
-import { honorRollRows } from "@/lib/reportRows"
+import { honorRollRows } from "@/features/reports/utils/reportRows"
 import { ExportReportButton } from "@/components/shared/ExportReportButton"
 import { HonorRollTable } from "./HonorRollTable"
 

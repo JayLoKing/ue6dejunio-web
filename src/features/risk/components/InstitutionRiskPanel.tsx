@@ -3,7 +3,7 @@ import { Loader2Icon } from "lucide-react"
 
 import { ExportReportButton } from "@/components/shared/ExportReportButton"
 import { useInstitution } from "@/features/institution/hooks/useInstitution"
-import { riskReportRows } from "@/lib/reportRows"
+import { riskReportRows } from "@/features/reports/utils/reportRows"
 
 import { useInstitutionRisk } from "../hooks/useRisk"
 import { InstitutionRiskTable } from "./InstitutionRiskTable"

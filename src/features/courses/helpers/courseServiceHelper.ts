@@ -3,6 +3,9 @@ import { loadAbort } from "@/lib/loadAbort"
 import { httpClient } from "@/lib/axios"
 import type { PagedResponse, PageQuery } from "@/lib/types/pagination"
 import { toPageParams } from "@/lib/types/pagination"
+// El reporte es de asistencia pero su ruta cuelga del curso: el llamado vive acá, y su forma
+// (`CourseStudentAttendance`) en gradebook, que es donde viven las formas de los reportes.
+import type { CourseStudentAttendance } from "@/features/gradebook/types"
 
 import {
   CourseEnrollmentUrl,
@@ -43,6 +46,28 @@ export default class CourseServiceHelper {
         signal: controller.signal,
         params: toPageParams(query, { trimester }),
       }),
+      controller,
+    }
+  }
+
+  /**
+   * RF 37. `trimester` en null NO se manda: su ausencia es lo que el backend lee como alcance anual,
+   * y mandarlo vacío sería mandar un trimestre inválido en vez de no mandar ninguno.
+   */
+  attendanceByStudentAsync(
+    id: string,
+    trimester: number | null,
+    query: PageQuery
+  ): UseApiCall<CourseStudentAttendance> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.get<CourseStudentAttendance>(
+        CourseUrl.AttendanceByStudent(id),
+        {
+          signal: controller.signal,
+          params: toPageParams(query, trimester === null ? {} : { trimester }),
+        }
+      ),
       controller,
     }
   }

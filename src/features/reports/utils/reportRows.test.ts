@@ -2,11 +2,14 @@ import { describe, expect, it } from "vitest"
 
 import {
   attendanceReportRows,
+  centralizerColumns,
+  centralizerRows,
   honorRollRows,
   riskReportRows,
 } from "./reportRows"
 import type {
   HonorRollEntry,
+  StudentAnnualSummary,
   StudentAttendanceRow,
 } from "@/features/gradebook/types"
 import type { InstitutionRiskEntry } from "@/features/risk/types/risk"
@@ -144,5 +147,119 @@ describe("attendanceReportRows", () => {
     ])
 
     expect(rows[0][6]).toBe("—")
+  })
+})
+
+const summary = (
+  over: Partial<StudentAnnualSummary> = {}
+): StudentAnnualSummary => ({
+  courseEnrollmentId: "ce-1",
+  studentId: "st-1",
+  fullName: "Ana Aguilar",
+  subjects: [
+    {
+      classGroupId: "cg-1",
+      subjectName: "Matematica",
+      trimester1: 80,
+      trimester2: 85,
+      trimester3: 90,
+      average: 85,
+    },
+    {
+      classGroupId: "cg-2",
+      subjectName: "Lenguaje",
+      trimester1: 70,
+      trimester2: null,
+      trimester3: 75,
+      average: 72.5,
+    },
+  ],
+  trimesterAverages: [75, 85, 82.5],
+  finalAverage: 80.8,
+  ...over,
+})
+
+describe("centralizerColumns", () => {
+  /** Una columna por área del curso, más las fijas que el RF nombra. */
+  it("arma una columna por área del curso", () => {
+    const headers = centralizerColumns([summary()]).map((c) => c.header)
+
+    expect(headers).toEqual([
+      "N°",
+      "Estudiante",
+      "Matematica",
+      "Lenguaje",
+      "1er trim.",
+      "2do trim.",
+      "3er trim.",
+      "Promedio final",
+      "Estado",
+    ])
+  })
+
+  /** Sin estudiantes no hay de dónde leer las áreas; quedan las fijas y el documento sale igual. */
+  it("devuelve sólo las columnas fijas sin estudiantes", () => {
+    const headers = centralizerColumns([]).map((c) => c.header)
+
+    expect(headers).toEqual([
+      "N°",
+      "Estudiante",
+      "1er trim.",
+      "2do trim.",
+      "3er trim.",
+      "Promedio final",
+      "Estado",
+    ])
+  })
+})
+
+describe("centralizerRows", () => {
+  it("arma las notas por área, los trimestres, el final y el estado", () => {
+    const rows = centralizerRows([summary()])
+
+    expect(rows[0]).toEqual([
+      "1",
+      "Ana Aguilar",
+      "85.0",
+      "72.5",
+      "75.0",
+      "85.0",
+      "82.5",
+      "80.8",
+      "APROBADO",
+    ])
+  })
+
+  /**
+   * Sin promedio final no se dice "REPROBADO": `statusOf` decide sobre un número, y no haberlo
+   * calificado no es haberlo reprobado.
+   */
+  it("distingue sin calificar de reprobado", () => {
+    const rows = centralizerRows([summary({ finalAverage: null })])
+
+    expect(rows[0][8]).toBe("Sin calificar")
+  })
+
+  it("marca reprobado bajo el umbral", () => {
+    const rows = centralizerRows([summary({ finalAverage: 40 })])
+
+    expect(rows[0][8]).toBe("REPROBADO")
+  })
+
+  /**
+   * Las celdas tienen que caer bajo su encabezado. Si una fila trae las áreas en otro orden que la
+   * primera, se busca por nombre y no por posición.
+   */
+  it("ubica cada área por nombre y no por posición", () => {
+    const first = summary()
+    const second = summary({
+      fullName: "Luis Zambrana",
+      subjects: [first.subjects[1], first.subjects[0]],
+    })
+
+    const rows = centralizerRows([first, second])
+
+    expect(rows[1][2]).toBe("85.0")
+    expect(rows[1][3]).toBe("72.5")
   })
 })

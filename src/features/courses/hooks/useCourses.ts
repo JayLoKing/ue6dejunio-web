@@ -59,6 +59,31 @@ export function useCourseOverview(
   })
 }
 
+/**
+ * RF 37: el porcentaje de asistencia de cada estudiante del curso.
+ *
+ * `trimester` en null es el alcance anual, y viaja en la clave: dos alcances del mismo curso son dos
+ * respuestas distintas, y compartir la clave haría que cambiar de trimestre mostrara la del anterior.
+ */
+export function useCourseAttendanceByStudent(
+  courseId: string | null | undefined,
+  trimester: number | null,
+  query: PageQuery
+) {
+  return useQuery({
+    queryKey: [
+      "course-attendance-by-student",
+      courseId ?? "",
+      trimester ?? "annual",
+      query,
+    ],
+    placeholderData: keepPreviousData,
+    queryFn: courseId
+      ? () => CourseService.attendanceByStudent(courseId, trimester, query)
+      : skipToken,
+  })
+}
+
 export function useCourseStudents(
   courseId: string | null | undefined,
   query: PageQuery

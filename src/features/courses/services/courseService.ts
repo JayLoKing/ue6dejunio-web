@@ -1,4 +1,5 @@
 import type { PagedResponse, PageQuery } from "@/lib/types/pagination"
+import type { CourseStudentAttendance } from "@/features/gradebook/types"
 
 import CourseServiceHelper from "../helpers/courseServiceHelper"
 import type {
@@ -28,6 +29,15 @@ export class CourseService {
     query: PageQuery
   ): Promise<CourseOverview> {
     return (await helper.overviewAsync(id, trimester, query).call).data
+  }
+  /** RF 37: el porcentaje de asistencia por estudiante. `trimester` en null = alcance anual. */
+  static async attendanceByStudent(
+    id: string,
+    trimester: number | null,
+    query: PageQuery
+  ): Promise<CourseStudentAttendance> {
+    return (await helper.attendanceByStudentAsync(id, trimester, query).call)
+      .data
   }
   static async create(
     payload: CreateCoursePayload

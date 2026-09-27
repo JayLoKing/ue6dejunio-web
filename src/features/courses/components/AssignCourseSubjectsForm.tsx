@@ -22,13 +22,15 @@ import {
 import { cn } from "@/lib/utils"
 
 import {
+  useAcademicYears,
   useGrades,
   useParallels,
   useSubjects,
   useTeachers,
 } from "@/features/catalog/hooks/useCatalog"
 
-import { useCreateCourse } from "../hooks/useCourses"
+import { useAllCourses, useCreateCourse } from "../hooks/useCourses"
+import { homeroomCourses, takenParallels } from "../utils/courseAvailability"
 import {
   resolveSubjectTeacher,
   type SubjectTeacherChoice,
@@ -49,6 +51,8 @@ export function AssignCourseSubjectsForm() {
   const subjects = useSubjects()
   const aulaTeachers = useTeachers(false)
   const technicalTeachers = useTeachers(true)
+  const academicYears = useAcademicYears()
+  const allCourses = useAllCourses()
 
   const [gradeId, setGradeId] = useState<number | undefined>()
   const [parallelId, setParallelId] = useState<number | undefined>()
@@ -61,6 +65,54 @@ export function AssignCourseSubjectsForm() {
 
   const createCourse = useCreateCourse()
   const saving = createCourse.isPending
+
+  /**
+   * La gestión que se está armando. La primera de la lista es la actual — así las ordena el
+   * backend — y es la única contra la que se mide qué está ocupado: `POST /courses` crea el curso
+   * en la gestión en curso, y un paralelo o un docente de aula del año pasado no ocupan nada hoy.
+   */
+  const currentAcademicYearId = academicYears.data?.[0]?.id ?? null
+  const courses = useMemo(
+    () => allCourses.data?.content ?? [],
+    [allCourses.data]
+  )
+
+  /**
+   * Mientras los cursos o la gestión no estén, ninguna de las dos reglas puede afirmar nada, y
+   * ofrecer opciones que un instante después se deshabilitan solas es peor que esperar: la persona
+   * elige mirando un cartel que todavía no es cierto. Mismo criterio que SetHomeroomDialog.
+   */
+  const availabilityUnknown =
+    allCourses.isLoading || academicYears.isLoading || !currentAcademicYearId
+
+  /** El curso que ya ocupa cada paralelo del grado elegido. Vacío sin grado. */
+  const parallelTakenBy = useMemo(
+    () => takenParallels(courses, currentAcademicYearId, gradeId),
+    [courses, currentAcademicYearId, gradeId]
+  )
+
+  /** El curso del que cada docente ya es encargado: dos cursos a la vez no existe. */
+  const homeroomOf = useMemo(
+    () => homeroomCourses(courses, currentAcademicYearId),
+    [courses, currentAcademicYearId]
+  )
+
+  /**
+   * Cambiar de grado puede volver imposible el paralelo que ya estaba elegido. Dejarlo puesto
+   * mandaría a guardar una combinación que la propia pantalla dibuja deshabilitada, y el 409 del
+   * backend llegaría después de apretar.
+   */
+  const chooseGrade = (nextGradeId: number) => {
+    setGradeId(nextGradeId)
+    const takenInNextGrade = takenParallels(
+      courses,
+      currentAcademicYearId,
+      nextGradeId
+    )
+    if (parallelId !== undefined && takenInNextGrade.has(parallelId)) {
+      setParallelId(undefined)
+    }
+  }
 
   const toggleSubject = (id: string, checked: boolean) => {
     setSubjectStates((prev) => ({
@@ -180,7 +232,7 @@ export function AssignCourseSubjectsForm() {
             <FieldLabel htmlFor="grade">Grado</FieldLabel>
             <Select
               value={gradeId ? String(gradeId) : undefined}
-              onValueChange={(v) => setGradeId(Number(v))}
+              onValueChange={(v) => chooseGrade(Number(v))}
               disabled={grades.isLoading}
             >
               <SelectTrigger id="grade">
@@ -198,20 +250,38 @@ export function AssignCourseSubjectsForm() {
 
           <Field>
             <FieldLabel htmlFor="parallel">Paralelo</FieldLabel>
+            {/* Cadena vacía y no `undefined` para "sin elegir": pasar `undefined` después de haber
+                tenido un valor le devuelve el control a Radix, que conserva el último internamente,
+                y el disparador seguía mostrando el paralelo que este formulario acababa de soltar.
+                "" no coincide con ningún item, así que vuelve el placeholder. */}
             <Select
-              value={parallelId ? String(parallelId) : undefined}
+              value={parallelId === undefined ? "" : String(parallelId)}
               onValueChange={(v) => setParallelId(Number(v))}
-              disabled={parallels.isLoading}
+              disabled={parallels.isLoading || availabilityUnknown}
             >
               <SelectTrigger id="parallel">
                 <SelectValue placeholder="Selecciona paralelo" />
               </SelectTrigger>
               <SelectContent>
-                {(parallels.data ?? []).map((p) => (
-                  <SelectItem key={p.id} value={String(p.id)}>
-                    {p.name}
-                  </SelectItem>
-                ))}
+                {/* Una opción deshabilitada sin motivo se lee como un error del sistema, así que
+                    cada una dice qué curso la ocupa. */}
+                {(parallels.data ?? []).map((p) => {
+                  const takenBy = parallelTakenBy.get(p.id)
+                  return (
+                    <SelectItem
+                      key={p.id}
+                      value={String(p.id)}
+                      disabled={Boolean(takenBy)}
+                    >
+                      {p.name}
+                      {takenBy ? (
+                        <span className="text-xs text-muted-foreground">
+                          Ya existe {takenBy.gradeName} {takenBy.parallelName}
+                        </span>
+                      ) : null}
+                    </SelectItem>
+                  )
+                })}
               </SelectContent>
             </Select>
           </Field>
@@ -221,17 +291,34 @@ export function AssignCourseSubjectsForm() {
             <Select
               value={homeroomTeacherId}
               onValueChange={setHomeroomTeacherId}
-              disabled={aulaTeachers.isLoading}
+              disabled={aulaTeachers.isLoading || availabilityUnknown}
             >
               <SelectTrigger id="homeroom">
                 <SelectValue placeholder="Selecciona docente principal" />
               </SelectTrigger>
               <SelectContent>
-                {(aulaTeachers.data ?? []).map((t) => (
-                  <SelectItem key={t.id} value={t.id}>
-                    {t.fullName}
-                  </SelectItem>
-                ))}
+                {/* Nadie es docente de aula de dos cursos a la vez. Acá se deshabilita a quien ya
+                    lo es, y el diálogo de reasignación hace lo contrario a propósito: ahí elegir a
+                    un docente ya encargado es lo que habilita un intercambio. Dos pantallas, dos
+                    reglas opuestas — ver SetHomeroomDialog. */}
+                {(aulaTeachers.data ?? []).map((t) => {
+                  const runs = homeroomOf.get(t.id)
+                  return (
+                    <SelectItem
+                      key={t.id}
+                      value={t.id}
+                      disabled={Boolean(runs)}
+                    >
+                      {t.fullName}
+                      {runs ? (
+                        <span className="text-xs text-muted-foreground">
+                          Es docente de aula de {runs.gradeName}{" "}
+                          {runs.parallelName}
+                        </span>
+                      ) : null}
+                    </SelectItem>
+                  )
+                })}
               </SelectContent>
             </Select>
           </Field>

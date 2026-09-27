@@ -17,9 +17,7 @@ import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue"
 
 import type { StudentRow } from "../types"
 import { enrollmentStatusLabel } from "@/lib/labels"
-
-/** El estado que el backend escribe cuando se da de baja a un estudiante. */
-const WITHDRAWN = "Withdrawn"
+import { WITHDRAWN } from "@/lib/enrollment"
 
 export interface StudentsTableProps {
   data: StudentRow[]

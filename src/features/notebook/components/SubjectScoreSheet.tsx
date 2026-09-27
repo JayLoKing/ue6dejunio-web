@@ -3,6 +3,9 @@ import { Link } from "@tanstack/react-router"
 import { AlertTriangleIcon, Loader2Icon, BrainCircuitIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { isWithdrawn } from "@/lib/enrollment"
+import { enrollmentStatusLabel } from "@/lib/labels"
+import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
@@ -436,15 +439,27 @@ export function SubjectScoreSheet({
                       students.map((s, idx) => {
                         const ce = s.courseEnrollmentId
                         const rowBg = idx % 2 === 0 ? "bg-card" : "bg-muted"
+                        // El padrón conserva al retirado a propósito: lo que sacó antes de irse
+                        // sigue siendo del año y se tiene que poder leer. Pero la escuela deja de
+                        // calificarlo el día que se va. Misma regla en CriterionScoreSheet: son dos
+                        // puertas a la misma nota, y arreglar una sola deja la otra abierta.
+                        const withdrawn = isWithdrawn(s.status)
                         return (
                           <tr key={ce} className="border-t">
                             <td
                               className={cn(
                                 "sticky left-0 z-10 min-w-[16rem] border-r px-3 py-2 font-medium shadow-[2px_0_0_0_var(--border)]",
-                                rowBg
+                                rowBg,
+                                withdrawn && "text-muted-foreground"
                               )}
                             >
                               {s.fullName}
+                              {/* Una fila apagada sin motivo se lee como un error del sistema. */}
+                              {withdrawn ? (
+                                <Badge variant="secondary" className="ml-2">
+                                  {enrollmentStatusLabel(s.status)}
+                                </Badge>
+                              ) : null}
                             </td>
                             {visibleDims.map((dim) => {
                               const avg = dimensionAverage(ce, dim.key)
@@ -508,9 +523,15 @@ export function SubjectScoreSheet({
                                               min={0}
                                               max={dim.weight}
                                               step={0.5}
-                                              title={cellTitle(cell)}
+                                              title={
+                                                withdrawn
+                                                  ? "Dado de baja: no se registran notas nuevas"
+                                                  : cellTitle(cell)
+                                              }
                                               value={directText(col, ce)}
-                                              disabled={scoresLoading}
+                                              disabled={
+                                                scoresLoading || withdrawn
+                                              }
                                               placeholder={
                                                 scoresLoading ? "…" : undefined
                                               }

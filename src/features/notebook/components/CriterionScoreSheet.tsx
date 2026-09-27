@@ -3,6 +3,8 @@ import { Link } from "@tanstack/react-router"
 import { ArrowLeftIcon, Loader2Icon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { isWithdrawn } from "@/lib/enrollment"
+import { enrollmentStatusLabel } from "@/lib/labels"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
@@ -256,15 +258,27 @@ export function CriterionScoreSheet({
                     const ce = s.courseEnrollmentId
                     const rowBg = idx % 2 === 0 ? "bg-card" : "bg-muted"
                     const avg = rowAverage(ce)
+                    // El padrón conserva al retirado a propósito: lo que sacó antes de irse sigue
+                    // siendo del año, y se tiene que poder leer. Pero la escuela deja de
+                    // calificarlo el día que se va, así que la fila se lee y no se escribe. El
+                    // backend rechaza la nota igual; esto es para que nadie la teclee y la pierda.
+                    const withdrawn = isWithdrawn(s.status)
                     return (
                       <tr key={ce} className="border-t">
                         <td
                           className={cn(
                             "sticky left-0 z-10 min-w-[16rem] border-r px-3 py-2 font-medium shadow-[2px_0_0_0_var(--border)]",
-                            rowBg
+                            rowBg,
+                            withdrawn && "text-muted-foreground"
                           )}
                         >
                           {s.fullName}
+                          {/* Una fila apagada sin motivo se lee como un error del sistema. */}
+                          {withdrawn ? (
+                            <Badge variant="secondary" className="ml-2">
+                              {enrollmentStatusLabel(s.status)}
+                            </Badge>
+                          ) : null}
                         </td>
                         {columns.map((col) => {
                           const k = `${ce}:${col.id}`
@@ -282,9 +296,13 @@ export function CriterionScoreSheet({
                                 min={0}
                                 max={cap}
                                 step={0.5}
-                                title={cellTitle(cellOf(col, ce))}
+                                title={
+                                  withdrawn
+                                    ? "Dado de baja: no se registran notas nuevas"
+                                    : cellTitle(cellOf(col, ce))
+                                }
                                 value={cellText(col, ce)}
-                                disabled={scoresLoading}
+                                disabled={scoresLoading || withdrawn}
                                 placeholder={scoresLoading ? "…" : undefined}
                                 onChange={(ev) =>
                                   setDraft((d) => ({

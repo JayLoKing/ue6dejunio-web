@@ -14,9 +14,7 @@ import { DataTablePagination } from "@/components/shared/DataTablePagination"
 
 import type { StudentDirectoryResponse } from "../models/response/student-directory-response"
 import { enrollmentStatusLabel } from "@/lib/labels"
-
-const WITHDRAWN = "Withdrawn"
-const EFFECTIVE = "Effective"
+import { EFFECTIVE, WITHDRAWN } from "@/lib/enrollment"
 
 /** Lo que se muestra donde el estudiante todavía no tiene curso en la gestión consultada. */
 const EMPTY_CELL = "—"

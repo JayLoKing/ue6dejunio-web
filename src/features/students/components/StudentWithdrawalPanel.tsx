@@ -1,7 +1,6 @@
-import type { StudentDetail } from "../types"
+import { WITHDRAWN } from "@/lib/enrollment"
 
-/** El estado que el backend escribe cuando se da de baja a un estudiante. */
-const WITHDRAWN = "Withdrawn"
+import type { StudentDetail } from "../types"
 
 const formatWhen = (iso: string): string =>
   new Date(iso).toLocaleString("es-BO", {

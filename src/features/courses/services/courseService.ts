@@ -37,6 +37,12 @@ export class CourseService {
   static async setHomeroom(id: string, teacherId: string): Promise<Course> {
     return (await helper.setHomeroomAsync(id, teacherId).call).data
   }
+  static async swapHomeroom(
+    courseAId: string,
+    courseBId: string
+  ): Promise<Course> {
+    return (await helper.swapHomeroomAsync(courseAId, courseBId).call).data
+  }
   static async remove(id: string): Promise<void> {
     await helper.deleteAsync(id).call
   }

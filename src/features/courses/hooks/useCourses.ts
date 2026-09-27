@@ -104,3 +104,16 @@ export function useSetHomeroom() {
     },
   })
 }
+
+/** Intercambia el docente de aula entre dos cursos, ambos activos (ninguno de baja). */
+export function useSwapHomeroom() {
+  const invalidate = useInvalidateCourses()
+  return useMutation({
+    mutationFn: (v: { courseAId: string; courseBId: string }) =>
+      CourseService.swapHomeroom(v.courseAId, v.courseBId),
+    onSuccess: () => {
+      toast.success("Docentes de aula intercambiados.")
+      invalidate()
+    },
+  })
+}

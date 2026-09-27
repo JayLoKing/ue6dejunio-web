@@ -19,7 +19,11 @@ import {
 } from "@/components/ui/select"
 import { useTeachers } from "@/features/catalog/hooks/useCatalog"
 
-import { useSetHomeroom } from "../hooks/useCourses"
+import {
+  useAllCourses,
+  useSetHomeroom,
+  useSwapHomeroom,
+} from "../hooks/useCourses"
 import type { Course } from "../types/course"
 
 export interface SetHomeroomDialogProps {
@@ -49,28 +53,55 @@ interface SetHomeroomFormProps {
 
 function SetHomeroomForm({ course, onClose }: SetHomeroomFormProps) {
   const aulaTeachers = useTeachers(false)
+  const allCourses = useAllCourses()
   const setHomeroom = useSetHomeroom()
+  const swapHomeroom = useSwapHomeroom()
   const [teacherId, setTeacherId] = useState<string | undefined>(
     course.homeroomTeacherId ?? undefined
   )
 
-  // Solo un docente puede ser de aula de un curso a la vez. Mientras el docente actual siga
-  // activo, la reasignación queda bloqueada aquí (no solo en el backend): el Director primero
-  // le da de baja la cuenta en Usuarios y recién entonces esta pantalla deja elegir a otra
-  // persona.
-  const blockedByActiveTeacher = Boolean(
-    course.homeroomTeacherId && course.homeroomTeacherActive
+  const sameAsCurrent = teacherId === course.homeroomTeacherId
+
+  // El docente elegido ya es de aula de OTRO curso: no es una reasignación llana, es exactamente
+  // el caso que habilita un intercambio (dos docentes de aula activos que cambian de curso).
+  const swapWith = allCourses.data?.content.find(
+    (c) => c.id !== course.id && c.homeroomTeacherId === teacherId
   )
+  const isSwap =
+    Boolean(swapWith) && Boolean(course.homeroomTeacherId) && !sameAsCurrent
+
+  // Solo un docente puede ser de aula de un curso a la vez. Mientras el docente actual siga
+  // activo, una reasignación LLANA queda bloqueada aquí (no solo en el backend): el Director
+  // primero le da de baja la cuenta en Usuarios y recién entonces puede reasignar. Un intercambio
+  // no cae bajo esta regla: ahí se espera que ambos docentes sigan activos.
+  const blockedByActiveTeacher =
+    Boolean(course.homeroomTeacherId && course.homeroomTeacherActive) &&
+    !sameAsCurrent &&
+    !isSwap
 
   const submit = async () => {
-    if (!teacherId || blockedByActiveTeacher) return
+    if (!teacherId) return
     try {
-      await setHomeroom.mutateAsync({ id: course.id, teacherId })
+      if (isSwap && swapWith) {
+        await swapHomeroom.mutateAsync({
+          courseAId: course.id,
+          courseBId: swapWith.id,
+        })
+      } else {
+        if (blockedByActiveTeacher) return
+        await setHomeroom.mutateAsync({ id: course.id, teacherId })
+      }
       onClose()
     } catch {
       /* toast via interceptor */
     }
   }
+
+  const selectedTeacherName = (aulaTeachers.data ?? []).find(
+    (t) => t.id === teacherId
+  )?.fullName
+
+  const isPending = setHomeroom.isPending || swapHomeroom.isPending
 
   return (
     <>
@@ -81,7 +112,21 @@ function SetHomeroomForm({ course, onClose }: SetHomeroomFormProps) {
         </DialogDescription>
       </DialogHeader>
 
-      {blockedByActiveTeacher ? (
+      {isSwap && swapWith ? (
+        <p className="text-sm text-muted-foreground">
+          Vas a intercambiar a <strong>{selectedTeacherName}</strong>{" "}
+          (actualmente docente de aula de{" "}
+          <strong>
+            {swapWith.gradeName} {swapWith.parallelName}
+          </strong>
+          ) con <strong>{course.homeroomTeacherName}</strong> (docente de aula
+          de{" "}
+          <strong>
+            {course.gradeName} {course.parallelName}
+          </strong>
+          ).
+        </p>
+      ) : blockedByActiveTeacher ? (
         <p className="text-sm text-muted-foreground">
           <strong>{course.homeroomTeacherName}</strong> sigue activo como
           docente de aula de este curso. Para reasignarlo, primero dale de baja
@@ -91,15 +136,21 @@ function SetHomeroomForm({ course, onClose }: SetHomeroomFormProps) {
 
       <Field>
         <FieldLabel htmlFor="sh-teacher">Docente</FieldLabel>
+        {/* También mientras cargan los cursos: sin ellos no se sabe si el docente elegido es de
+            aula de otro curso, así que el diálogo mostraría el bloqueo y se corregiría solo un
+            instante después. Elegir con el cartel equivocado delante es peor que esperar. */}
         <Select
           value={teacherId}
           onValueChange={setTeacherId}
-          disabled={aulaTeachers.isLoading || blockedByActiveTeacher}
+          disabled={aulaTeachers.isLoading || allCourses.isLoading}
         >
           <SelectTrigger id="sh-teacher">
             <SelectValue placeholder="Selecciona docente de aula" />
           </SelectTrigger>
           <SelectContent>
+            {/* No deshabilitamos aquí a los docentes que ya son de aula de otro curso: serlo
+                en otro lado es justo lo que hace posible un intercambio. Una fase posterior sí
+                los deshabilita, pero en el formulario de CREACIÓN de curso, no en este diálogo. */}
             {(aulaTeachers.data ?? []).map((t) => (
               <SelectItem key={t.id} value={t.id}>
                 {t.fullName}
@@ -115,12 +166,10 @@ function SetHomeroomForm({ course, onClose }: SetHomeroomFormProps) {
         </Button>
         <Button
           className="bg-brand text-brand-foreground hover:bg-brand/90"
-          disabled={
-            !teacherId || setHomeroom.isPending || blockedByActiveTeacher
-          }
+          disabled={!teacherId || isPending || blockedByActiveTeacher}
           onClick={submit}
         >
-          {setHomeroom.isPending ? "Guardando…" : "Asignar"}
+          {isPending ? "Guardando…" : isSwap ? "Intercambiar" : "Asignar"}
         </Button>
       </DialogFooter>
     </>

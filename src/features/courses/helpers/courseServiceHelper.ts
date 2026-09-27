@@ -76,6 +76,17 @@ export default class CourseServiceHelper {
       controller,
     }
   }
+  swapHomeroomAsync(courseAId: string, courseBId: string): UseApiCall<Course> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.put<Course>(
+        CourseUrl.SwapHomeroom,
+        { id_course_a: courseAId, id_course_b: courseBId },
+        { signal: controller.signal }
+      ),
+      controller,
+    }
+  }
   deleteAsync(id: string): UseApiCall<void> {
     const controller = loadAbort()
     return {

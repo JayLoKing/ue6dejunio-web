@@ -32,6 +32,9 @@ const STALE_AFTER_DEACTIVATION = [
   ["users"],
   ["catalog", "teachers"],
   ["courses"],
+  ["course-overview"],
+  // La lista de materias del docente: un curso que cambia de manos se la cambia a dos personas.
+  ["teacher"],
 ]
 
 describe("useDeactivateUser", () => {

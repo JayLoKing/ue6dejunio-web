@@ -4,6 +4,7 @@ import {
   useMutation,
   useQuery,
   useQueryClient,
+  type QueryClient,
 } from "@tanstack/react-query"
 import { toast } from "sonner"
 
@@ -83,17 +84,38 @@ export const coursesKeys = {
   all: ["courses"] as const,
   overview: ["course-overview"] as const,
   students: ["course-students"] as const,
-  /** Las tres a la vez, que es como se invalidan siempre. */
-  everything: [["courses"], ["course-overview"], ["course-students"]] as const,
+  /**
+   * Las materias que dicta un docente. Cuenta como clave de curso aunque no lo parezca: un
+   * intercambio de docentes de aula le cambia la lista a dos personas, y sin invalidarla el
+   * docente sigue viendo las materias del curso que dejó durante cinco minutos.
+   */
+  teacherClassGroups: ["teacher"] as const,
+}
+
+/** Derivado de las claves de arriba, no reescrito: dos listas se separan sin que nadie lo note. */
+const STALE_ON_COURSE_CHANGE = [
+  coursesKeys.all,
+  coursesKeys.overview,
+  coursesKeys.students,
+  coursesKeys.teacherClassGroups,
+]
+
+/**
+ * Invalida todo lo que un cambio de curso deja viejo.
+ *
+ * Toma el cliente en vez de ser un hook porque quien lo llama no siempre está en esta feature: dar
+ * de baja o renombrar a un usuario cambia el nombre y el estado del docente de aula que el curso
+ * guarda, y esa acción vive en Usuarios.
+ */
+export function invalidateCourses(qc: QueryClient) {
+  for (const queryKey of STALE_ON_COURSE_CHANGE) {
+    void qc.invalidateQueries({ queryKey })
+  }
 }
 
 function useInvalidateCourses() {
   const qc = useQueryClient()
-  return () => {
-    for (const queryKey of coursesKeys.everything) {
-      void qc.invalidateQueries({ queryKey })
-    }
-  }
+  return () => invalidateCourses(qc)
 }
 
 export function useCreateCourse() {

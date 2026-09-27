@@ -3,7 +3,7 @@ import { toast } from "sonner"
 
 import { UserService } from "../services/userService"
 import { catalogKeys } from "@/features/catalog/hooks/useCatalog"
-import { coursesKeys } from "@/features/courses/hooks/useCourses"
+import { invalidateCourses } from "@/features/courses/hooks/useCourses"
 
 import { usersKeys } from "./useUsers"
 import type { UpdateUserRequest } from "../models/requests/update-user-request"
@@ -26,9 +26,7 @@ export function useUpdateUser() {
       void qc.invalidateQueries({ queryKey: catalogKeys.teachersAll })
       // Y el curso, que guarda el nombre de su docente de aula y si sigue activo. Sin esto,
       // renombrar a un docente deja el nombre viejo en Cursos hasta que la caché venza sola.
-      for (const queryKey of coursesKeys.everything) {
-        void qc.invalidateQueries({ queryKey })
-      }
+      invalidateCourses(qc)
     },
   })
 }

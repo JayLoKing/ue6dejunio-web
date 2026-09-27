@@ -3,7 +3,7 @@ import { toast } from "sonner"
 
 import { UserService } from "../services/userService"
 import { catalogKeys } from "@/features/catalog/hooks/useCatalog"
-import { coursesKeys } from "@/features/courses/hooks/useCourses"
+import { invalidateCourses } from "@/features/courses/hooks/useCourses"
 
 import { usersKeys } from "./useUsers"
 
@@ -23,9 +23,7 @@ export function useDeactivateUser() {
       // se va, vuelve a Cursos y sigue leyendo "primero dale de baja en Usuarios" sobre alguien
       // que acaba de dar de baja. `useAllCourses` cachea cinco minutos: no se corrige sola, hay
       // que recargar la página entera.
-      for (const queryKey of coursesKeys.everything) {
-        void qc.invalidateQueries({ queryKey })
-      }
+      invalidateCourses(qc)
     },
   })
 }

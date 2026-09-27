@@ -11,6 +11,7 @@ import {
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 
@@ -153,18 +154,27 @@ function DimensionBlock({
                       </span>
                     ) : null}
                   </span>
-                  {readOnly ? null : (
+                  {/*
+                    Sólo el criterio de actividad. La página de criterio existe para calificar sus
+                    ítems; en uno de calificación directa la nota va sobre el criterio y se escribe
+                    en Notas, así que ofrecerla acá abre un segundo lugar para el mismo número y el
+                    docente no tiene cómo saber cuál de los dos vale.
+
+                    Y mientras `eventsLoading`, todavía no se sabe: mostrarlo para sacarlo cuando
+                    llega la respuesta es peor que no mostrarlo, porque da tiempo a apretarlo.
+                  */}
+                  {readOnly || eventsLoading || !activityBased ? null : (
                     <Button
                       size="icon"
                       variant="ghost"
                       className="size-7"
-                      title="Notas de este criterio"
                       asChild
                     >
                       <Link
                         to="/scores/$classGroupId/criterio/$criterionId"
                         params={{ classGroupId, criterionId: c.id }}
                         search={{ trimester }}
+                        aria-label={`Notas del criterio ${c.name}`}
                       >
                         <ClipboardListIcon className="size-3.5" />
                       </Link>
@@ -287,11 +297,10 @@ function DimensionBlock({
           </div>
 
           <label className="flex items-center gap-2 text-xs text-muted-foreground">
-            <input
-              type="checkbox"
+            {/* `onCheckedChange` entrega `boolean | "indeterminate"`; acá sólo hay dos estados. */}
+            <Checkbox
               checked={withActivity}
-              onChange={(e) => setWithActivity(e.target.checked)}
-              className="size-3.5"
+              onCheckedChange={(v) => setWithActivity(v === true)}
             />
             Proviene de una actividad
           </label>

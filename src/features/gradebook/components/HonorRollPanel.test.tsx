@@ -14,6 +14,12 @@ vi.mock("../hooks/useGradebook", () => ({
   useInstitutionHonorRoll,
 }))
 
+// El panel ahora ofrece exportar, y el documento lleva el membrete de la unidad educativa. Acá se
+// prueba el podio, no el membrete, así que alcanza con que el hook responda sin react-query detrás.
+vi.mock("@/features/institution/hooks/useInstitution", () => ({
+  useInstitution: () => ({ data: undefined, isLoading: false }),
+}))
+
 const query = (over: Record<string, unknown> = {}) => ({
   data: undefined,
   isLoading: false,
@@ -87,5 +93,49 @@ describe("InstitutionHonorRollPanel", () => {
     render(<InstitutionHonorRollPanel academicYearId={null} places={10} />)
 
     expect(screen.getByText(/Sin gestión activa/)).toBeInTheDocument()
+  })
+})
+
+/**
+ * RF 35 pide ver Y exportar. Estas dos pruebas son sobre la oferta del botón, no sobre el archivo:
+ * lo que el documento escribe lo prueban `reportRows` y `tabularReportDocx`.
+ */
+describe("HonorRollPanel, exportación", () => {
+  it("ofrece exportar el podio institucional", () => {
+    useInstitutionHonorRoll.mockReturnValue(query({ data: [entry] }))
+
+    render(
+      <InstitutionHonorRollPanel academicYearId={7} places={10} year={2026} />
+    )
+
+    expect(
+      screen.getByRole("button", { name: /exportar docx/i })
+    ).toBeInTheDocument()
+  })
+
+  it("ofrece exportar el podio de un curso cuando sabe cómo nombrarlo", () => {
+    useHonorRoll.mockReturnValue(query({ data: [entry] }))
+
+    render(
+      <CourseHonorRollPanel courseId="c-1" places={3} courseLabel="Quinto B" />
+    )
+
+    expect(
+      screen.getByRole("button", { name: /exportar docx/i })
+    ).toBeInTheDocument()
+  })
+
+  /**
+   * Sin saber de qué curso es, el documento no podría declarar su alcance. Antes que emitir una hoja
+   * que no dice a quién describe, no se ofrece.
+   */
+  it("no ofrece exportar el podio de un curso sin nombre", () => {
+    useHonorRoll.mockReturnValue(query({ data: [entry] }))
+
+    render(<CourseHonorRollPanel courseId="c-1" places={3} />)
+
+    expect(
+      screen.queryByRole("button", { name: /exportar docx/i })
+    ).not.toBeInTheDocument()
   })
 })

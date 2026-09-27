@@ -29,9 +29,14 @@ const INSTITUTION_PLACE_OPTIONS = [10, 20, 30] as const
 export const Route = createFileRoute("/_app/cuadro-de-honor")({
   beforeLoad: () => {
     const role = useAuthStore.getState().role
-    // Secretaría no entra: el podio ordena a los estudiantes por su promedio, y eso lo lee quien
-    // enseña y quien dirige, no quien administra el padrón.
-    if (!isRole(role, "DIRECTOR") && !isRole(role, "TEACHER")) {
+    // Secretaría entra: RF 35 le da este reporte, y no hay nada que escribir acá — el podio se lee y
+    // se exporta. El diagrama de casos de uso ya se lo daba y el documento de RF todavía no; el
+    // documento es el que queda por corregir.
+    if (
+      !isRole(role, "DIRECTOR") &&
+      !isRole(role, "TEACHER") &&
+      !isRole(role, "SECRETARY")
+    ) {
       throw redirect({ to: "/dashboard" })
     }
   },
@@ -51,18 +56,24 @@ function HonorRollPage() {
         </p>
       </div>
 
-      {ctx.isDirector ? <DirectorHonorRoll /> : <TeacherHonorRoll />}
+      {/* Secretaría lee lo mismo que Dirección: acá no hay ninguna acción que escribir, así que la
+          vista de toda la escuela sirve igual para las dos. */}
+      {ctx.isDirector || ctx.isSecretary ? (
+        <SchoolWideHonorRoll />
+      ) : (
+        <TeacherHonorRoll />
+      )}
     </div>
   )
 }
 
 /**
- * Dirección: la unidad educativa entera, y un curso a la vez.
+ * Dirección y Secretaría: la unidad educativa entera, y un curso a la vez.
  *
- * El podio institucional va primero porque es la pregunta que sólo Dirección puede hacer; el de
- * curso ya lo tiene el docente de aula en su propia pantalla.
+ * El podio institucional va primero porque es la pregunta que sólo se puede hacer desde arriba; el
+ * de curso ya lo tiene el docente de aula en su propia pantalla.
  */
-function DirectorHonorRoll() {
+function SchoolWideHonorRoll() {
   const courses = useAllCourses()
   const years = useAcademicYears()
 
@@ -76,8 +87,15 @@ function DirectorHonorRoll() {
   const courseId = chosenCourseId ?? rows[0]?.id ?? null
 
   // La gestión actual es la primera: el catálogo las devuelve de la más reciente a la más antigua.
-  // Se manda `id` y no `year` — el endpoint filtra por la clave de la fila.
+  // Se manda `id` y no `year` — el endpoint filtra por la clave de la fila. El `year` va aparte,
+  // sólo para que el documento diga la gestión en el número que la persona lee.
   const currentYearId = years.data?.[0]?.id ?? null
+  const currentYear = years.data?.[0]?.year ?? null
+
+  const chosen = rows.find((course) => course.id === courseId)
+  const courseLabel = chosen
+    ? `${chosen.gradeName} ${chosen.parallelName}`
+    : undefined
 
   return (
     <Tabs defaultValue="institucion">
@@ -95,6 +113,7 @@ function DirectorHonorRoll() {
         <InstitutionHonorRollPanel
           academicYearId={currentYearId}
           places={institutionPlaces}
+          year={currentYear}
         />
       </TabsContent>
 
@@ -126,7 +145,11 @@ function DirectorHonorRoll() {
           />
         </div>
 
-        <CourseHonorRollPanel courseId={courseId} places={coursePlaces} />
+        <CourseHonorRollPanel
+          courseId={courseId}
+          places={coursePlaces}
+          courseLabel={courseLabel}
+        />
       </TabsContent>
     </Tabs>
   )
@@ -140,6 +163,10 @@ function DirectorHonorRoll() {
  */
 function TeacherHonorRoll() {
   const ctx = useCurrentContext()
+  // Del store y no del contexto: el token ya trae el grado y el paralelo del curso de aula, y el
+  // contexto no los reexpone. Sirven sólo para nombrar el curso en el documento.
+  const gradeName = useAuthStore((s) => s.gradeName)
+  const parallelName = useAuthStore((s) => s.parallelName)
   const [places, setPlaces] = useState(3)
 
   if (!ctx.homeroomCourseId) {
@@ -158,7 +185,15 @@ function TeacherHonorRoll() {
         onChange={setPlaces}
         options={COURSE_PLACE_OPTIONS}
       />
-      <CourseHonorRollPanel courseId={ctx.homeroomCourseId} places={places} />
+      {/* El nombre del curso viene de la sesión: el docente de aula tiene uno solo, y el token ya
+          trae su grado y paralelo — no hace falta pedir la lista de cursos para nombrarlo. */}
+      <CourseHonorRollPanel
+        courseId={ctx.homeroomCourseId}
+        places={places}
+        courseLabel={
+          gradeName && parallelName ? `${gradeName} ${parallelName}` : undefined
+        }
+      />
     </div>
   )
 }

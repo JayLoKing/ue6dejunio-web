@@ -1,12 +1,33 @@
 import { useMemo } from "react"
 import { Loader2Icon } from "lucide-react"
 
+import { useInstitution } from "@/features/institution/hooks/useInstitution"
+
 import { useHonorRoll, useInstitutionHonorRoll } from "../hooks/useGradebook"
+import { honorRollRows } from "@/lib/reportRows"
+import { ExportReportButton } from "@/components/shared/ExportReportButton"
 import { HonorRollTable } from "./HonorRollTable"
+
+/** RF 35: posición, nombre del estudiante, su grado y paralelo, y su promedio final. */
+const COLUMNS_WITH_COURSE = [
+  { header: "N°", width: 700, align: "center" as const },
+  { header: "Estudiante", width: 4200 },
+  { header: "Curso", width: 1800, align: "center" as const },
+  { header: "Promedio final", width: 1600, align: "center" as const },
+]
+
+/** El de un curso no repite el aula en cada fila: el encabezado del documento ya lo dice. */
+const COLUMNS_WITHOUT_COURSE = [
+  { header: "N°", width: 700, align: "center" as const },
+  { header: "Estudiante", width: 5200 },
+  { header: "Promedio final", width: 1800, align: "center" as const },
+]
 
 export interface CourseHonorRollPanelProps {
   courseId: string | null
   places: number
+  /** Cómo nombrar el curso en el documento, p. ej. "Primero A". Sin esto no se ofrece exportar. */
+  courseLabel?: string
 }
 
 /**
@@ -18,8 +39,10 @@ export interface CourseHonorRollPanelProps {
 export function CourseHonorRollPanel({
   courseId,
   places,
+  courseLabel,
 }: CourseHonorRollPanelProps) {
   const podium = useHonorRoll(courseId, places)
+  const { data: school } = useInstitution()
   const rows = useMemo(() => podium.data ?? [], [podium.data])
 
   if (!courseId) {
@@ -38,13 +61,35 @@ export function CourseHonorRollPanel({
     return <LoadFailed />
   }
 
-  return <HonorRollTable rows={rows} />
+  return (
+    <div className="flex flex-col gap-3">
+      {courseLabel ? (
+        <div className="flex justify-end">
+          <ExportReportButton
+            school={school}
+            title="CUADRO DE HONOR"
+            subtitles={[
+              `Curso: ${courseLabel}`,
+              `Los ${places} mejores promedios finales`,
+            ]}
+            columns={COLUMNS_WITHOUT_COURSE}
+            rows={honorRollRows(rows, { withCourse: false })}
+            emptyLabel="Sin estudiantes con promedio final en este curso."
+            filename={`cuadro-de-honor-${courseLabel.replace(/\s+/g, "-").toLowerCase()}`}
+          />
+        </div>
+      ) : null}
+      <HonorRollTable rows={rows} />
+    </div>
+  )
 }
 
 export interface InstitutionHonorRollPanelProps {
   /** La clave de la fila de la gestión. `id_academic_year` es un SERIAL, no el año calendario. */
   academicYearId: number | null
   places: number
+  /** El año calendario, para el documento. Es el que la persona lee, no la clave SERIAL. */
+  year?: number | null
 }
 
 /**
@@ -57,8 +102,10 @@ export interface InstitutionHonorRollPanelProps {
 export function InstitutionHonorRollPanel({
   academicYearId,
   places,
+  year,
 }: InstitutionHonorRollPanelProps) {
   const podium = useInstitutionHonorRoll(academicYearId, places)
+  const { data: school } = useInstitution()
   const rows = useMemo(() => podium.data ?? [], [podium.data])
 
   if (academicYearId === null) {
@@ -78,7 +125,26 @@ export function InstitutionHonorRollPanel({
     return <LoadFailed />
   }
 
-  return <HonorRollTable rows={rows} showCourse />
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex justify-end">
+        <ExportReportButton
+          school={school}
+          title="CUADRO DE HONOR"
+          subtitles={[
+            "Alcance: unidad educativa",
+            `Gestión ${year ?? ""}`.trim(),
+            `Los ${places} mejores promedios finales`,
+          ]}
+          columns={COLUMNS_WITH_COURSE}
+          rows={honorRollRows(rows, { withCourse: true })}
+          emptyLabel="Sin estudiantes con promedio final en esta gestión."
+          filename={`cuadro-de-honor-unidad-educativa-${year ?? "gestion"}`}
+        />
+      </div>
+      <HonorRollTable rows={rows} showCourse />
+    </div>
+  )
 }
 
 function Loading() {

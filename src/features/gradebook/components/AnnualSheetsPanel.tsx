@@ -3,7 +3,13 @@ import { useMemo, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DataTablePagination } from "@/components/shared/DataTablePagination"
+import { ExportReportButton } from "@/components/shared/ExportReportButton"
+import { useInstitution } from "@/features/institution/hooks/useInstitution"
 import { statusOf } from "@/lib/grading"
+import {
+  centralizerColumns,
+  centralizerRows,
+} from "@/features/reports/utils/reportRows"
 
 import { useAnnualCentralizer } from "../hooks/useGradebook"
 import { AnnualCentralizerTable } from "./AnnualCentralizerTable"
@@ -11,8 +17,15 @@ import { AnnualRanking } from "./AnnualRanking"
 import { TrimesterAveragesTable } from "./TrimesterAveragesTable"
 import type { StudentAnnualSummary } from "../types"
 
+/** Una página que alcanza para un curso entero: el documento no puede salir cortado por la mitad. */
+const WHOLE_COURSE = { offset: 1, limit: 200, sort: "asc" as const }
+
 export interface AnnualSheetsPanelProps {
   courseId: string
+  /** Cómo nombrar el curso en el documento. Sin esto no se ofrece exportar. */
+  courseLabel?: string
+  /** La gestión, para que el consolidado declare de qué año habla. */
+  year?: number | null
 }
 
 /**
@@ -20,7 +33,11 @@ export interface AnnualSheetsPanelProps {
  * área, los promedios por trimestre y el ranking. Son vistas de un mismo payload, así que los
  * números de las tres pestañas no pueden separarse entre sí.
  */
-export function AnnualSheetsPanel({ courseId }: AnnualSheetsPanelProps) {
+export function AnnualSheetsPanel({
+  courseId,
+  courseLabel,
+  year,
+}: AnnualSheetsPanelProps) {
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(20)
 
@@ -29,6 +46,16 @@ export function AnnualSheetsPanel({ courseId }: AnnualSheetsPanelProps) {
     [page, limit]
   )
   const { data, isLoading, isFetching } = useAnnualCentralizer(courseId, query)
+  const { data: school } = useInstitution()
+
+  // El documento lleva el curso entero, no la página que se está mirando: un consolidado que empieza
+  // en el estudiante veintiuno no es un consolidado. Es una segunda consulta, del mismo tamaño que la
+  // que `ReportCardPanel` ya hace para su selector, y react-query la comparte si coinciden.
+  const { data: wholeCourse } = useAnnualCentralizer(courseId, WHOLE_COURSE)
+  const exportRows = useMemo<StudentAnnualSummary[]>(
+    () => wholeCourse?.content ?? [],
+    [wholeCourse]
+  )
 
   const rows = useMemo<StudentAnnualSummary[]>(
     () => data?.content ?? [],
@@ -62,6 +89,21 @@ export function AnnualSheetsPanel({ courseId }: AnnualSheetsPanelProps) {
           {counters.ungraded > 0 && (
             <Badge variant="outline">{counters.ungraded} sin calificar</Badge>
           )}
+          {courseLabel ? (
+            <ExportReportButton
+              school={school}
+              title="CONSOLIDADO DE CALIFICACIONES"
+              subtitles={[
+                `Curso: ${courseLabel}`,
+                `Gestión ${year ?? ""}`.trim(),
+                "Alcance anual",
+              ]}
+              columns={centralizerColumns(exportRows)}
+              rows={centralizerRows(exportRows)}
+              emptyLabel="Sin estudiantes matriculados en este curso."
+              filename={`consolidado-${courseLabel.replace(/\s+/g, "-").toLowerCase()}-${year ?? "gestion"}`}
+            />
+          ) : null}
         </div>
       </div>
 

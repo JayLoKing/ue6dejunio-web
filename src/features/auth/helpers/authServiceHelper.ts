@@ -25,6 +25,20 @@ export default class AuthServiceHelper {
     }
   }
 
+  /**
+   * Sin cuerpo a propósito: el usuario a renovar sale del token que el interceptor ya adjunta, no
+   * de lo que el cliente diga. Mandarlo en un payload dejaría pedir la sesión de otro.
+   */
+  refreshAsync(): UseApiCall<CredentialResponse> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.post<CredentialResponse>(AuthUrl.Refresh, undefined, {
+        signal: controller.signal,
+      }),
+      controller,
+    }
+  }
+
   meAsync(): UseApiCall<MeResponse> {
     const controller = loadAbort()
     return {

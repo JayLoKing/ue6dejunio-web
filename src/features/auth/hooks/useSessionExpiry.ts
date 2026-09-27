@@ -21,9 +21,11 @@ export interface SessionExpiry {
  * escribiendo. Nadie perdía datos guardados, pero sí el párrafo que estaba tipeando, y sin saber
  * por qué. Este hook es el que permite avisarlo tres minutos antes.
  *
- * NO RENUEVA NADA, y no puede: la API expone login, me, change-password, forgot y reset, y ninguno
- * devuelve un token nuevo. Volver a entrar es la única salida, que además es la que el usuario pidió
- * por seguridad. Si algún día hay refresh, el aviso es el lugar donde va el botón.
+ * NO RENUEVA NADA, y sigue sin hacerlo: sólo dice cuánto queda. Renovar existe —`POST /auth/refresh`,
+ * vía `useRefreshSession`— y el botón vive en `SessionExpiryNotice`, que es quien lee este hook.
+ * Separados a propósito: este mide el tiempo y nada más, así que ninguna renovación puede cambiar lo
+ * que la cuenta regresiva dice. El estado `warning` es la ventana en la que renovar todavía es
+ * posible, porque la API exige un token vigente para dar otro.
  *
  * SE CALCULA POR DIFERENCIA DE INSTANTES, no descontando de un contador. Una pestaña dormida deja
  * de recibir ticks: con un contador despertaría en el segundo en que se suspendió y diría que

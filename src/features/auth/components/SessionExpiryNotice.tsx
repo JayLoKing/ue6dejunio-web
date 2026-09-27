@@ -1,10 +1,11 @@
 import { useNavigate } from "@tanstack/react-router"
 import { AnimatePresence, motion } from "motion/react"
-import { ClockAlertIcon, LogInIcon } from "lucide-react"
+import { ClockAlertIcon, LogInIcon, RefreshCwIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 
 import { useAuthStore } from "../store/authStore"
+import { useRefreshSession } from "../hooks/useRefreshSession"
 import { useSessionExpiry } from "../hooks/useSessionExpiry"
 
 const mmss = (totalSeconds: number): string => {
@@ -29,14 +30,19 @@ const mmss = (totalSeconds: number): string => {
  * único honesto es decirlo y ofrecer la puerta, en vez de dejar que la persona siga tipeando contra
  * una sesión que no existe.
  *
- * No hay botón de "seguir conectado" porque no hay con qué: la API no expone renovación de token, y
- * un botón que promete lo que no puede cumplir es peor que no tenerlo. El día que exista, va acá.
+ * EL BOTÓN DE SEGUIR TRABAJANDO VA EN EL AVISO Y NO EN LA PANTALLA DE VENCIDA, y la razón es que
+ * `/auth/refresh` exige un token vigente: mientras queda tiempo hay con qué renovar, y una vez
+ * vencido ya no. Ofrecerlo ahí abajo sería prometer lo que la API rechaza.
+ *
+ * Renovar es algo que la persona aprieta, no algo que ocurre solo. Un temporizador silencioso
+ * volvería la sesión indefinida mientras la pestaña viva, y estas máquinas se comparten.
  */
 export function SessionExpiryNotice() {
   const { status, secondsLeft } = useSessionExpiry()
   const sessionExpired = useAuthStore((s) => s.sessionExpired)
   const logout = useAuthStore((s) => s.logout)
   const navigate = useNavigate()
+  const refresh = useRefreshSession()
 
   const goToLogin = () => {
     logout()
@@ -49,6 +55,7 @@ export function SessionExpiryNotice() {
   if (status === "expired" || sessionExpired) {
     return (
       <div
+        aria-labelledby="session-expired-title"
         aria-modal
         className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-6 backdrop-blur-sm"
         role="alertdialog"
@@ -63,7 +70,11 @@ export function SessionExpiryNotice() {
             <ClockAlertIcon className="size-5" />
           </div>
           <div className="space-y-1.5">
-            <p className="font-medium">Tu sesión expiró</p>
+            {/* El diálogo lo nombra por acá: un alertdialog sin nombre accesible se anuncia como
+                un rol y nada más, y esta es la única frase que dice qué pasó. */}
+            <p className="font-medium" id="session-expired-title">
+              Tu sesión expiró
+            </p>
             <p className="text-sm leading-relaxed text-muted-foreground">
               Por seguridad, el acceso dura un tiempo limitado. Vuelve a
               ingresar para seguir trabajando.
@@ -103,10 +114,16 @@ export function SessionExpiryNotice() {
           </p>
           <Button
             className="ml-auto h-8"
-            onClick={goToLogin}
+            disabled={refresh.isPending}
+            onClick={() => refresh.mutate()}
             size="sm"
-            variant="outline"
           >
+            <RefreshCwIcon data-icon="inline-start" />
+            {refresh.isPending ? "Renovando…" : "Seguir trabajando"}
+          </Button>
+          {/* Sigue estando: renovar puede fallar, y quien prefiere cerrar y volver a entrar no
+              tiene por qué esperar a que el contador llegue a cero para hacerlo. */}
+          <Button onClick={goToLogin} size="sm" variant="outline">
             Ingresar de nuevo
           </Button>
         </motion.div>

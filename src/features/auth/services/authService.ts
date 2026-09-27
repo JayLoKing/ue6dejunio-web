@@ -20,6 +20,11 @@ export class AuthService {
     return response.data
   }
 
+  static async refresh(): Promise<CredentialResponse> {
+    const { call } = helper.refreshAsync()
+    return (await call).data
+  }
+
   static async me(): Promise<MeResponse> {
     const { call } = helper.meAsync()
     const response = await call

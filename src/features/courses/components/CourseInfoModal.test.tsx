@@ -15,6 +15,7 @@ const course: Course = {
   homeroomTeacherId: "t-1",
   homeroomTeacherName: "Prof. Lopez",
   active: true,
+  homeroomTeacherActive: true,
 }
 
 const overview = (over: Partial<CourseOverview> = {}): CourseOverview => ({

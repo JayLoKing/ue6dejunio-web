@@ -54,8 +54,16 @@ function SetHomeroomForm({ course, onClose }: SetHomeroomFormProps) {
     course.homeroomTeacherId ?? undefined
   )
 
+  // Solo un docente puede ser de aula de un curso a la vez. Mientras el docente actual siga
+  // activo, la reasignación queda bloqueada aquí (no solo en el backend): el Director primero
+  // le da de baja la cuenta en Usuarios y recién entonces esta pantalla deja elegir a otra
+  // persona.
+  const blockedByActiveTeacher = Boolean(
+    course.homeroomTeacherId && course.homeroomTeacherActive
+  )
+
   const submit = async () => {
-    if (!teacherId) return
+    if (!teacherId || blockedByActiveTeacher) return
     try {
       await setHomeroom.mutateAsync({ id: course.id, teacherId })
       onClose()
@@ -73,12 +81,20 @@ function SetHomeroomForm({ course, onClose }: SetHomeroomFormProps) {
         </DialogDescription>
       </DialogHeader>
 
+      {blockedByActiveTeacher ? (
+        <p className="text-sm text-muted-foreground">
+          <strong>{course.homeroomTeacherName}</strong> sigue activo como
+          docente de aula de este curso. Para reasignarlo, primero dale de baja
+          en Usuarios.
+        </p>
+      ) : null}
+
       <Field>
         <FieldLabel htmlFor="sh-teacher">Docente</FieldLabel>
         <Select
           value={teacherId}
           onValueChange={setTeacherId}
-          disabled={aulaTeachers.isLoading}
+          disabled={aulaTeachers.isLoading || blockedByActiveTeacher}
         >
           <SelectTrigger id="sh-teacher">
             <SelectValue placeholder="Selecciona docente de aula" />
@@ -99,7 +115,9 @@ function SetHomeroomForm({ course, onClose }: SetHomeroomFormProps) {
         </Button>
         <Button
           className="bg-brand text-brand-foreground hover:bg-brand/90"
-          disabled={!teacherId || setHomeroom.isPending}
+          disabled={
+            !teacherId || setHomeroom.isPending || blockedByActiveTeacher
+          }
           onClick={submit}
         >
           {setHomeroom.isPending ? "Guardando…" : "Asignar"}

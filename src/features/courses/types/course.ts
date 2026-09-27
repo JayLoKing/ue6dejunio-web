@@ -12,6 +12,13 @@ export interface Course {
   homeroomTeacherId: string | null
   homeroomTeacherName: string | null
   active: boolean
+  /**
+   * Si la persona nombrada en `homeroomTeacherName` todavía puede iniciar sesión. Distinto de
+   * `active`, que es si el curso (el aula) está abierto: un curso puede seguir activo con un
+   * docente de aula dado de baja. Un curso sin docente de aula reporta `false` — no hay nadie
+   * activo que bloquee la reasignación.
+   */
+  homeroomTeacherActive: boolean
 }
 
 export interface CourseStudent {

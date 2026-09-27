@@ -1,3 +1,5 @@
+import type { PagedResponse } from "@/lib/types/pagination"
+
 export interface StudentSubjectTotal {
   classGroupId: string
   subjectName: string
@@ -275,4 +277,41 @@ export interface CourseAcademicSummary {
   passed: number
   failed: number
   average: number | null
+}
+
+/**
+ * Una fila del reporte de asistencia por estudiante (RF 37).
+ *
+ * `percentage` es nullable de verdad: un estudiante sin un solo día computable no tiene porcentaje, y
+ * pintarlo como cero diría que faltó a todo cuando lo que pasa es que nadie lo marcó. Los cuatro
+ * totales son los que el RF nombra — presentes, ausentes, con licencia (`excused`) y con atraso.
+ *
+ * @see CourseStudentAttendanceResponse.StudentRow del lado de la API
+ */
+export interface StudentAttendanceRow {
+  courseEnrollmentId: string
+  studentId: string
+  studentName: string
+  present: number
+  absent: number
+  late: number
+  excused: number
+  /** Presentes + ausentes + atrasos: el denominador. La licencia no entra ni arriba ni abajo. */
+  computableSessions: number
+  percentage: number | null
+}
+
+/**
+ * El reporte de asistencia de un curso (RF 37).
+ *
+ * `scope` es `"trimester"` o `"annual"` y `trimester` es null en el anual, el mismo par que trae
+ * `attendance-stats`. Vienen del backend y no se deducen acá: el documento declara su propio alcance,
+ * y un reporte que no dice qué meses cubre no se puede contrastar con nada.
+ */
+export interface CourseStudentAttendance {
+  courseId: string
+  scope: string
+  trimester: number | null
+  /** `PagedResponse`, el mismo contrato de página que devuelve el resto de la API. */
+  students: PagedResponse<StudentAttendanceRow>
 }

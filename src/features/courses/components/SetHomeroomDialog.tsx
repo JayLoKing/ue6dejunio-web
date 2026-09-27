@@ -79,6 +79,12 @@ function SetHomeroomForm({ course, onClose }: SetHomeroomFormProps) {
     !sameAsCurrent &&
     !isSwap
 
+  // Este curso no tiene encargado y el elegido sí tiene otro: no hay intercambio posible, porque
+  // no hay a quién darle el curso que dejaría. Tomarlo igual lo haría encargado de dos a la vez, y
+  // el backend lo rechaza. Decirlo acá y no dejar que el Director lo descubra apretando.
+  const blockedByTeacherWithAnotherCourse =
+    Boolean(swapWith) && !course.homeroomTeacherId
+
   const submit = async () => {
     if (!teacherId) return
     try {
@@ -88,7 +94,7 @@ function SetHomeroomForm({ course, onClose }: SetHomeroomFormProps) {
           courseBId: swapWith.id,
         })
       } else {
-        if (blockedByActiveTeacher) return
+        if (blockedByActiveTeacher || blockedByTeacherWithAnotherCourse) return
         await setHomeroom.mutateAsync({ id: course.id, teacherId })
       }
       onClose()
@@ -125,6 +131,16 @@ function SetHomeroomForm({ course, onClose }: SetHomeroomFormProps) {
             {course.gradeName} {course.parallelName}
           </strong>
           ).
+        </p>
+      ) : blockedByTeacherWithAnotherCourse && swapWith ? (
+        <p className="text-sm text-muted-foreground">
+          <strong>{selectedTeacherName}</strong> ya es docente de aula de{" "}
+          <strong>
+            {swapWith.gradeName} {swapWith.parallelName}
+          </strong>
+          . Este curso no tiene a quién darle a cambio, así que no se puede
+          intercambiar: elige un docente sin curso, o asigna primero un docente
+          de aula a este curso.
         </p>
       ) : blockedByActiveTeacher ? (
         <p className="text-sm text-muted-foreground">
@@ -166,7 +182,12 @@ function SetHomeroomForm({ course, onClose }: SetHomeroomFormProps) {
         </Button>
         <Button
           className="bg-brand text-brand-foreground hover:bg-brand/90"
-          disabled={!teacherId || isPending || blockedByActiveTeacher}
+          disabled={
+            !teacherId ||
+            isPending ||
+            blockedByActiveTeacher ||
+            blockedByTeacherWithAnotherCourse
+          }
           onClick={submit}
         >
           {isPending ? "Guardando…" : isSwap ? "Intercambiar" : "Asignar"}

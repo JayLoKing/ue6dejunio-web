@@ -159,3 +159,38 @@ describe("SetHomeroomDialog", () => {
     expect(screen.getByRole("combobox")).not.toBeDisabled()
   })
 })
+
+/**
+ * Un curso sin encargado y un candidato que sí tiene otro curso: no hay intercambio posible,
+ * porque no hay a quién darle el curso que deja. El API lo rechaza; el diálogo tiene que decirlo
+ * antes, y no dejar que el Director lo descubra apretando.
+ */
+describe("SetHomeroomDialog, curso sin docente de aula", () => {
+  const orphanCourse: Course = {
+    ...baseCourse,
+    id: "course-3",
+    homeroomTeacherId: null,
+    homeroomTeacherName: null,
+    homeroomTeacherActive: false,
+  }
+
+  it("avisa y no deja asignar a un docente que ya tiene otro curso", async () => {
+    render(<SetHomeroomDialog course={orphanCourse} onClose={vi.fn()} />)
+
+    await userEvent.click(screen.getByRole("combobox"))
+    await userEvent.click(screen.getByRole("option", { name: "Ana Perez" }))
+
+    expect(screen.getByText(/Segundo B/)).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /asignar/i })).toBeDisabled()
+    expect(mutateAsync).not.toHaveBeenCalled()
+  })
+
+  it("deja asignar a un docente libre", async () => {
+    render(<SetHomeroomDialog course={orphanCourse} onClose={vi.fn()} />)
+
+    await userEvent.click(screen.getByRole("combobox"))
+    await userEvent.click(screen.getByRole("option", { name: "Carla Rojas" }))
+
+    expect(screen.getByRole("button", { name: /asignar/i })).toBeEnabled()
+  })
+})

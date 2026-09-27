@@ -29,9 +29,15 @@ const DEFAULT_PLACES = 10
 export const Route = createFileRoute("/_app/riesgo")({
   beforeLoad: () => {
     const role = useAuthStore.getState().role
-    // Secretaría no entra: una predicción nombra a un estudiante y su probabilidad de reprobar,
-    // y eso es de quien enseña y de quien dirige, no de quien administra el padrón.
-    if (!isRole(role, "DIRECTOR") && !isRole(role, "TEACHER")) {
+    // Secretaría entra a LEER y exportar: RF 36 le da este reporte. No entra a predecir — eso
+    // escribe predicciones y notifica a los docentes, y `/api/risk-predictions/**` no la admite.
+    // Antes quedaba afuera entera; la diferencia ahora es entre leer el reporte y correr el modelo,
+    // no entre ver la pantalla y no verla.
+    if (
+      !isRole(role, "DIRECTOR") &&
+      !isRole(role, "TEACHER") &&
+      !isRole(role, "SECRETARY")
+    ) {
       throw redirect({ to: "/dashboard" })
     }
   },
@@ -58,8 +64,10 @@ function RiskPage() {
         </div>
       </div>
 
-      {ctx.isDirector ? (
-        <DirectorRisk trimester={trimester} />
+      {/* Secretaría lee la misma vista de toda la escuela que Dirección, sin el barrido: correr el
+          modelo escribe predicciones y avisa a los docentes, y no es suyo. */}
+      {ctx.isDirector || ctx.isSecretary ? (
+        <SchoolWideRisk trimester={trimester} canRunModel={ctx.isDirector} />
       ) : (
         <TeacherRisk trimester={trimester} />
       )}
@@ -68,13 +76,23 @@ function RiskPage() {
 }
 
 /**
- * Dirección: un curso a la vez, y el barrido de toda la gestión.
+ * La vista de toda la escuela: un curso a la vez, y —para Dirección— el barrido de la gestión.
  *
  * El barrido corre el modelo sobre cada materia activa del año, así que no está junto al curso
  * elegido: no es "predecir esto", es "predecir todo", y confundirlos haría que un clic distraído
  * recalcule la escuela entera.
+ *
+ * `canRunModel` en false es Secretaría: lee y exporta lo mismo, y el barrido no aparece. Se decide
+ * acá y no adentro del botón porque un botón deshabilitado invita a preguntar por qué, y la respuesta
+ * —"esto no es tuyo"— no cambia con el tiempo ni con los datos.
  */
-function DirectorRisk({ trimester }: { trimester: number }) {
+function SchoolWideRisk({
+  trimester,
+  canRunModel,
+}: {
+  trimester: number
+  canRunModel: boolean
+}) {
   const courses = useAllCourses()
   const years = useAcademicYears()
   const predictYear = usePredictYearRisk()
@@ -98,28 +116,30 @@ function DirectorRisk({ trimester }: { trimester: number }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-end gap-3">
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2"
-          disabled={predictYear.isPending || currentYear === null}
-          title={
-            currentYear === null
-              ? "Sin gestión activa"
-              : `Corre el modelo sobre todas las materias de ${currentYear}`
-          }
-          onClick={() =>
-            currentYear !== null &&
-            predictYear.mutate({ academicYear: currentYear, trimester })
-          }
-        >
-          {predictYear.isPending ? (
-            <Loader2Icon className="size-4 animate-spin" />
-          ) : (
-            <BrainCircuitIcon className="size-4 text-primary" />
-          )}
-          Ejecutar modelo en toda la gestión
-        </Button>
+        {canRunModel ? (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            disabled={predictYear.isPending || currentYear === null}
+            title={
+              currentYear === null
+                ? "Sin gestión activa"
+                : `Corre el modelo sobre todas las materias de ${currentYear}`
+            }
+            onClick={() =>
+              currentYear !== null &&
+              predictYear.mutate({ academicYear: currentYear, trimester })
+            }
+          >
+            {predictYear.isPending ? (
+              <Loader2Icon className="size-4 animate-spin" />
+            ) : (
+              <BrainCircuitIcon className="size-4 text-primary" />
+            )}
+            Ejecutar modelo en toda la gestión
+          </Button>
+        ) : null}
       </div>
 
       <Tabs defaultValue="institucion">
@@ -155,6 +175,7 @@ function DirectorRisk({ trimester }: { trimester: number }) {
             academicYearId={currentYearId}
             trimester={trimester}
             places={places}
+            year={currentYear}
           />
         </TabsContent>
 

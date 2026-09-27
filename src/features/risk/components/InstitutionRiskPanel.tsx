@@ -1,8 +1,21 @@
 import { useMemo } from "react"
 import { Loader2Icon } from "lucide-react"
 
+import { ExportReportButton } from "@/components/shared/ExportReportButton"
+import { useInstitution } from "@/features/institution/hooks/useInstitution"
+import { riskReportRows } from "@/lib/reportRows"
+
 import { useInstitutionRisk } from "../hooks/useRisk"
 import { InstitutionRiskTable } from "./InstitutionRiskTable"
+
+/** RF 36: the student's name, their classroom, the worst subject, the category and its probability. */
+const COLUMNS = [
+  { header: "Estudiante", width: 3400 },
+  { header: "Curso", width: 1300, align: "center" as const },
+  { header: "Materia", width: 2200 },
+  { header: "Riesgo", width: 1400, align: "center" as const },
+  { header: "Probabilidad", width: 1400, align: "center" as const },
+]
 
 export interface InstitutionRiskPanelProps {
   /** The row id of the gestión. `id_academic_year` is a SERIAL, not the calendar year. */
@@ -10,6 +23,8 @@ export interface InstitutionRiskPanelProps {
   trimester: number
   /** How many students the list holds. */
   places: number
+  /** The calendar year, for the document's own scope line. Not the SERIAL above. */
+  year?: number | null
 }
 
 /**
@@ -24,8 +39,10 @@ export function InstitutionRiskPanel({
   academicYearId,
   trimester,
   places,
+  year,
 }: InstitutionRiskPanelProps) {
   const risks = useInstitutionRisk(academicYearId, trimester, places)
+  const { data: school } = useInstitution()
 
   const rows = useMemo(() => risks.data ?? [], [risks.data])
 
@@ -59,5 +76,24 @@ export function InstitutionRiskPanel({
     )
   }
 
-  return <InstitutionRiskTable rows={rows} />
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex justify-end">
+        <ExportReportButton
+          school={school}
+          title="REPORTE DE ESTUDIANTES EN RIESGO"
+          subtitles={[
+            "Alcance: unidad educativa",
+            `Gestión ${year ?? ""}`.trim(),
+            `Trimestre ${trimester}`,
+          ]}
+          columns={COLUMNS}
+          rows={riskReportRows(rows)}
+          emptyLabel="Sin predicciones registradas para este trimestre."
+          filename={`riesgo-unidad-educativa-${year ?? "gestion"}-t${trimester}`}
+        />
+      </div>
+      <InstitutionRiskTable rows={rows} />
+    </div>
+  )
 }

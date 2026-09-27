@@ -7,6 +7,12 @@ const useInstitutionRisk = vi.hoisted(() => vi.fn())
 
 vi.mock("../hooks/useRisk", () => ({ useInstitutionRisk }))
 
+// The panel now offers an export, and the document carries the school's letterhead. These scenarios
+// are about the list, so the hook only has to answer without react-query behind it.
+vi.mock("@/features/institution/hooks/useInstitution", () => ({
+  useInstitution: () => ({ data: undefined, isLoading: false }),
+}))
+
 const query = (over: Record<string, unknown> = {}) => ({
   data: undefined,
   isLoading: false,

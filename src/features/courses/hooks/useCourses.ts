@@ -73,12 +73,26 @@ export function useCourseStudents(
 
 // ---- Admin (Director): crear curso, docente de aula, materias ----
 
+/**
+ * Todo lo que queda viejo cuando un curso cambia.
+ *
+ * Exportado porque no sólo lo mueven las acciones de esta feature: dar de baja a un usuario cambia
+ * `homeroomTeacherActive` del curso que tenía a cargo, y quien hace esa baja vive en Usuarios.
+ */
+export const coursesKeys = {
+  all: ["courses"] as const,
+  overview: ["course-overview"] as const,
+  students: ["course-students"] as const,
+  /** Las tres a la vez, que es como se invalidan siempre. */
+  everything: [["courses"], ["course-overview"], ["course-students"]] as const,
+}
+
 function useInvalidateCourses() {
   const qc = useQueryClient()
   return () => {
-    void qc.invalidateQueries({ queryKey: ["courses"] })
-    void qc.invalidateQueries({ queryKey: ["course-overview"] })
-    void qc.invalidateQueries({ queryKey: ["course-students"] })
+    for (const queryKey of coursesKeys.everything) {
+      void qc.invalidateQueries({ queryKey })
+    }
   }
 }
 

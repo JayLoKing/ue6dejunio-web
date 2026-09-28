@@ -1,24 +1,11 @@
 import { useMemo } from "react"
 import {
   BookOpenIcon,
-  CalendarCheckIcon,
-  CalendarRangeIcon,
   ChevronRightIcon,
   ClipboardListIcon,
-  BrainCircuitIcon,
-  FileBarChartIcon,
   Bell,
   FileText,
-  GraduationCapIcon,
-  LayersIcon,
-  LayoutDashboardIcon,
-  LayoutGridIcon,
-  LibraryIcon,
-  type LucideIcon,
   SchoolIcon,
-  TrophyIcon,
-  UserSquare2Icon,
-  UsersIcon,
 } from "lucide-react"
 import { Link, useRouterState } from "@tanstack/react-router"
 
@@ -44,112 +31,13 @@ import {
   SidebarRail,
 } from "@/components/animate-ui/components/radix/sidebar"
 import { NavUser } from "@/components/shared/NavUser"
+import { ADMIN_LINKS, TOP_LINKS } from "@/components/shared/navLinks"
 import { useAuthStore } from "@/features/auth/store/authStore"
-import { isRole, type UserRole } from "@/features/auth/types"
+import { isRole } from "@/features/auth/types"
 import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
 import { useCourseOverview } from "@/features/courses/hooks/useCourses"
 import { isTechnicalSubject } from "@/features/courses/utils/subject"
 import { useParallels } from "@/features/catalog/hooks/useCatalog"
-
-interface NavLink {
-  title: string
-  to: string
-  icon: LucideIcon
-  roles: UserRole[]
-}
-
-const TOP_LINKS: NavLink[] = [
-  {
-    title: "Dashboard",
-    to: "/dashboard",
-    icon: LayoutDashboardIcon,
-    roles: ["DIRECTOR", "SECRETARY", "TEACHER"],
-  },
-  { title: "Usuarios", to: "/users", icon: UsersIcon, roles: ["DIRECTOR"] },
-  {
-    title: "Registrar Curso",
-    to: "/courses",
-    icon: ClipboardListIcon,
-    roles: ["DIRECTOR"],
-  },
-  {
-    title: "Estudiantes",
-    to: "/students",
-    icon: UserSquare2Icon,
-    roles: ["TEACHER"],
-  },
-  // Mismo título, otra pantalla y otro público: el docente ve el padrón de su curso, Dirección y
-  // secretaría ven la institución entera. Ningún rol tiene los dos, así que el nombre no se repite.
-  {
-    title: "Estudiantes",
-    to: "/estudiantes",
-    icon: UserSquare2Icon,
-    roles: ["DIRECTOR", "SECRETARY"],
-  },
-  {
-    title: "Asistencias",
-    to: "/attendance",
-    icon: CalendarCheckIcon,
-    roles: ["TEACHER"],
-  },
-  {
-    title: "Reportes",
-    to: "/reports",
-    icon: FileBarChartIcon,
-    roles: ["TEACHER"],
-  },
-  // Fuera de "Reportes", que es del curso de aula y por eso sólo del docente: el podio tiene un
-  // alcance que Dirección puede pedir y el docente no, la unidad educativa entera.
-  {
-    title: "Cuadro de honor",
-    to: "/cuadro-de-honor",
-    icon: TrophyIcon,
-    roles: ["DIRECTOR", "TEACHER"],
-  },
-  // Sin secretaría: una predicción nombra a un estudiante y su probabilidad de reprobar, y eso lo
-  // lee quien enseña y quien dirige, no quien administra el padrón.
-  {
-    title: "Riesgo académico",
-    to: "/riesgo",
-    icon: BrainCircuitIcon,
-    roles: ["DIRECTOR", "TEACHER"],
-  },
-]
-
-const ADMIN_LINKS: NavLink[] = [
-  { title: "Niveles", to: "/levels", icon: LayersIcon, roles: ["DIRECTOR"] },
-  {
-    title: "Grados",
-    to: "/grades",
-    icon: GraduationCapIcon,
-    roles: ["DIRECTOR"],
-  },
-  {
-    title: "Paralelos",
-    to: "/parallels",
-    icon: LayoutGridIcon,
-    roles: ["DIRECTOR"],
-  },
-  // Antes que Materias: una materia no se puede crear sin un área a la que pertenecer.
-  {
-    title: "Áreas de Saberes",
-    to: "/areas-saberes",
-    icon: LibraryIcon,
-    roles: ["DIRECTOR"],
-  },
-  {
-    title: "Materias",
-    to: "/subjects",
-    icon: BookOpenIcon,
-    roles: ["DIRECTOR"],
-  },
-  {
-    title: "Trimestres",
-    to: "/trimestres",
-    icon: CalendarRangeIcon,
-    roles: ["DIRECTOR"],
-  },
-]
 
 export function AppSidebar() {
   const role = useAuthStore((s) => s.role)

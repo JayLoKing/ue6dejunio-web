@@ -25,21 +25,37 @@ interface ApiErrorPayload {
  */
 type ApiErrorBody = ApiErrorPayload | string
 
+const GENERIC_FAILURE = "Ocurrió un error inesperado."
+
+/** Hasta dónde un cuerpo en texto plano sigue siendo algo que alguien puede leer en un cartel. */
+const MAX_PLAIN_TEXT = 200
+
+/**
+ * Lo que se puede mostrar de un cuerpo que no vino en el formato de la API.
+ *
+ * Un proxy caído contesta una página de error entera. Tal cual, eso es una pared de markup
+ * dentro de un toast: ilegible, y encima tapa la pantalla. Una línea corta se muestra; lo que
+ * empieza como HTML no es un mensaje para nadie, y lo largo se corta.
+ */
+const asReadableText = (body: string): string => {
+  const text = body.trim()
+  if (!text || text.startsWith("<")) return GENERIC_FAILURE
+  return text.length > MAX_PLAIN_TEXT
+    ? `${text.slice(0, MAX_PLAIN_TEXT).trimEnd()}…`
+    : text
+}
+
 const extractMessage = (error: AxiosError<ApiErrorBody>): string => {
   const data = error.response?.data
   if (data) {
-    if (typeof data === "string") return data
+    if (typeof data === "string") return asReadableText(data)
     return (
-      data.message ??
-      data.detail ??
-      data.title ??
-      data.error ??
-      "Ocurrió un error inesperado."
+      data.message ?? data.detail ?? data.title ?? data.error ?? GENERIC_FAILURE
     )
   }
   if (error.code === "ERR_NETWORK")
     return "No se pudo conectar con el servidor."
-  return error.message || "Ocurrió un error inesperado."
+  return error.message || GENERIC_FAILURE
 }
 
 const createAxiosInstance = (): AxiosInstance => axios.create({ baseURL })

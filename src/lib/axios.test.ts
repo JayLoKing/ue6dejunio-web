@@ -167,6 +167,31 @@ describe("el resto de los errores", () => {
   })
 
   /**
+   * Un proxy caído no contesta una línea: contesta su página de error entera. Volcada tal cual
+   * en un toast es una pared de markup que tapa la pantalla y no dice nada.
+   */
+  it("no vuelca una página de error dentro del cartel", async () => {
+    const client = clientRejectingWith(
+      502,
+      "<html><body><h1>502 Bad Gateway</h1></body></html>"
+    )
+
+    await expect(client.get("/courses")).rejects.toThrow()
+
+    expect(toastError.mock.calls[0][0]).toBe("Ocurrió un error inesperado.")
+  })
+
+  it("corta un texto más largo de lo que entra en un cartel", async () => {
+    const client = clientRejectingWith(500, "x".repeat(400))
+
+    await expect(client.get("/courses")).rejects.toThrow()
+
+    const shown = toastError.mock.calls[0][0] as string
+    expect(shown).toHaveLength(201)
+    expect(shown.endsWith("…")).toBe(true)
+  })
+
+  /**
    * Un servidor que no contesta no deja estado, así que `status` queda en 0 y la condición que
    * miraba `>= 400` lo dejaba pasar sin decir nada — el mismo silencio que la contraseña
    * equivocada, y con el mensaje ya escrito en `extractMessage` sin que nadie lo alcanzara.

@@ -65,7 +65,7 @@ const extractMessage = (error: AxiosError<ApiErrorBody>): string => {
       GENERIC_FAILURE
     )
   }
-  if (error.code === "ERR_NETWORK")
+  if (error.code === AxiosError.ERR_NETWORK)
     return "No se pudo conectar con el servidor."
   return error.message || GENERIC_FAILURE
 }

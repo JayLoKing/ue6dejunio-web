@@ -45,12 +45,24 @@ const asReadableText = (body: string): string => {
     : text
 }
 
+/**
+ * El primer campo que trae algo escrito.
+ *
+ * Con `??` alcanzaba con que la clave existiera, así que un `{"message":""}` ganaba la carrera y
+ * el cartel salía con el título en blanco — otra forma de no decir nada, que es justamente lo que
+ * este archivo dejó de hacer.
+ */
+const firstFilled = (
+  ...candidates: (string | undefined)[]
+): string | undefined => candidates.find((candidate) => candidate?.trim())
+
 const extractMessage = (error: AxiosError<ApiErrorBody>): string => {
   const data = error.response?.data
   if (data) {
     if (typeof data === "string") return asReadableText(data)
     return (
-      data.message ?? data.detail ?? data.title ?? data.error ?? GENERIC_FAILURE
+      firstFilled(data.message, data.detail, data.title, data.error) ??
+      GENERIC_FAILURE
     )
   }
   if (error.code === "ERR_NETWORK")

@@ -181,6 +181,21 @@ describe("el resto de los errores", () => {
     expect(toastError.mock.calls[0][0]).toBe("Ocurrió un error inesperado.")
   })
 
+  /**
+   * Un campo presente pero vacío no es un mensaje. Ganaba la cadena igual y el cartel salía con
+   * el título en blanco: la misma nada que este archivo dejó de mostrar.
+   */
+  it("salta un campo que vino vacío y usa el que sí dice algo", async () => {
+    const client = clientRejectingWith(422, {
+      message: "   ",
+      detail: "El RUDE ya está registrado",
+    })
+
+    await expect(client.post("/students")).rejects.toThrow()
+
+    expect(toastError.mock.calls[0][0]).toBe("El RUDE ya está registrado")
+  })
+
   it("corta un texto más largo de lo que entra en un cartel", async () => {
     const client = clientRejectingWith(500, "x".repeat(400))
 

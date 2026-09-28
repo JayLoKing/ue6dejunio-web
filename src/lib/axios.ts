@@ -35,7 +35,8 @@ const extractMessage = (error: AxiosError<ApiErrorPayload>): string => {
 
 const createAxiosInstance = (): AxiosInstance => axios.create({ baseURL })
 
-const setupInterceptors = (httpClient: AxiosInstance) => {
+/** Exportado para poder afirmar el manejo de errores sobre una instancia propia, sin tocar la real. */
+export const setupInterceptors = (httpClient: AxiosInstance) => {
   httpClient.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
       config.headers["Content-Type"] = "application/json"
@@ -53,14 +54,20 @@ const setupInterceptors = (httpClient: AxiosInstance) => {
     async (error: AxiosError<ApiErrorPayload>) => {
       const status = error.response?.status ?? 0
 
-      if (status === 401) {
-        // Marca la sesión como vencida y deja que la interfaz lo cuente. Antes acá había un
-        // `window.location.href = "/auth/login"`: una recarga entera del navegador, disparada en
-        // mitad de lo que la persona estuviera escribiendo, sin una palabra de por qué. Lo
-        // guardado sobrevivía; el párrafo a medio tipear, no, y nadie entendía qué había pasado.
-        //
-        // `SessionExpiryNotice` mira esta bandera y muestra el cartel con la puerta. La redirección
-        // pasa a ser algo que la persona aprieta, no algo que le ocurre.
+      // Dos cosas muy distintas contestan 401, y lo que las separa es si había sesión.
+      //
+      // Con token es una sesión que venció: se marca vencida y se sale sin decir nada más, porque
+      // `SessionExpiryNotice` ya muestra el cartel con la puerta y dos avisos para un solo hecho
+      // sobran. Antes acá había un `window.location.href = "/auth/login"`: una recarga entera del
+      // navegador en mitad de lo que la persona estuviera escribiendo, sin una palabra de por qué.
+      // La redirección pasa a ser algo que se aprieta, no algo que ocurre.
+      //
+      // Sin token es un intento de entrar que falló, y cae al toast de abajo como cualquier otro
+      // error. Antes los dos casos salían por acá: la contraseña equivocada no decía nada —
+      // el servidor contesta "Credenciales inválidas" y nadie lo mostraba — y encima marcaba
+      // vencida una sesión que nunca existió, que es contarle a la persona que perdió algo que
+      // todavía no tenía.
+      if (status === 401 && useAuthStore.getState().accessToken) {
         useAuthStore.getState().expireSession()
         return Promise.reject(error)
       }

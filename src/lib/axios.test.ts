@@ -1,0 +1,121 @@
+import axios, {
+  AxiosError,
+  type AxiosInstance,
+  type AxiosResponse,
+} from "axios"
+import { beforeEach, describe, expect, it, vi } from "vitest"
+
+import { setupInterceptors } from "./axios"
+import { useAuthStore } from "@/features/auth/store/authStore"
+
+const toastError = vi.hoisted(() => vi.fn())
+vi.mock("sonner", () => ({ toast: { error: toastError } }))
+
+/**
+ * Un cliente que falla con el estado y el cuerpo que se le pidan, con los interceptores reales
+ * encima.
+ *
+ * El adapter lanza el `AxiosError` en lugar de devolver la respuesta: `validateStatus` lo aplican
+ * los adapters que trae axios, no el pipeline, así que uno propio que devuelve un 401 lo daría
+ * por bueno y el interceptor de error nunca correría. Armado así, lo que llega al interceptor es
+ * la misma forma que le llega en producción, con su `response` y su `code`.
+ */
+const clientRejectingWith = (status: number, data: unknown): AxiosInstance => {
+  const client = axios.create()
+  setupInterceptors(client)
+  client.defaults.adapter = async (config) => {
+    const response = {
+      status,
+      statusText: "",
+      data,
+      headers: {},
+      config,
+    } as AxiosResponse
+    throw new AxiosError(
+      `Request failed with status code ${status}`,
+      AxiosError.ERR_BAD_REQUEST,
+      config,
+      null,
+      response
+    )
+  }
+  return client
+}
+
+const CREDENTIALS_REJECTED = { message: "Credenciales inválidas" }
+
+beforeEach(() => {
+  toastError.mockClear()
+  useAuthStore.setState({ accessToken: null, sessionExpired: false })
+})
+
+describe("el 401 de un login que falla", () => {
+  /**
+   * Es el caso que se veía roto desde afuera: escribías mal la contraseña y no pasaba nada. El
+   * interceptor cortaba en 401 antes del toast, así que el servidor decía "Credenciales
+   * inválidas" y nadie lo mostraba.
+   */
+  it("dice lo que el servidor contestó", async () => {
+    const client = clientRejectingWith(401, CREDENTIALS_REJECTED)
+
+    await expect(client.post("/auth/login")).rejects.toThrow()
+
+    expect(toastError).toHaveBeenCalledOnce()
+    expect(toastError.mock.calls[0][0]).toBe("Credenciales inválidas")
+  })
+
+  /**
+   * Y no marca vencida una sesión que nunca existió. `expireSession` borra el store entero y
+   * levanta el cartel de sesión vencida; dispararlo en la pantalla de entrar es contarle a la
+   * persona que perdió algo que todavía no tenía.
+   */
+  it("no marca vencida una sesión que nunca existió", async () => {
+    const client = clientRejectingWith(401, CREDENTIALS_REJECTED)
+
+    await expect(client.post("/auth/login")).rejects.toThrow()
+
+    expect(useAuthStore.getState().sessionExpired).toBe(false)
+  })
+})
+
+describe("el 401 de una sesión que venció", () => {
+  /**
+   * El otro 401, el que sí tenía razón de ser silencioso: acá no hace falta un toast porque
+   * `SessionExpiryNotice` ya muestra el cartel con la puerta. Dos avisos para un solo hecho.
+   */
+  it("levanta el cartel y no dice nada más", async () => {
+    useAuthStore.setState({ accessToken: "un-token-vencido" })
+    const client = clientRejectingWith(401, { message: "Token expirado" })
+
+    await expect(client.get("/courses")).rejects.toThrow()
+
+    expect(useAuthStore.getState().sessionExpired).toBe(true)
+    expect(toastError).not.toHaveBeenCalled()
+  })
+})
+
+describe("el resto de los errores", () => {
+  it("los cuenta con su código", async () => {
+    const client = clientRejectingWith(409, { message: "El curso ya existe" })
+
+    await expect(client.post("/courses")).rejects.toThrow()
+
+    expect(toastError).toHaveBeenCalledWith("El curso ya existe", {
+      description: "Código 409",
+    })
+  })
+
+  /**
+   * Un 403 con sesión viva no es una sesión vencida: el token sirve, lo que falta es el permiso.
+   * Sin esta distinción, pedir algo ajeno cerraría la sesión de quien lo pidió.
+   */
+  it("un permiso negado no cierra la sesión", async () => {
+    useAuthStore.setState({ accessToken: "un-token-bueno" })
+    const client = clientRejectingWith(403, { message: "Acceso denegado" })
+
+    await expect(client.get("/users")).rejects.toThrow()
+
+    expect(useAuthStore.getState().sessionExpired).toBe(false)
+    expect(toastError).toHaveBeenCalledOnce()
+  })
+})

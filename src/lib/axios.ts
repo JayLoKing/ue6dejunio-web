@@ -20,8 +20,7 @@ interface ApiErrorPayload {
  * El cuerpo de error tal como puede llegar, no sólo como lo manda la API.
  *
  * `ErrorResponse` es siempre un objeto, pero entre el navegador y el handler hay un proxy y un
- * servidor que contestan texto plano o HTML cuando algo se cae antes de llegar. Tipar sólo el
- * objeto volvía inalcanzable la rama que atiende ese caso, y la rama sigue haciendo falta.
+ * servidor que contestan texto plano o HTML cuando algo se cae antes de llegar.
  */
 type ApiErrorBody = ApiErrorPayload | string
 
@@ -46,11 +45,8 @@ const asReadableText = (body: string): string => {
 }
 
 /**
- * El primer campo que trae algo escrito.
- *
- * Con `??` alcanzaba con que la clave existiera, así que un `{"message":""}` ganaba la carrera y
- * el cartel salía con el título en blanco — otra forma de no decir nada, que es justamente lo que
- * este archivo dejó de hacer.
+ * El primer campo que trae algo escrito. Existir no alcanza: un `{"message":""}` deja el cartel
+ * con el título en blanco, así que la búsqueda sigue hasta el que dice algo.
  */
 const firstFilled = (
   ...candidates: (string | undefined)[]
@@ -108,9 +104,9 @@ export const setupInterceptors = (instance: AxiosInstance): void => {
       }
 
       // Todo lo que llegue hasta acá se cuenta, incluido lo que no trae estado: un servidor que
-      // no contesta deja `status` en 0, y filtrar por `>= 400` lo dejaba pasar callado. La
-      // excepción es lo que la interfaz canceló ella misma al desmontar o al cambiar de filtro —
-      // eso no es una falla, y avisarlo sería acusar al usuario de algo que hizo la aplicación.
+      // no contesta deja `status` en 0 y merece aviso igual. La excepción es lo que la interfaz
+      // canceló ella misma al desmontar o al cambiar de filtro — eso no es una falla, y avisarlo
+      // sería acusar al usuario de algo que hizo la aplicación.
       //
       // El código va sólo cuando existe: a quien perdió la conexión, "Código desconocido" no le
       // agrega nada sobre el mensaje que ya lee.

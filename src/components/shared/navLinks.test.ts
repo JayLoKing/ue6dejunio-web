@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { ADMIN_LINKS, TOP_LINKS } from "./navLinks"
+import { ADMIN_LINKS, TOP_LINKS, visibleLinksFor } from "./navLinks"
 
 const rolesOf = (to: string) => TOP_LINKS.find((l) => l.to === to)?.roles ?? []
 
@@ -65,5 +65,53 @@ describe("la tabla de enlaces", () => {
     for (const link of [...TOP_LINKS, ...ADMIN_LINKS]) {
       expect(link.roles.length).toBeGreaterThan(0)
     }
+  })
+})
+
+describe("visibleLinksFor", () => {
+  /**
+   * Las dos listas se filtran con la misma función, y eso es el punto.
+   *
+   * `ADMIN_LINKS` declaraba `roles` en cada entrada y el sidebar no lo miraba: abría el grupo
+   * entero con un flag `director` aparte y mapeaba todo. El campo quedaba decorativo, así que
+   * darle otro rol a una entrada no cambiaba nada y la lista seguía siendo de Dirección. Pasa a
+   * decidir de verdad quién ve qué, como ya hacía la lista de arriba.
+   */
+  it("filtra el catálogo académico por el mismo campo que declara", () => {
+    expect(visibleLinksFor(ADMIN_LINKS, "DIRECTOR")).toHaveLength(
+      ADMIN_LINKS.length
+    )
+    expect(visibleLinksFor(ADMIN_LINKS, "SECRETARY")).toEqual([])
+    expect(visibleLinksFor(ADMIN_LINKS, "TEACHER")).toEqual([])
+  })
+
+  it("le da a cada rol los enlaces de arriba que le tocan", () => {
+    const titlesFor = (role: string) =>
+      visibleLinksFor(TOP_LINKS, role).map((l) => l.to)
+
+    expect(titlesFor("SECRETARY")).toEqual([
+      "/dashboard",
+      "/estudiantes",
+      "/reports",
+      "/cuadro-de-honor",
+      "/riesgo",
+    ])
+    expect(titlesFor("TEACHER")).toContain("/students")
+    expect(titlesFor("TEACHER")).not.toContain("/estudiantes")
+  })
+
+  /**
+   * El rol viaja como texto libre desde el token y `isRole` ya lo normaliza. Sin rol no hay enlace
+   * — una sesión a medio cargar tiene que mostrar un menú vacío, nunca el de Dirección.
+   */
+  it("no le da nada a quien no tiene rol", () => {
+    expect(visibleLinksFor(TOP_LINKS, null)).toEqual([])
+    expect(visibleLinksFor(ADMIN_LINKS, null)).toEqual([])
+  })
+
+  it("no le importa cómo venga escrito el rol", () => {
+    expect(visibleLinksFor(ADMIN_LINKS, "director")).toHaveLength(
+      ADMIN_LINKS.length
+    )
   })
 })

@@ -16,13 +16,36 @@ import {
   UsersIcon,
 } from "lucide-react"
 
-import type { UserRole } from "@/features/auth/types"
+import { isRole, type UserRole } from "@/features/auth/types"
 
 export interface NavLink {
   title: string
   to: string
   icon: LucideIcon
   roles: UserRole[]
+}
+
+/**
+ * Los enlaces de una lista que le corresponden a un rol.
+ *
+ * Lo usan las dos listas de este módulo, y esa es la única promesa que hace. El catálogo
+ * académico declaraba sus `roles` y el sidebar no los leía: abría el grupo entero con un flag
+ * aparte y mapeaba todo, así que el campo no decidía nada y agregarle un rol a una entrada no
+ * cambiaba lo que se veía. Dos formas de responder la misma pregunta terminan respondiéndola
+ * distinto.
+ *
+ * Fuera de estas listas el sidebar todavía decide con flags propios — el cuaderno del docente,
+ * los cursos de Dirección, el PDC y las notificaciones — porque cada uno es su propio grupo con
+ * su etiqueta y su contenido, no una fila más. Eso significa que su visibilidad no está cubierta
+ * por ningún test: mudarlos acá pide antes decidir cómo se agrupan.
+ *
+ * Sin rol no devuelve nada: una sesión a medio cargar muestra un menú vacío, no el de Dirección.
+ */
+export function visibleLinksFor(
+  links: NavLink[],
+  role: string | null
+): NavLink[] {
+  return links.filter((link) => link.roles.some((r) => isRole(role, r)))
 }
 
 /**

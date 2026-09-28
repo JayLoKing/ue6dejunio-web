@@ -1,10 +1,10 @@
 import { useMemo } from "react"
 import {
+  Bell as BellIcon,
   BookOpenIcon,
   ChevronRightIcon,
   ClipboardListIcon,
-  Bell,
-  FileText,
+  FileText as FileTextIcon,
   SchoolIcon,
 } from "lucide-react"
 import { Link, useRouterState } from "@tanstack/react-router"
@@ -31,7 +31,11 @@ import {
   SidebarRail,
 } from "@/components/animate-ui/components/radix/sidebar"
 import { NavUser } from "@/components/shared/NavUser"
-import { ADMIN_LINKS, TOP_LINKS } from "@/components/shared/navLinks"
+import {
+  ADMIN_LINKS,
+  TOP_LINKS,
+  visibleLinksFor,
+} from "@/components/shared/navLinks"
 import { useAuthStore } from "@/features/auth/store/authStore"
 import { isRole } from "@/features/auth/types"
 import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
@@ -50,25 +54,27 @@ export function AppSidebar() {
   const isTechnical = ctx.isTechnical
   const classGroups = ctx.classGroups
   // Docente de aula: ve las 9 materias del curso (incl. técnicas) vía overview.
-  const aulaOverview = useCourseOverview(
+  const homeroomOverview = useCourseOverview(
     teacher && !isTechnical ? ctx.homeroomCourseId : null,
     1
   )
-  const materias = useMemo(
-    () => (isTechnical ? classGroups : (aulaOverview.data?.classGroups ?? [])),
-    [isTechnical, classGroups, aulaOverview.data]
+  const subjects = useMemo(
+    () =>
+      isTechnical ? classGroups : (homeroomOverview.data?.classGroups ?? []),
+    [isTechnical, classGroups, homeroomOverview.data]
   )
-  const materiasLoading =
-    ctx.isLoading || (!isTechnical && aulaOverview.isLoading)
+  const subjectsLoading =
+    ctx.isLoading || (!isTechnical && homeroomOverview.isLoading)
   const parallelsQuery = useParallels()
   const parallels = useMemo(
     () => parallelsQuery.data ?? [],
     [parallelsQuery.data]
   )
 
-  const visibleTop = TOP_LINKS.filter((l) =>
-    l.roles.some((r) => isRole(role, r))
-  )
+  // Las dos listas se filtran igual: el `roles` que cada enlace declara es lo único que decide si
+  // se ve. El catálogo académico antes se abría con el flag `director` sin mirar ese campo.
+  const visibleTop = visibleLinksFor(TOP_LINKS, role)
+  const visibleAdmin = visibleLinksFor(ADMIN_LINKS, role)
 
   return (
     <Sidebar collapsible="icon">
@@ -136,20 +142,20 @@ export function AppSidebar() {
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <SidebarMenuSub>
-                        {materiasLoading ? (
+                        {subjectsLoading ? (
                           <SidebarMenuSubItem>
                             <span className="px-2 text-xs text-muted-foreground">
                               Cargando…
                             </span>
                           </SidebarMenuSubItem>
-                        ) : materias.length === 0 ? (
+                        ) : subjects.length === 0 ? (
                           <SidebarMenuSubItem>
                             <span className="px-2 text-xs text-muted-foreground">
                               {isTechnical ? "Sin cursos" : "Sin materias"}
                             </span>
                           </SidebarMenuSubItem>
                         ) : (
-                          materias.map((cg) => (
+                          subjects.map((cg) => (
                             <SidebarMenuSubItem key={cg.id}>
                               <SidebarMenuSubButton
                                 asChild
@@ -218,12 +224,12 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {director ? (
+        {visibleAdmin.length > 0 ? (
           <SidebarGroup>
             <SidebarGroupLabel>Académico</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {ADMIN_LINKS.map((item) => {
+                {visibleAdmin.map((item) => {
                   const Icon = item.icon
                   return (
                     <SidebarMenuItem key={item.to}>
@@ -257,7 +263,7 @@ export function AppSidebar() {
                     tooltip="PDC"
                   >
                     <Link to="/pdc">
-                      <FileText />
+                      <FileTextIcon />
                       <span>PDC</span>
                     </Link>
                   </SidebarMenuButton>
@@ -279,7 +285,7 @@ export function AppSidebar() {
                   tooltip="Notificaciones"
                 >
                   <Link to="/notifications">
-                    <Bell />
+                    <BellIcon />
                     <span>Notificaciones</span>
                   </Link>
                 </SidebarMenuButton>

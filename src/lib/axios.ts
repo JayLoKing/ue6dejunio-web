@@ -61,8 +61,8 @@ const extractMessage = (error: AxiosError<ApiErrorBody>): string => {
 const createAxiosInstance = (): AxiosInstance => axios.create({ baseURL })
 
 /** Exportado para poder afirmar el manejo de errores sobre una instancia propia, sin tocar la real. */
-export const setupInterceptors = (httpClient: AxiosInstance): void => {
-  httpClient.interceptors.request.use(
+export const setupInterceptors = (instance: AxiosInstance): void => {
+  instance.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
       // Un `FormData` se manda solo: el navegador le pone su `multipart/form-data` con el
       // `boundary` que acaba de generar. Pisarlo con `application/json` deja un cuerpo que el
@@ -79,7 +79,7 @@ export const setupInterceptors = (httpClient: AxiosInstance): void => {
     (error: AxiosError) => Promise.reject(error)
   )
 
-  httpClient.interceptors.response.use(
+  instance.interceptors.response.use(
     (response) => response,
     (error: AxiosError<ApiErrorBody>) => {
       const status = error.response?.status ?? 0

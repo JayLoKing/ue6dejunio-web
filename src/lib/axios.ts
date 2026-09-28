@@ -16,7 +16,16 @@ interface ApiErrorPayload {
   title?: string
 }
 
-const extractMessage = (error: AxiosError<ApiErrorPayload>): string => {
+/**
+ * El cuerpo de error tal como puede llegar, no sólo como lo manda la API.
+ *
+ * `ErrorResponse` es siempre un objeto, pero entre el navegador y el handler hay un proxy y un
+ * servidor que contestan texto plano o HTML cuando algo se cae antes de llegar. Tipar sólo el
+ * objeto volvía inalcanzable la rama que atiende ese caso, y la rama sigue haciendo falta.
+ */
+type ApiErrorBody = ApiErrorPayload | string
+
+const extractMessage = (error: AxiosError<ApiErrorBody>): string => {
   const data = error.response?.data
   if (data) {
     if (typeof data === "string") return data
@@ -36,7 +45,7 @@ const extractMessage = (error: AxiosError<ApiErrorPayload>): string => {
 const createAxiosInstance = (): AxiosInstance => axios.create({ baseURL })
 
 /** Exportado para poder afirmar el manejo de errores sobre una instancia propia, sin tocar la real. */
-export const setupInterceptors = (httpClient: AxiosInstance) => {
+export const setupInterceptors = (httpClient: AxiosInstance): void => {
   httpClient.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
       config.headers["Content-Type"] = "application/json"
@@ -51,22 +60,15 @@ export const setupInterceptors = (httpClient: AxiosInstance) => {
 
   httpClient.interceptors.response.use(
     (response) => response,
-    async (error: AxiosError<ApiErrorPayload>) => {
+    (error: AxiosError<ApiErrorBody>) => {
       const status = error.response?.status ?? 0
 
-      // Dos cosas muy distintas contestan 401, y lo que las separa es si había sesión.
+      // Dos cosas distintas contestan 401, y lo que las separa es si había token.
       //
-      // Con token es una sesión que venció: se marca vencida y se sale sin decir nada más, porque
+      // Con token es una sesión que venció: se marca vencida y se sale callado, porque
       // `SessionExpiryNotice` ya muestra el cartel con la puerta y dos avisos para un solo hecho
-      // sobran. Antes acá había un `window.location.href = "/auth/login"`: una recarga entera del
-      // navegador en mitad de lo que la persona estuviera escribiendo, sin una palabra de por qué.
-      // La redirección pasa a ser algo que se aprieta, no algo que ocurre.
-      //
-      // Sin token es un intento de entrar que falló, y cae al toast de abajo como cualquier otro
-      // error. Antes los dos casos salían por acá: la contraseña equivocada no decía nada —
-      // el servidor contesta "Credenciales inválidas" y nadie lo mostraba — y encima marcaba
-      // vencida una sesión que nunca existió, que es contarle a la persona que perdió algo que
-      // todavía no tenía.
+      // sobran. Sin token es un intento de entrar que falló, y baja al toast como cualquier otro
+      // error — el servidor contesta "Credenciales inválidas" y hay que mostrarlo.
       if (status === 401 && useAuthStore.getState().accessToken) {
         useAuthStore.getState().expireSession()
         return Promise.reject(error)

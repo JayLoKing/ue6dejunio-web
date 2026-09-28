@@ -106,6 +106,21 @@ describe("el resto de los errores", () => {
   })
 
   /**
+   * No todo lo que contesta con error habla el formato de la API: un proxy o el servidor que se
+   * cae antes de llegar al handler devuelven texto plano. Si eso se leyera como objeto, la
+   * persona vería "Ocurrió un error inesperado." teniendo el motivo escrito delante.
+   */
+  it("también lee un cuerpo que vino en texto plano", async () => {
+    const client = clientRejectingWith(502, "Bad Gateway")
+
+    await expect(client.get("/courses")).rejects.toThrow()
+
+    expect(toastError).toHaveBeenCalledWith("Bad Gateway", {
+      description: "Código 502",
+    })
+  })
+
+  /**
    * Un 403 con sesión viva no es una sesión vencida: el token sirve, lo que falta es el permiso.
    * Sin esta distinción, pedir algo ajeno cerraría la sesión de quien lo pidió.
    */

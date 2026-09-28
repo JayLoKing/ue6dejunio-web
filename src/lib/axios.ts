@@ -74,11 +74,22 @@ export const setupInterceptors = (httpClient: AxiosInstance): void => {
         return Promise.reject(error)
       }
 
-      if (status >= 400) {
-        toast.error(extractMessage(error), {
-          description: `Código ${status || "desconocido"}`,
-        })
+      // Todo lo que llegue hasta acá se cuenta, salvo lo que la interfaz canceló ella misma al
+      // desmontar o al cambiar de filtro — eso no es una falla y avisarlo sería acusar al usuario
+      // de algo que hizo la aplicación.
+      //
+      // La condición era `status >= 400`, y un servidor que no contesta no deja estado: quedaba
+      // en 0 y no entraba, así que la caída de la API era otro silencio y el mensaje de
+      // `extractMessage` no lo alcanzaba nadie. El código va sólo cuando existe; "Código
+      // desconocido" no le dice nada a quien perdió la conexión.
+      if (error.code === AxiosError.ERR_CANCELED) {
+        return Promise.reject(error)
       }
+
+      toast.error(
+        extractMessage(error),
+        status > 0 ? { description: `Código ${status}` } : undefined
+      )
 
       return Promise.reject(error)
     }

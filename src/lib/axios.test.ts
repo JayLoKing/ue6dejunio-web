@@ -42,6 +42,16 @@ const clientRejectingWith = (status: number, data: unknown): AxiosInstance => {
   return client
 }
 
+/** Un cliente que falla sin respuesta: el servidor no contestó, o alguien canceló el pedido. */
+const clientFailingWithout = (code: string): AxiosInstance => {
+  const client = axios.create()
+  setupInterceptors(client)
+  client.defaults.adapter = async (config) => {
+    throw new AxiosError("Network Error", code, config)
+  }
+  return client
+}
+
 const CREDENTIALS_REJECTED = { message: "Credenciales inválidas" }
 
 beforeEach(() => {
@@ -118,6 +128,34 @@ describe("el resto de los errores", () => {
     expect(toastError).toHaveBeenCalledWith("Bad Gateway", {
       description: "Código 502",
     })
+  })
+
+  /**
+   * Un servidor que no contesta no deja estado, así que `status` queda en 0 y la condición que
+   * miraba `>= 400` lo dejaba pasar sin decir nada — el mismo silencio que la contraseña
+   * equivocada, y con el mensaje ya escrito en `extractMessage` sin que nadie lo alcanzara.
+   */
+  it("avisa cuando el servidor no contesta", async () => {
+    const client = clientFailingWithout(AxiosError.ERR_NETWORK)
+
+    await expect(client.get("/courses")).rejects.toThrow()
+
+    expect(toastError).toHaveBeenCalledOnce()
+    expect(toastError.mock.calls[0][0]).toBe(
+      "No se pudo conectar con el servidor."
+    )
+  })
+
+  /**
+   * Un pedido cancelado no es una falla: lo cancela la propia interfaz al desmontar o al cambiar
+   * de filtro, y avisarlo sería acusar al usuario de un error que cometió la aplicación.
+   */
+  it("se calla cuando el pedido se canceló", async () => {
+    const client = clientFailingWithout(AxiosError.ERR_CANCELED)
+
+    await expect(client.get("/courses")).rejects.toThrow()
+
+    expect(toastError).not.toHaveBeenCalled()
   })
 
   /**

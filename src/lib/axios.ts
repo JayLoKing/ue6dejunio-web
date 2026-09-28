@@ -19,8 +19,9 @@ interface ApiErrorPayload {
 /**
  * El cuerpo de error tal como puede llegar, no sólo como lo manda la API.
  *
- * `ErrorResponse` es siempre un objeto, pero entre el navegador y el handler hay un proxy y un
- * servidor que contestan texto plano o HTML cuando algo se cae antes de llegar.
+ * El `ErrorResponse` de la API (el record del backend, no un tipo de acá) es siempre un objeto,
+ * pero entre el navegador y el handler hay un proxy y un servidor que contestan texto plano o HTML
+ * cuando algo se cae antes de llegar.
  */
 type ApiErrorBody = ApiErrorPayload | string
 
@@ -45,12 +46,16 @@ const asReadableText = (body: string): string => {
 }
 
 /**
- * El primer campo que trae algo escrito. Existir no alcanza: un `{"message":""}` deja el cartel
- * con el título en blanco, así que la búsqueda sigue hasta el que dice algo.
+ * El primer campo que trae algo escrito, ya sin los espacios de alrededor. Existir no alcanza: un
+ * `{"message":""}` deja el cartel con el título en blanco, así que la búsqueda sigue hasta el que
+ * dice algo — y devuelve lo mismo que midió, no el original con su relleno.
  */
 const firstFilled = (
   ...candidates: (string | undefined)[]
-): string | undefined => candidates.find((candidate) => candidate?.trim())
+): string | undefined =>
+  candidates
+    .map((candidate) => candidate?.trim())
+    .find((candidate) => candidate)
 
 const extractMessage = (error: AxiosError<ApiErrorBody>): string => {
   const data = error.response?.data

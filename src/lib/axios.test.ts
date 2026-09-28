@@ -196,6 +196,21 @@ describe("el resto de los errores", () => {
     expect(toastError.mock.calls[0][0]).toBe("El RUDE ya está registrado")
   })
 
+  /**
+   * El campo que gana se muestra tal como se midió. La condición lo evaluaba con `trim()` y
+   * después devolvía el original, así que un valor con espacios alrededor pasaba la prueba de
+   * "dice algo" y llegaba al cartel con el relleno puesto.
+   */
+  it("muestra el campo sin los espacios que traía alrededor", async () => {
+    const client = clientRejectingWith(409, {
+      message: "  El curso ya existe  ",
+    })
+
+    await expect(client.post("/courses")).rejects.toThrow()
+
+    expect(toastError.mock.calls[0][0]).toBe("El curso ya existe")
+  })
+
   it("corta un texto más largo de lo que entra en un cartel", async () => {
     const client = clientRejectingWith(500, "x".repeat(400))
 

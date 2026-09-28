@@ -2,6 +2,7 @@ import axios, {
   AxiosError,
   type AxiosInstance,
   type AxiosResponse,
+  type InternalAxiosRequestConfig,
 } from "axios"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
@@ -57,6 +58,41 @@ const CREDENTIALS_REJECTED = { message: "Credenciales inválidas" }
 beforeEach(() => {
   toastError.mockClear()
   useAuthStore.setState({ accessToken: null, sessionExpired: false })
+})
+
+describe("las cabeceras que salen", () => {
+  /** Un cliente que no falla, para poder leer la config con la que salió el pedido. */
+  const clientCapturingConfig = () => {
+    const client = axios.create()
+    setupInterceptors(client)
+    let sent: InternalAxiosRequestConfig | undefined
+    client.defaults.adapter = async (config) => {
+      sent = config
+      return { status: 200, statusText: "", data: {}, headers: {}, config }
+    }
+    return { client, sent: () => sent }
+  }
+
+  it("declara JSON para un cuerpo normal", async () => {
+    const { client, sent } = clientCapturingConfig()
+
+    await client.post("/courses", { name: "Primero A" })
+
+    expect(sent()?.headers["Content-Type"]).toBe("application/json")
+  })
+
+  /**
+   * Un `FormData` se manda solo: el navegador le pone su `multipart/form-data` con el `boundary`
+   * que acaba de generar. Pisarlo con JSON deja un cuerpo que el servidor no puede partir, y la
+   * falla aparece del otro lado sin nombrar la causa.
+   */
+  it("no pisa el tipo de un FormData", async () => {
+    const { client, sent } = clientCapturingConfig()
+
+    await client.post("/students/import", new FormData())
+
+    expect(sent()?.headers["Content-Type"]).not.toBe("application/json")
+  })
 })
 
 describe("el 401 de un login que falla", () => {

@@ -48,7 +48,12 @@ const createAxiosInstance = (): AxiosInstance => axios.create({ baseURL })
 export const setupInterceptors = (httpClient: AxiosInstance): void => {
   httpClient.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
-      config.headers["Content-Type"] = "application/json"
+      // Un `FormData` se manda solo: el navegador le pone su `multipart/form-data` con el
+      // `boundary` que acaba de generar. Pisarlo con `application/json` deja un cuerpo que el
+      // servidor no puede partir, y el error sale del otro lado sin nombrar la causa.
+      if (!(config.data instanceof FormData)) {
+        config.headers["Content-Type"] = "application/json"
+      }
       const jwt = useAuthStore.getState().accessToken
       if (jwt) {
         config.headers["Authorization"] = `Bearer ${jwt}`
@@ -74,14 +79,13 @@ export const setupInterceptors = (httpClient: AxiosInstance): void => {
         return Promise.reject(error)
       }
 
-      // Todo lo que llegue hasta acá se cuenta, salvo lo que la interfaz canceló ella misma al
-      // desmontar o al cambiar de filtro — eso no es una falla y avisarlo sería acusar al usuario
-      // de algo que hizo la aplicación.
+      // Todo lo que llegue hasta acá se cuenta, incluido lo que no trae estado: un servidor que
+      // no contesta deja `status` en 0, y filtrar por `>= 400` lo dejaba pasar callado. La
+      // excepción es lo que la interfaz canceló ella misma al desmontar o al cambiar de filtro —
+      // eso no es una falla, y avisarlo sería acusar al usuario de algo que hizo la aplicación.
       //
-      // La condición era `status >= 400`, y un servidor que no contesta no deja estado: quedaba
-      // en 0 y no entraba, así que la caída de la API era otro silencio y el mensaje de
-      // `extractMessage` no lo alcanzaba nadie. El código va sólo cuando existe; "Código
-      // desconocido" no le dice nada a quien perdió la conexión.
+      // El código va sólo cuando existe: a quien perdió la conexión, "Código desconocido" no le
+      // agrega nada sobre el mensaje que ya lee.
       if (error.code === AxiosError.ERR_CANCELED) {
         return Promise.reject(error)
       }

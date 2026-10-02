@@ -1,0 +1,152 @@
+import { render, screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
+import { beforeEach, describe, expect, it, vi } from "vitest"
+
+import { ParallelCoursesPage } from "./ParallelCoursesPage"
+import type { Course } from "../types/course"
+
+const course = (over: Partial<Course>): Course => ({
+  id: "c",
+  gradeId: 1,
+  gradeName: "Primero",
+  parallelId: 1,
+  parallelName: "A",
+  academicYearId: 2,
+  year: 2026,
+  homeroomTeacherId: null,
+  homeroomTeacherName: null,
+  active: true,
+  homeroomTeacherActive: false,
+  ...over,
+})
+
+const c2026 = course({ id: "c-2026", gradeName: "Primero 2026-row" })
+const c2027 = course({
+  id: "c-2027",
+  gradeName: "Primero 2027-row",
+  academicYearId: 3,
+  year: 2027,
+})
+const otherParallel = course({
+  id: "c-b",
+  gradeName: "Segundo B-row",
+  parallelId: 2,
+  parallelName: "B",
+})
+
+interface QueryState {
+  data?: { content: Course[] }
+  isLoading: boolean
+  isError: boolean
+}
+
+let years: {
+  data:
+    | { id: number; year: number; active: boolean; closed: boolean }[]
+    | undefined
+  isLoading: boolean
+  isError: boolean
+}
+let coursesState: (yearId: number | null) => QueryState
+const yearCalls: (number | null)[] = []
+
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
+}))
+
+vi.mock("@/features/catalog/hooks/useCatalog", () => ({
+  useAcademicYears: () => years,
+  useParallels: () => ({ data: [{ id: 1, name: "A" }] }),
+}))
+
+vi.mock("../hooks/useCourses", () => ({
+  useCoursesOfYear: (id: number | null) => {
+    yearCalls.push(id)
+    return coursesState(id)
+  },
+}))
+
+vi.mock("./CourseInfoModal", () => ({ CourseInfoModal: () => null }))
+vi.mock("./SetHomeroomDialog", () => ({ SetHomeroomDialog: () => null }))
+
+beforeEach(() => {
+  yearCalls.length = 0
+  years = {
+    data: [
+      { id: 1, year: 2025, active: false, closed: true },
+      { id: 2, year: 2026, active: true, closed: false },
+      { id: 3, year: 2027, active: false, closed: false },
+    ],
+    isLoading: false,
+    isError: false,
+  }
+  coursesState = (yearId) => ({
+    data: {
+      content:
+        yearId === 2 ? [c2026, otherParallel] : yearId === 3 ? [c2027] : [],
+    },
+    isLoading: false,
+    isError: false,
+  })
+})
+
+describe("ParallelCoursesPage", () => {
+  it("defaults to the active year and lists only the courses of this parallel", () => {
+    render(<ParallelCoursesPage parallelId="1" />)
+    expect(yearCalls.at(-1)).toBe(2)
+    expect(screen.getByRole("combobox")).toHaveTextContent("Gestión 2026")
+    expect(screen.getByText("Primero 2026-row")).toBeInTheDocument()
+    expect(screen.queryByText("Segundo B-row")).not.toBeInTheDocument()
+    expect(screen.queryByText("Primero 2027-row")).not.toBeInTheDocument()
+  })
+
+  it("refetches the courses of the year the Director switches to", async () => {
+    render(<ParallelCoursesPage parallelId="1" />)
+    await userEvent.click(screen.getByRole("combobox"))
+    await userEvent.click(
+      await screen.findByRole("option", { name: "Gestión 2027" })
+    )
+    expect(yearCalls.at(-1)).toBe(3)
+    expect(screen.getByText("Primero 2027-row")).toBeInTheDocument()
+    expect(screen.queryByText("Primero 2026-row")).not.toBeInTheDocument()
+  })
+
+  it("says the year has no courses when the fetch succeeded empty", async () => {
+    render(<ParallelCoursesPage parallelId="1" />)
+    await userEvent.click(screen.getByRole("combobox"))
+    await userEvent.click(
+      await screen.findByRole("option", { name: "Gestión 2025 (cerrada)" })
+    )
+    expect(screen.getByText("Sin cursos en este paralelo.")).toBeInTheDocument()
+  })
+
+  it("shows an error, not the empty state, when the courses fetch fails", () => {
+    coursesState = () => ({ data: undefined, isLoading: false, isError: true })
+    render(<ParallelCoursesPage parallelId="1" />)
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "No se pudieron cargar los cursos"
+    )
+    expect(
+      screen.queryByText("Sin cursos en este paralelo.")
+    ).not.toBeInTheDocument()
+  })
+
+  it("shows an error when the years fetch fails", () => {
+    years = { data: undefined, isLoading: false, isError: true }
+    render(<ParallelCoursesPage parallelId="1" />)
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "No se pudieron cargar las gestiones"
+    )
+  })
+
+  it("asks for a year when none is active", () => {
+    years = {
+      data: [{ id: 1, year: 2025, active: false, closed: true }],
+      isLoading: false,
+      isError: false,
+    }
+    render(<ParallelCoursesPage parallelId="1" />)
+    expect(yearCalls.at(-1)).toBeNull()
+    expect(screen.getByText(/No hay una gestión activa/)).toBeInTheDocument()
+  })
+})

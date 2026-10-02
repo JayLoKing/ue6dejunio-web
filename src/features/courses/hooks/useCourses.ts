@@ -31,6 +31,27 @@ export function useAllCourses(enabled = true) {
   })
 }
 
+/**
+ * Los cursos de UNA gestión (página ancha), para todo lo que se arma o se mira dentro de un año.
+ *
+ * La clave lleva la gestión: dos años son dos listas, y compartirla mostraría la del anterior al
+ * cambiar. Sin gestión no consulta: `null` es "todavía no se sabe cuál", no "todas".
+ */
+export function useCoursesOfYear(academicYearId: number | null) {
+  return useQuery({
+    queryKey: ["courses", "year", academicYearId],
+    queryFn:
+      academicYearId === null
+        ? skipToken
+        : () =>
+            CourseService.list(
+              { offset: 1, limit: 200, sort: "asc" },
+              academicYearId
+            ),
+    staleTime: 5 * 60_000,
+  })
+}
+
 export function useTeacherClassGroups(userId: string | null | undefined) {
   return useQuery({
     queryKey: ["teacher", userId ?? "", "class-groups"],

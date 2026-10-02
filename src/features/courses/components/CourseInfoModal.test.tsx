@@ -187,6 +187,13 @@ describe("CourseInfoModal, docente por materia", () => {
     ).toBeInTheDocument()
   })
 
+  it("keeps showing the current teacher even when the rules no longer list them", () => {
+    withGroups([classGroup({ teacherId: "gone-1", teacherName: "Rosa Gone" })])
+    render(<CourseInfoModal course={course} onClose={vi.fn()} />)
+
+    expect(screen.getByRole("combobox")).toHaveTextContent("Rosa Gone")
+  })
+
   it("saves the picked teacher against that course and class group", async () => {
     withGroups([classGroup({ id: "cg-7" })])
     render(<CourseInfoModal course={course} onClose={vi.fn()} />)

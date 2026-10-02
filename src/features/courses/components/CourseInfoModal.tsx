@@ -116,11 +116,25 @@ export function CourseInfoModal({ course, onClose }: CourseInfoModalProps) {
                 <ul className="flex flex-col gap-1">
                   {classGroups.map((cg) => {
                     const technical = isTechnicalSubject(cg.subjectName)
-                    const options = eligibleSubjectTeachers(technical, {
+                    const eligible = eligibleSubjectTeachers(technical, {
                       technicalTeachers: technicalTeachers.data ?? [],
                       aulaTeachers: aulaTeachers.data ?? [],
                       homeroomTeacherId,
                     })
+                    // Quien la dicta hoy sigue en la lista aunque la regla ya no lo ofrezca (dado
+                    // de baja, o de aula de otro curso): sin ello el selector queda vacío y el
+                    // nombre se pierde.
+                    const options =
+                      cg.teacherId &&
+                      !eligible.some((t) => t.id === cg.teacherId)
+                        ? [
+                            ...eligible,
+                            {
+                              id: cg.teacherId,
+                              fullName: cg.teacherName || "Docente actual",
+                            },
+                          ]
+                        : eligible
                     const saving =
                       reassign.isPending &&
                       reassign.variables?.classGroupId === cg.id

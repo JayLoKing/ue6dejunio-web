@@ -28,6 +28,10 @@ export interface TeacherItem {
 export interface AcademicYearItem {
   id: number
   year: number
+  /** La que el Director declaró en curso; hay una sola. */
+  active: boolean
+  /** Cerrada: ya no admite cambios. */
+  closed: boolean
 }
 
 /** Trimestre configurado (catálogo): 1|2|3 + rango de fechas. */

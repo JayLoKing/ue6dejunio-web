@@ -68,13 +68,14 @@ vi.mock("@/features/catalog/hooks/useCatalog", () => ({
     ],
     isLoading: false,
   }),
-  // La primera es la actual: así las ordena el backend, y es de la que hablan las dos reglas.
+  // 2027 ya existe y es la más reciente, pero la activa es 2026: la actual no es la primera.
   useAcademicYears: () => ({
     data: yearsLoading
       ? undefined
       : [
-          { id: 2, year: 2026 },
-          { id: 1, year: 2025 },
+          { id: 3, year: 2027, active: false, closed: false },
+          { id: 2, year: 2026, active: true, closed: false },
+          { id: 1, year: 2025, active: false, closed: true },
         ],
     isLoading: yearsLoading,
   }),

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 
 import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
+import { activeAcademicYear } from "@/features/catalog/utils/activeAcademicYear"
 import { useAcademicYears } from "@/features/catalog/hooks/useCatalog"
 import { DashboardCharts } from "@/features/gradebook/components/DashboardCharts"
 import { DirectorDashboardCharts } from "@/features/gradebook/components/DirectorDashboardCharts"
@@ -32,11 +33,11 @@ function DashboardPage() {
   const { isTeacher, isDirector, isSecretary, homeroomCourseId } =
     useCurrentContext()
 
-  // La gestión actual es la primera: el catálogo las devuelve de la más reciente a la más antigua.
+  // La gestión actual es la activa (`activeAcademicYear`), no la más reciente.
   // Va el `id`, la clave SERIAL de la fila, y no el `year` calendario — los dos son números y
   // mandar el equivocado no falla, responde por otra gestión.
   const years = useAcademicYears()
-  const academicYearId = years.data?.[0]?.id ?? null
+  const academicYearId = activeAcademicYear(years.data)?.id ?? null
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -60,8 +61,8 @@ function DashboardPage() {
       {(isDirector || isSecretary) &&
         (academicYearId === null ? (
           <PageNotice>
-            Sin gestión registrada. Los indicadores se calculan sobre una
-            gestión.
+            Sin gestión activa. Los indicadores se calculan sobre la gestión en
+            curso.
           </PageNotice>
         ) : isDirector ? (
           <DirectorDashboardCharts academicYearId={academicYearId} />

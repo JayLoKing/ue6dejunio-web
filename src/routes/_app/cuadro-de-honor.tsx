@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAuthStore } from "@/features/auth/store/authStore"
 import { isRole } from "@/features/auth/types"
 import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
+import { activeAcademicYear } from "@/features/catalog/utils/activeAcademicYear"
 import { useAcademicYears } from "@/features/catalog/hooks/useCatalog"
 import { useAllCourses } from "@/features/courses/hooks/useCourses"
 import {
@@ -86,11 +87,12 @@ function SchoolWideHonorRoll() {
   // arranca vacío teniendo cursos para mostrar parece roto.
   const courseId = chosenCourseId ?? rows[0]?.id ?? null
 
-  // La gestión actual es la primera: el catálogo las devuelve de la más reciente a la más antigua.
+  // La gestión actual es la activa (`activeAcademicYear`), no la más reciente.
   // Se manda `id` y no `year` — el endpoint filtra por la clave de la fila. El `year` va aparte,
   // sólo para que el documento diga la gestión en el número que la persona lee.
-  const currentYearId = years.data?.[0]?.id ?? null
-  const currentYear = years.data?.[0]?.year ?? null
+  const activeYear = activeAcademicYear(years.data)
+  const currentYearId = activeYear?.id ?? null
+  const currentYear = activeYear?.year ?? null
 
   const chosen = rows.find((course) => course.id === courseId)
   const courseLabel = chosen

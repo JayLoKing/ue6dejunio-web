@@ -45,8 +45,7 @@ export const useSubjects = () =>
 /**
  * Las gestiones, de la más reciente a la más antigua.
  *
- * La primera es la actual — el backend ordena así, y de ahí sale la que el directorio muestra
- * cuando nadie eligió ninguna.
+ * La actual es la que trae `active`, no la primera: ver `activeAcademicYear`.
  */
 export const useAcademicYears = () =>
   useQuery({

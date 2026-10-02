@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 
+import { activeAcademicYear } from "@/features/catalog/utils/activeAcademicYear"
 import {
   useAcademicYears,
   useGrades,
@@ -67,11 +68,12 @@ export function AssignCourseSubjectsForm() {
   const saving = createCourse.isPending
 
   /**
-   * La gestión que se está armando. La primera de la lista es la actual — así las ordena el
-   * backend — y es la única contra la que se mide qué está ocupado: `POST /courses` crea el curso
+   * La gestión que se está armando. La actual es la gestión activa — la que declaró el Director,
+   * no la más reciente — y es la única contra la que se mide qué está ocupado: `POST /courses` crea el curso
    * en la gestión en curso, y un paralelo o un docente de aula del año pasado no ocupan nada hoy.
    */
-  const currentAcademicYearId = academicYears.data?.[0]?.id ?? null
+  const currentAcademicYearId =
+    activeAcademicYear(academicYears.data)?.id ?? null
   const courses = useMemo(
     () => allCourses.data?.content ?? [],
     [allCourses.data]

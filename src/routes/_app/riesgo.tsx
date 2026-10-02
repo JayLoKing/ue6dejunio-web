@@ -15,6 +15,7 @@ import { TrimesterSelect } from "@/components/shared/TrimesterSelect"
 import { useAuthStore } from "@/features/auth/store/authStore"
 import { isRole } from "@/features/auth/types"
 import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
+import { activeAcademicYear } from "@/features/catalog/utils/activeAcademicYear"
 import { useAcademicYears } from "@/features/catalog/hooks/useCatalog"
 import { useAllCourses } from "@/features/courses/hooks/useCourses"
 import { ClassGroupRiskPanel } from "@/features/risk/components/ClassGroupRiskPanel"
@@ -107,11 +108,12 @@ function SchoolWideRisk({
   // render de más y un estado que puede quedar apuntando a un curso que la lista ya no trae.
   const courseId = chosenCourseId ?? rows[0]?.id ?? null
 
-  // La gestión actual es la primera: el catálogo las devuelve de la más reciente a la más antigua.
+  // La gestión actual es la activa (`activeAcademicYear`), no la más reciente.
   // Dos claves distintas de la misma fila y no intercambiables: el barrido manda `year`, el año
   // calendario; la lista institucional manda `id`, la clave SERIAL de la fila.
-  const currentYear = years.data?.[0]?.year ?? null
-  const currentYearId = years.data?.[0]?.id ?? null
+  const activeYear = activeAcademicYear(years.data)
+  const currentYear = activeYear?.year ?? null
+  const currentYearId = activeYear?.id ?? null
 
   return (
     <div className="flex flex-col gap-4">

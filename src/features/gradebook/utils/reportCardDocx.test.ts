@@ -40,6 +40,8 @@ const card = (over: Partial<StudentReportCard> = {}): StudentReportCard => ({
   trimesterAverages: [78, 81, 85],
   finalAverage: 81.33,
   finalAverageInWords: "ochenta y uno",
+  finalResult: null,
+  frozen: false,
   trimesterOutcomes: [
     { trimester: 1, passedAreas: 4, failedAreas: 0 },
     { trimester: 2, passedAreas: 3, failedAreas: 1 },

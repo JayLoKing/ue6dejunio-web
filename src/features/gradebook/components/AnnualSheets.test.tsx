@@ -36,6 +36,8 @@ const nelsy: StudentAnnualSummary = {
   ],
   trimesterAverages: [5.5, 10, 55],
   finalAverage: 23.5,
+  finalResult: null,
+  frozen: false,
 }
 
 const joana: StudentAnnualSummary = {
@@ -62,6 +64,8 @@ const joana: StudentAnnualSummary = {
   ],
   trimesterAverages: [80, 80, 85],
   finalAverage: 85,
+  finalResult: null,
+  frozen: false,
 }
 
 function rowOf(name: string) {
@@ -213,5 +217,48 @@ describe("AnnualRanking", () => {
     // Both the average and the situation stay blank: an unjudged year is not a failed one.
     expect(within(rows[1]).getAllByText("—")).toHaveLength(2)
     expect(within(rows[1]).getByText(/sin calificar/i)).toBeInTheDocument()
+  })
+})
+
+describe("AnnualCentralizerTable of a closed year", () => {
+  const frozenNelsy = { ...nelsy, finalResult: "FAILED" as const, frozen: true }
+  const frozenJoana = {
+    ...joana,
+    finalResult: "APPROVED" as const,
+    frozen: true,
+  }
+  const withdrawn = {
+    ...joana,
+    courseEnrollmentId: "enr-3",
+    fullName: "RETIRADO EVA",
+    finalAverage: null,
+    finalResult: null,
+    frozen: true,
+  }
+
+  it("adds a Resultado column with the frozen outcome", () => {
+    render(<AnnualCentralizerTable rows={[frozenNelsy, frozenJoana]} />)
+
+    expect(
+      screen.getByRole("columnheader", { name: /Resultado/i })
+    ).toBeInTheDocument()
+    expect(within(rowOf("NELSY")).getByText("REPROBADO")).toBeInTheDocument()
+    expect(within(rowOf("JOANA")).getByText("APROBADO")).toBeInTheDocument()
+  })
+
+  it("shows a dash for a frozen row with no result", () => {
+    render(<AnnualCentralizerTable rows={[frozenJoana, withdrawn]} />)
+
+    expect(
+      within(rowOf("RETIRADO")).queryByText(/APROBADO|REPROBADO/)
+    ).not.toBeInTheDocument()
+  })
+
+  it("has no Resultado column while the year is open", () => {
+    render(<AnnualCentralizerTable rows={[nelsy, joana]} />)
+
+    expect(
+      screen.queryByRole("columnheader", { name: /Resultado/i })
+    ).not.toBeInTheDocument()
   })
 })

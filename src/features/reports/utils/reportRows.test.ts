@@ -1,4 +1,9 @@
+import { Packer } from "docx"
+import JSZip from "jszip"
 import { describe, expect, it } from "vitest"
+
+import { tabularReportDocxOf } from "@/lib/tabularReportDocx"
+import type { Institution } from "@/features/institution/types"
 
 import {
   attendanceReportRows,
@@ -176,6 +181,8 @@ const summary = (
   ],
   trimesterAverages: [75, 85, 82.5],
   finalAverage: 80.8,
+  finalResult: null,
+  frozen: false,
   ...over,
 })
 
@@ -261,5 +268,75 @@ describe("centralizerRows", () => {
 
     expect(rows[1][2]).toBe("85.0")
     expect(rows[1][3]).toBe("72.5")
+  })
+})
+
+describe("centralizerRows of a closed year", () => {
+  const approved = summary({ finalResult: "APPROVED", frozen: true })
+  const failed = summary({
+    fullName: "Luis Zambrana",
+    finalAverage: 40,
+    finalResult: "FAILED",
+    frozen: true,
+  })
+  const withdrawn = summary({
+    fullName: "Eva Retirada",
+    finalAverage: null,
+    finalResult: null,
+    frozen: true,
+  })
+
+  it("adds a Resultado column after the final average, before Estado", () => {
+    const headers = centralizerColumns([approved]).map((c) => c.header)
+
+    expect(headers.slice(-3)).toEqual(["Promedio final", "Resultado", "Estado"])
+  })
+
+  it("writes the frozen result and a dash when there is none", () => {
+    const rows = centralizerRows([approved, failed, withdrawn])
+
+    expect(rows.map((r) => r[8])).toEqual(["APROBADO", "REPROBADO", "—"])
+    expect(rows.every((r) => r.length === 10)).toBe(true)
+  })
+
+  it("adds no column while the year is open", () => {
+    const open = summary()
+
+    expect(centralizerColumns([open]).map((c) => c.header)).not.toContain(
+      "Resultado"
+    )
+    expect(centralizerRows([open])[0]).toHaveLength(9)
+  })
+
+  // The builder-level checks above stay green on an empty file; the zip is what Word opens.
+  it("lands in the exported .docx", async () => {
+    const school: Institution = {
+      district: "D",
+      school: "Unidad Educativa 6 de Junio",
+      directorName: "Director",
+      department: "Cochabamba",
+      dependency: "Fiscal",
+      shift: "Mañana",
+      educationLevel: "Primaria",
+    }
+    const exportOf = async (data: StudentAnnualSummary[]): Promise<string> => {
+      const doc = tabularReportDocxOf({
+        school,
+        title: "CONSOLIDADO DE CALIFICACIONES",
+        subtitles: [],
+        columns: centralizerColumns(data),
+        rows: centralizerRows(data),
+      })
+      const zip = await JSZip.loadAsync(await Packer.toBlob(doc))
+      return (await zip.file("word/document.xml")?.async("string")) ?? ""
+    }
+
+    const frozenXml = await exportOf([approved, failed])
+    expect(frozenXml).toContain("Resultado")
+    expect(frozenXml).toContain("APROBADO")
+    expect(frozenXml).toContain("REPROBADO")
+
+    const openXml = await exportOf([summary()])
+    expect(openXml).not.toContain("Resultado")
   })
 })

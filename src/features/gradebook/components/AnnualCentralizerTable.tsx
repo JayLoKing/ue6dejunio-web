@@ -8,6 +8,7 @@ import { qualitativeBandOf, statusClassName, statusOf } from "@/lib/grading"
 
 import { subjectColumnsOf } from "../utils/subjectColumns"
 import { formatMark, trimesterMarksOf } from "../utils/annualMarks"
+import { finalResultLabel, hasFrozenRows } from "../utils/finalResult"
 import type { StudentAnnualSummary } from "../types"
 
 export interface AnnualCentralizerTableProps {
@@ -32,7 +33,10 @@ export function AnnualCentralizerTable({
   renderStudent,
 }: AnnualCentralizerTableProps) {
   const subjects = useMemo(() => subjectColumnsOf(rows), [rows])
-  const columnCount = subjects.length * TRIMESTER_HEADS.length + 3
+  // Un año cerrado trae el resultado congelado: una columna más, sólo entonces.
+  const frozen = hasFrozenRows(rows)
+  const columnCount =
+    subjects.length * TRIMESTER_HEADS.length + (frozen ? 4 : 3)
 
   return (
     <div className="min-w-0 overflow-hidden rounded-md border bg-card">
@@ -62,6 +66,14 @@ export function AnnualCentralizerTable({
               >
                 PROMEDIO FINAL
               </th>
+              {frozen && (
+                <th
+                  rowSpan={2}
+                  className="min-w-28 border-r border-b bg-muted/50 px-3 py-2 text-center align-bottom font-medium"
+                >
+                  RESULTADO
+                </th>
+              )}
               <th
                 rowSpan={2}
                 className="min-w-32 border-b bg-muted/50 px-3 py-2 text-center align-bottom font-medium"
@@ -150,6 +162,18 @@ export function AnnualCentralizerTable({
                     <td className="border-r bg-brand/10 px-3 py-2 text-center font-semibold text-brand">
                       {formatMark(final)}
                     </td>
+                    {frozen && (
+                      <td
+                        className={cn(
+                          "border-r px-3 py-2 text-center font-medium",
+                          rowBg
+                        )}
+                      >
+                        {finalResultLabel(row.finalResult) ?? (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </td>
+                    )}
                     <td className={cn("px-3 py-2 text-center", rowBg)}>
                       {status == null ? (
                         <span className="text-muted-foreground">—</span>

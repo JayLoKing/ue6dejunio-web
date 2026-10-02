@@ -5,6 +5,10 @@ import {
 import type { InstitutionRiskEntry } from "@/features/risk/types/risk"
 
 import { formatMark } from "@/features/gradebook/utils/annualMarks"
+import {
+  finalResultLabel,
+  hasFrozenRows,
+} from "@/features/gradebook/utils/finalResult"
 import { statusOf } from "@/lib/grading"
 import type {
   HonorRollEntry,
@@ -108,6 +112,7 @@ export function centralizerColumns(
   rows: StudentAnnualSummary[]
 ): ReportColumn[] {
   const areas = rows[0]?.subjects.map((subject) => subject.subjectName) ?? []
+  const frozen = hasFrozenRows(rows)
   return [
     { header: "N°", width: 500, align: "center" },
     { header: "Estudiante", width: 2600 },
@@ -120,6 +125,9 @@ export function centralizerColumns(
     { header: "2do trim.", width: 800, align: "center" as const },
     { header: "3er trim.", width: 800, align: "center" as const },
     { header: "Promedio final", width: 1000, align: "center" as const },
+    ...(frozen
+      ? [{ header: "Resultado", width: 1100, align: "center" as const }]
+      : []),
     { header: "Estado", width: 1100, align: "center" as const },
   ]
 }
@@ -137,6 +145,7 @@ export function centralizerColumns(
  */
 export function centralizerRows(rows: StudentAnnualSummary[]): string[][] {
   const areas = rows[0]?.subjects.map((subject) => subject.subjectName) ?? []
+  const frozen = hasFrozenRows(rows)
   return rows.map((row, index) => [
     String(index + 1),
     row.fullName,
@@ -150,6 +159,7 @@ export function centralizerRows(rows: StudentAnnualSummary[]): string[][] {
     formatMark(row.trimesterAverages[1], 1),
     formatMark(row.trimesterAverages[2], 1),
     formatMark(row.finalAverage, 1),
+    ...(frozen ? [finalResultLabel(row.finalResult) ?? NO_DATA] : []),
     row.finalAverage == null ? "Sin calificar" : statusOf(row.finalAverage),
   ])
 }

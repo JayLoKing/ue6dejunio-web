@@ -65,6 +65,8 @@ const card: StudentReportCard = {
   trimesterAverages: [70, 80, 80],
   finalAverage: 70,
   finalAverageInWords: "Setenta",
+  finalResult: null,
+  frozen: false,
   trimesterOutcomes: [
     { trimester: 1, passedAreas: 2, failedAreas: 0 },
     { trimester: 2, passedAreas: 1, failedAreas: 0 },

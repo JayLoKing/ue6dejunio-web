@@ -30,6 +30,9 @@ export interface AnnualSubjectTotal {
   average: number | null
 }
 
+/** El resultado anual que la API congela al cerrar el año. */
+export type FinalResult = "APPROVED" | "FAILED"
+
 /**
  * El año de un estudiante (GET /gradebook/annual-centralizer). Alimenta las tres hojas de cierre:
  * la matriz por área, los promedios por trimestre y el ranking ordenado por `finalAverage`.
@@ -45,6 +48,10 @@ export interface StudentAnnualSummary {
   subjects: AnnualSubjectTotal[]
   trimesterAverages: [number | null, number | null, number | null]
   finalAverage: number | null
+  /** El resultado congelado al cerrar el año; null si el año sigue abierto o no hay resultado. */
+  finalResult: FinalResult | null
+  /** true en toda fila de un año cerrado, incluso con `finalResult` en null (retirado o sin notas). */
+  frozen: boolean
 }
 
 /**
@@ -122,6 +129,10 @@ export interface StudentReportCard {
   finalAverage: number | null
   /** El promedio anual escrito en palabras. Vacío cuando no hay nada calificado. */
   finalAverageInWords: string
+  /** El resultado congelado del año cerrado; null si está abierto o no hay resultado. */
+  finalResult: FinalResult | null
+  /** true cuando el año está cerrado: el promedio y el resultado salen del congelado. */
+  frozen: boolean
   trimesterOutcomes: ReportCardOutcome[]
 }
 

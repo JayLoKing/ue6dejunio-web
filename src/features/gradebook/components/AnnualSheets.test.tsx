@@ -256,29 +256,79 @@ describe("AnnualCentralizerTable of a closed year", () => {
     frozen: true,
   }
 
-  it("adds a Resultado column with the frozen outcome", () => {
+  it("has a single situation column, never a separate Resultado one", () => {
     render(<AnnualCentralizerTable rows={[frozenNelsy, frozenJoana]} />)
 
     expect(
-      screen.getByRole("columnheader", { name: /Resultado/i })
-    ).toBeInTheDocument()
-    expect(within(rowOf("NELSY")).getByText("REPROBADO")).toBeInTheDocument()
-    expect(within(rowOf("JOANA")).getByText("APROBADO")).toBeInTheDocument()
+      screen.queryByRole("columnheader", { name: /^Resultado$/i })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getAllByRole("columnheader", { name: /SITUACIÓN FINAL/i })
+    ).toHaveLength(1)
+  })
+
+  it("shows the frozen outcome in the situation column", () => {
+    render(<AnnualCentralizerTable rows={[frozenNelsy, frozenJoana]} />)
+
+    expect(within(rowOf("NELSY")).getByText(/Reprobado/)).toBeInTheDocument()
+    expect(within(rowOf("JOANA")).getByText(/Aprobado/)).toBeInTheDocument()
+  })
+
+  it("lets the frozen result override the computed average", () => {
+    // Average 60 would pass, but the year closed with FAILED: the freeze is the last word.
+    render(
+      <AnnualCentralizerTable
+        rows={[{ ...frozenNelsy, finalAverage: 60, finalResult: "FAILED" }]}
+      />
+    )
+
+    expect(within(rowOf("NELSY")).getByText(/Reprobado/)).toBeInTheDocument()
   })
 
   it("shows a dash for a frozen row with no result", () => {
     render(<AnnualCentralizerTable rows={[frozenJoana, withdrawn]} />)
 
     expect(
-      within(rowOf("RETIRADO")).queryByText(/APROBADO|REPROBADO/)
+      within(rowOf("RETIRADO")).queryByText(/APROBADO|REPROBADO/i)
     ).not.toBeInTheDocument()
+    const cells = within(rowOf("RETIRADO")).getAllByRole("cell")
+    expect(cells[cells.length - 1]).toHaveTextContent("—")
+  })
+})
+
+describe("AnnualCentralizerTable of an open year", () => {
+  it("judges 50.6 approved, as the report card prints 51", () => {
+    render(<AnnualCentralizerTable rows={[{ ...nelsy, finalAverage: 50.6 }]} />)
+
+    expect(within(rowOf("NELSY")).getByText(/Aprobado/)).toBeInTheDocument()
   })
 
-  it("has no Resultado column while the year is open", () => {
-    render(<AnnualCentralizerTable rows={[nelsy, joana]} />)
+  it("judges 50.49 failed, as the report card prints 50", () => {
+    render(
+      <AnnualCentralizerTable rows={[{ ...nelsy, finalAverage: 50.49 }]} />
+    )
 
-    expect(
-      screen.queryByRole("columnheader", { name: /Resultado/i })
-    ).not.toBeInTheDocument()
+    expect(within(rowOf("NELSY")).getByText(/Reprobado/)).toBeInTheDocument()
+  })
+})
+
+describe("TrimesterAveragesTable situation", () => {
+  it("follows the annual rule and the freeze", () => {
+    render(
+      <TrimesterAveragesTable
+        rows={[
+          { ...nelsy, finalAverage: 50.6 },
+          {
+            ...joana,
+            finalAverage: 60,
+            finalResult: "FAILED",
+            frozen: true,
+          },
+        ]}
+      />
+    )
+
+    expect(within(rowOf("NELSY")).getByText(/Aprobado/)).toBeInTheDocument()
+    expect(within(rowOf("JOANA")).getByText(/Reprobado/)).toBeInTheDocument()
   })
 })

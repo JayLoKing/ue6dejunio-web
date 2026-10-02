@@ -4,11 +4,11 @@ import { Loader2Icon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
-import { qualitativeBandOf, statusClassName, statusOf } from "@/lib/grading"
+import { qualitativeBandOf, statusClassName } from "@/lib/grading"
 
 import { subjectColumnsOf } from "../utils/subjectColumns"
 import { formatMark, trimesterMarksOf } from "../utils/annualMarks"
-import { finalResultLabel, hasFrozenRows } from "../utils/finalResult"
+import { annualSituationOf } from "../utils/finalResult"
 import type { StudentAnnualSummary } from "../types"
 
 export interface AnnualCentralizerTableProps {
@@ -22,7 +22,8 @@ const TRIMESTER_HEADS = ["1", "2", "3", "PR"] as const
 
 /**
  * Hoja CENTRALIZADOR ANUAL de la escuela: un bloque de 1 | 2 | 3 | PR por área de conocimiento,
- * cerrando con el promedio final y la situación final.
+ * cerrando con el promedio final y la situación final. La situación es una sola columna: sigue la
+ * regla anual en un año abierto y el resultado congelado en uno cerrado.
  *
  * Presentacional a propósito: todos los promedios los calcula la API, en un solo lugar, para que
  * esta hoja y la trimestral no puedan imprimir dos números distintos del mismo estudiante.
@@ -33,10 +34,7 @@ export function AnnualCentralizerTable({
   renderStudent,
 }: AnnualCentralizerTableProps) {
   const subjects = useMemo(() => subjectColumnsOf(rows), [rows])
-  // Un año cerrado trae el resultado congelado: una columna más, sólo entonces.
-  const frozen = hasFrozenRows(rows)
-  const columnCount =
-    subjects.length * TRIMESTER_HEADS.length + (frozen ? 4 : 3)
+  const columnCount = subjects.length * TRIMESTER_HEADS.length + 3
 
   return (
     <div className="min-w-0 overflow-hidden rounded-md border bg-card">
@@ -66,14 +64,6 @@ export function AnnualCentralizerTable({
               >
                 PROMEDIO FINAL
               </th>
-              {frozen && (
-                <th
-                  rowSpan={2}
-                  className="min-w-28 border-r border-b bg-muted/50 px-3 py-2 text-center align-bottom font-medium"
-                >
-                  RESULTADO
-                </th>
-              )}
               <th
                 rowSpan={2}
                 className="min-w-32 border-b bg-muted/50 px-3 py-2 text-center align-bottom font-medium"
@@ -123,7 +113,7 @@ export function AnnualCentralizerTable({
                   row.subjects.map((s) => [s.classGroupId, s])
                 )
                 const final = row.finalAverage
-                const status = final == null ? null : statusOf(Number(final))
+                const status = annualSituationOf(row)
                 return (
                   <tr key={row.courseEnrollmentId} className="border-t">
                     <td
@@ -162,25 +152,15 @@ export function AnnualCentralizerTable({
                     <td className="border-r bg-brand/10 px-3 py-2 text-center font-semibold text-brand">
                       {formatMark(final)}
                     </td>
-                    {frozen && (
-                      <td
-                        className={cn(
-                          "border-r px-3 py-2 text-center font-medium",
-                          rowBg
-                        )}
-                      >
-                        {finalResultLabel(row.finalResult) ?? (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </td>
-                    )}
                     <td className={cn("px-3 py-2 text-center", rowBg)}>
                       {status == null ? (
                         <span className="text-muted-foreground">—</span>
                       ) : (
                         <Badge className={cn("gap-1", statusClassName(status))}>
                           {status === "APROBADO" ? "Aprobado" : "Reprobado"} ·{" "}
-                          {qualitativeBandOf(Number(final)).code}
+                          {final == null
+                            ? null
+                            : qualitativeBandOf(Number(final)).code}
                         </Badge>
                       )}
                     </td>

@@ -286,26 +286,38 @@ describe("centralizerRows of a closed year", () => {
     frozen: true,
   })
 
-  it("adds a Resultado column after the final average, before Estado", () => {
+  it("adds no column: the situation is the single place for the result", () => {
     const headers = centralizerColumns([approved]).map((c) => c.header)
 
-    expect(headers.slice(-3)).toEqual(["Promedio final", "Resultado", "Estado"])
+    expect(headers).not.toContain("Resultado")
+    expect(headers.slice(-2)).toEqual(["Promedio final", "Estado"])
   })
 
-  it("writes the frozen result and a dash when there is none", () => {
+  it("writes the frozen result in Estado and Sin calificar when there is none", () => {
     const rows = centralizerRows([approved, failed, withdrawn])
 
-    expect(rows.map((r) => r[8])).toEqual(["APROBADO", "REPROBADO", "—"])
-    expect(rows.every((r) => r.length === 10)).toBe(true)
+    expect(rows.map((r) => r[8])).toEqual([
+      "APROBADO",
+      "REPROBADO",
+      "Sin calificar",
+    ])
+    expect(rows.every((r) => r.length === 9)).toBe(true)
   })
 
-  it("adds no column while the year is open", () => {
-    const open = summary()
+  it("lets the frozen result override the computed average", () => {
+    const row = centralizerRows([
+      summary({ finalAverage: 60, finalResult: "FAILED", frozen: true }),
+    ])[0]
 
-    expect(centralizerColumns([open]).map((c) => c.header)).not.toContain(
-      "Resultado"
+    expect(row[8]).toBe("REPROBADO")
+  })
+
+  it("follows the annual rule in an open year", () => {
+    const states = [50.49, 50.5, 50.6].map(
+      (finalAverage) => centralizerRows([summary({ finalAverage })])[0][8]
     )
-    expect(centralizerRows([open])[0]).toHaveLength(9)
+
+    expect(states).toEqual(["REPROBADO", "APROBADO", "APROBADO"])
   })
 
   // The builder-level checks above stay green on an empty file; the zip is what Word opens.
@@ -332,11 +344,16 @@ describe("centralizerRows of a closed year", () => {
     }
 
     const frozenXml = await exportOf([approved, failed])
-    expect(frozenXml).toContain("Resultado")
+    expect(frozenXml).not.toContain("Resultado")
     expect(frozenXml).toContain("APROBADO")
     expect(frozenXml).toContain("REPROBADO")
 
-    const openXml = await exportOf([summary()])
+    const openXml = await exportOf([
+      summary({ finalAverage: 50.6 }),
+      summary({ fullName: "Luis Zambrana", finalAverage: 50.49 }),
+    ])
     expect(openXml).not.toContain("Resultado")
+    expect(openXml).toContain("APROBADO")
+    expect(openXml).toContain("REPROBADO")
   })
 })

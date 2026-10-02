@@ -8,7 +8,9 @@ import type { FinalResult } from "../types"
  *
  * Null no es reprobado: en un año cerrado significa retirado o sin notas, y no se escribe nada.
  */
-export function finalResultLabel(result: FinalResult | null): string | null {
+export function finalResultLabel(
+  result: FinalResult | null
+): AcademicStatus | null {
   if (result === "APPROVED") return "APROBADO"
   if (result === "FAILED") return "REPROBADO"
   return null
@@ -24,11 +26,7 @@ export function annualSituationOf(row: {
   finalResult: FinalResult | null
   frozen: boolean
 }): AcademicStatus | null {
-  if (row.frozen) {
-    if (row.finalResult === "APPROVED") return "APROBADO"
-    if (row.finalResult === "FAILED") return "REPROBADO"
-    return null
-  }
+  if (row.frozen) return finalResultLabel(row.finalResult)
   return row.finalAverage == null
     ? null
     : annualStatusOf(Number(row.finalAverage))

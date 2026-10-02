@@ -5,11 +5,7 @@ import {
 import type { InstitutionRiskEntry } from "@/features/risk/types/risk"
 
 import { formatMark } from "@/features/gradebook/utils/annualMarks"
-import {
-  finalResultLabel,
-  hasFrozenRows,
-} from "@/features/gradebook/utils/finalResult"
-import { statusOf } from "@/lib/grading"
+import { annualSituationOf } from "@/features/gradebook/utils/finalResult"
 import type {
   HonorRollEntry,
   StudentAnnualSummary,
@@ -112,7 +108,6 @@ export function centralizerColumns(
   rows: StudentAnnualSummary[]
 ): ReportColumn[] {
   const areas = rows[0]?.subjects.map((subject) => subject.subjectName) ?? []
-  const frozen = hasFrozenRows(rows)
   return [
     { header: "N°", width: 500, align: "center" },
     { header: "Estudiante", width: 2600 },
@@ -125,9 +120,6 @@ export function centralizerColumns(
     { header: "2do trim.", width: 800, align: "center" as const },
     { header: "3er trim.", width: 800, align: "center" as const },
     { header: "Promedio final", width: 1000, align: "center" as const },
-    ...(frozen
-      ? [{ header: "Resultado", width: 1100, align: "center" as const }]
-      : []),
     { header: "Estado", width: 1100, align: "center" as const },
   ]
 }
@@ -138,14 +130,13 @@ export function centralizerColumns(
  *
  * La indicación es la palabra y no un color: el RF la llama "indicación visual", y en una hoja que se
  * imprime y se fotocopia en blanco y negro un color no indica nada. "Sin calificar" no es reprobado —
- * `statusOf` decide sobre un número, y sin promedio no hay número sobre el que decidir.
+ * la situación se decide sobre un número (o sobre el resultado congelado), y sin ninguno de los dos no hay nada que decidir.
  *
  * Las áreas se leen de la primera fila, igual que `centralizerColumns`, para que las celdas caigan
  * bajo su encabezado. Si una fila trae las áreas en otro orden, se busca por nombre.
  */
 export function centralizerRows(rows: StudentAnnualSummary[]): string[][] {
   const areas = rows[0]?.subjects.map((subject) => subject.subjectName) ?? []
-  const frozen = hasFrozenRows(rows)
   return rows.map((row, index) => [
     String(index + 1),
     row.fullName,
@@ -159,7 +150,6 @@ export function centralizerRows(rows: StudentAnnualSummary[]): string[][] {
     formatMark(row.trimesterAverages[1], 1),
     formatMark(row.trimesterAverages[2], 1),
     formatMark(row.finalAverage, 1),
-    ...(frozen ? [finalResultLabel(row.finalResult) ?? NO_DATA] : []),
-    row.finalAverage == null ? "Sin calificar" : statusOf(row.finalAverage),
+    annualSituationOf(row) ?? "Sin calificar",
   ])
 }

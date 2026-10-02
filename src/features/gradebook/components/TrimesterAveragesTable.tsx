@@ -9,9 +9,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { statusClassName, statusOf } from "@/lib/grading"
+import { statusClassName } from "@/lib/grading"
 
 import { formatMark } from "../utils/annualMarks"
+import { annualSituationOf } from "../utils/finalResult"
 import type { StudentAnnualSummary } from "../types"
 
 export interface TrimesterAveragesTableProps {
@@ -68,7 +69,7 @@ export function TrimesterAveragesTable({
           ) : (
             rows.map((row, idx) => {
               const final = row.finalAverage
-              const status = final == null ? null : statusOf(Number(final))
+              const status = annualSituationOf(row)
               return (
                 <TableRow key={row.courseEnrollmentId}>
                   <TableCell className="font-mono text-xs text-muted-foreground">

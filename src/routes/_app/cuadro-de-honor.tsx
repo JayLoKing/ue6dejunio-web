@@ -14,7 +14,7 @@ import { isRole } from "@/features/auth/types"
 import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
 import { activeAcademicYear } from "@/features/catalog/utils/activeAcademicYear"
 import { useAcademicYears } from "@/features/catalog/hooks/useCatalog"
-import { useAllCourses } from "@/features/courses/hooks/useCourses"
+import { useActiveYearCourses } from "@/features/courses/hooks/useActiveYearCourses"
 import {
   CourseHonorRollPanel,
   InstitutionHonorRollPanel,
@@ -75,7 +75,7 @@ function HonorRollPage() {
  * de curso ya lo tiene el docente de aula en su propia pantalla.
  */
 function SchoolWideHonorRoll() {
-  const courses = useAllCourses()
+  const courses = useActiveYearCourses()
   const years = useAcademicYears()
 
   const rows = useMemo(() => courses.data?.content ?? [], [courses.data])
@@ -129,7 +129,13 @@ function SchoolWideHonorRoll() {
               disabled={courses.isLoading || rows.length === 0}
             >
               <SelectTrigger className="w-56">
-                <SelectValue placeholder="Selecciona un curso" />
+                <SelectValue
+                  placeholder={
+                    courses.isError
+                      ? "No se pudieron cargar los cursos"
+                      : "Selecciona un curso"
+                  }
+                />
               </SelectTrigger>
               <SelectContent>
                 {rows.map((course) => (

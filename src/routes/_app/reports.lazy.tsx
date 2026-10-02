@@ -12,7 +12,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
 import { useAuthStore } from "@/features/auth/store/authStore"
-import { useAllCourses } from "@/features/courses/hooks/useCourses"
+import { useActiveYearCourses } from "@/features/courses/hooks/useActiveYearCourses"
 import { CentralizerTable } from "@/features/gradebook/components/CentralizerTable"
 import { AverageRanking } from "@/features/gradebook/components/AverageRanking"
 import { AnnualSheetsPanel } from "@/features/gradebook/components/AnnualSheetsPanel"
@@ -74,7 +74,7 @@ function SchoolWideReports({
 }: {
   canReadPedagogicalReport: boolean
 }) {
-  const courses = useAllCourses()
+  const courses = useActiveYearCourses()
   const rows = useMemo(() => courses.data?.content ?? [], [courses.data])
   const [chosenCourseId, setChosenCourseId] = useState<string | null>(null)
 
@@ -91,10 +91,20 @@ function SchoolWideReports({
     )
   }
 
+  // Una falla no es una escuela sin cursos: decirlo así mandaría al Director a crear lo que ya existe.
+  if (courses.isError) {
+    return (
+      <div className="rounded-md border border-dashed p-12 text-center text-muted-foreground">
+        No se pudieron cargar los cursos.
+      </div>
+    )
+  }
+
   if (rows.length === 0) {
     return (
       <div className="rounded-md border border-dashed p-12 text-center text-muted-foreground">
-        No hay cursos creados todavía. Los reportes se emiten sobre un curso.
+        No hay cursos creados en la gestión activa todavía. Los reportes se
+        emiten sobre un curso.
       </div>
     )
   }

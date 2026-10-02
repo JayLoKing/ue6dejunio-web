@@ -7,6 +7,7 @@ import type { AcademicYearItem } from "@/features/catalog/types"
 import { invalidateCourses } from "@/features/courses/hooks/useCourses"
 
 import { AcademicYearService } from "../services/academicYearService"
+import type { CreatedAcademicYear } from "../types"
 
 /**
  * Every transition can change which year is "the current one" or whether it accepts writes, so all
@@ -31,6 +32,25 @@ function useYearTransition(
     onSuccess: () => {
       toast.success(successMessage)
       invalidateAfterYearChange(qc)
+    },
+  })
+}
+
+/**
+ * Opens a year. The API answers 200 for one that already exists, so the toast says which of the
+ * two happened. Only the year list goes stale: a new year has no courses, trimesters or movement.
+ */
+export function useCreateAcademicYear() {
+  const qc = useQueryClient()
+  return useMutation<CreatedAcademicYear, Error, number>({
+    mutationFn: (year) => AcademicYearService.create(year),
+    onSuccess: ({ year, created }) => {
+      toast.success(
+        created
+          ? `Gestión ${year.year} creada.`
+          : `La gestión ${year.year} ya existía.`
+      )
+      void qc.invalidateQueries({ queryKey: catalogKeys.academicYears })
     },
   })
 }

@@ -5,16 +5,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 const activate = vi.hoisted(() => vi.fn())
 const close = vi.hoisted(() => vi.fn())
 const reopen = vi.hoisted(() => vi.fn())
+const create = vi.hoisted(() => vi.fn())
 const toast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }))
 
 vi.mock("../services/academicYearService", () => ({
-  AcademicYearService: { activate, close, reopen },
+  AcademicYearService: { activate, close, reopen, create },
 }))
 vi.mock("sonner", () => ({ toast }))
 
 import {
   useActivateAcademicYear,
   useCloseAcademicYear,
+  useCreateAcademicYear,
   useReopenAcademicYear,
 } from "./useAcademicYearMutations"
 
@@ -77,5 +79,54 @@ describe.each(cases)("%s", (_name, useHook, service) => {
 
     expect(invalidate).not.toHaveBeenCalled()
     expect(toast.success).not.toHaveBeenCalled()
+  })
+})
+
+describe("useCreateAcademicYear", () => {
+  const created = { year: { ...item, id: 9, year: 2027 }, created: true }
+
+  it("creates the year, says so, and refreshes the year list", async () => {
+    create.mockResolvedValue(created)
+    const invalidate = vi.spyOn(qc, "invalidateQueries")
+    const { result } = renderHook(() => useCreateAcademicYear(), { wrapper })
+
+    result.current.mutate(2027)
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+
+    expect(create).toHaveBeenCalledWith(2027)
+    expect(toast.success).toHaveBeenCalledWith(
+      expect.stringMatching(/2027.*creada/i)
+    )
+    expect(invalidate.mock.calls.map((c) => c[0]?.queryKey)).toContainEqual([
+      "catalog",
+      "academic-years",
+    ])
+  })
+
+  it("says the year already existed instead of claiming it created one", async () => {
+    create.mockResolvedValue({ ...created, created: false })
+    const { result } = renderHook(() => useCreateAcademicYear(), { wrapper })
+
+    result.current.mutate(2027)
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+
+    expect(toast.success).toHaveBeenCalledWith(
+      expect.stringMatching(/2027.*ya existía/i)
+    )
+    expect(toast.success).not.toHaveBeenCalledWith(
+      expect.stringMatching(/creada/i)
+    )
+  })
+
+  it("celebrates nothing when the API refuses", async () => {
+    create.mockRejectedValue(new Error("400"))
+    const invalidate = vi.spyOn(qc, "invalidateQueries")
+    const { result } = renderHook(() => useCreateAcademicYear(), { wrapper })
+
+    result.current.mutate(2027)
+    await waitFor(() => expect(result.current.isError).toBe(true))
+
+    expect(toast.success).not.toHaveBeenCalled()
+    expect(invalidate).not.toHaveBeenCalled()
   })
 })

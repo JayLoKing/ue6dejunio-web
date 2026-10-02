@@ -9,7 +9,7 @@ import { Grid } from "@/components/charts/grid"
 import { TrendChart } from "@/components/charts/trend-chart"
 import { ChartTooltip } from "@/components/charts/tooltip/chart-tooltip"
 import { QueryState } from "@/components/shared/QueryState"
-import { useAllCourses } from "@/features/courses/hooks/useCourses"
+import { useCoursesOfYear } from "@/features/courses/hooks/useCourses"
 
 import { useStudentMovementSummary } from "../hooks/useStudent"
 import {
@@ -41,7 +41,8 @@ export function SecretaryDashboardCharts({
   academicYearId,
 }: SecretaryDashboardChartsProps) {
   const movement = useStudentMovementSummary(academicYearId)
-  const courses = useAllCourses()
+  // De la misma gestión que el movimiento: sin año, la lista trae los cursos de todas.
+  const courses = useCoursesOfYear(academicYearId)
 
   const months = useMemo(() => movement.data?.byMonth ?? [], [movement.data])
 

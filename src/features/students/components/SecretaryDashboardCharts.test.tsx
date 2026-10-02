@@ -2,10 +2,10 @@ import { render, screen } from "@testing-library/react"
 import { describe, expect, it, vi, beforeEach } from "vitest"
 
 const useStudentMovementSummary = vi.hoisted(() => vi.fn())
-const useAllCourses = vi.hoisted(() => vi.fn())
+const useCoursesOfYear = vi.hoisted(() => vi.fn())
 
 vi.mock("../hooks/useStudent", () => ({ useStudentMovementSummary }))
-vi.mock("@/features/courses/hooks/useCourses", () => ({ useAllCourses }))
+vi.mock("@/features/courses/hooks/useCourses", () => ({ useCoursesOfYear }))
 
 // jsdom no hace layout, así que los gráficos que se miden contra su contenedor nunca llegan a
 // dibujarse. Lo que se prueba acá es qué datos pide el tablero y qué rotula, no la geometría.
@@ -46,7 +46,7 @@ beforeEach(() => {
       [{ reason: "Transferencia", students: 2 }]
     )
   )
-  useAllCourses.mockReturnValue(
+  useCoursesOfYear.mockReturnValue(
     loaded({ content: [{ id: "c-1", gradeName: "Quinto", parallelName: "A" }] })
   )
 })
@@ -56,6 +56,13 @@ describe("SecretaryDashboardCharts", () => {
     render(<SecretaryDashboardCharts academicYearId={YEAR_ID} />)
 
     expect(useStudentMovementSummary).toHaveBeenCalledWith(YEAR_ID)
+  })
+
+  /** Con dos gestiones cargadas, una lista sin año contaría los paralelos de ambas. */
+  it("cuenta los paralelos de la misma gestión que lee", () => {
+    render(<SecretaryDashboardCharts academicYearId={YEAR_ID} />)
+
+    expect(useCoursesOfYear).toHaveBeenCalledWith(YEAR_ID)
   })
 
   /** Sin notas ni riesgo: Secretaría administra matrícula, no rendimiento. */

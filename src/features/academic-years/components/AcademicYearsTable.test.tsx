@@ -7,12 +7,13 @@ const years = vi.hoisted(() => vi.fn())
 const activate = vi.hoisted(() => vi.fn())
 const close = vi.hoisted(() => vi.fn())
 const reopen = vi.hoisted(() => vi.fn())
+const duplicateStructure = vi.hoisted(() => vi.fn())
 
 vi.mock("@/features/catalog/services/catalogService", () => ({
   CatalogService: { academicYears: years },
 }))
 vi.mock("../services/academicYearService", () => ({
-  AcademicYearService: { activate, close, reopen },
+  AcademicYearService: { activate, close, reopen, duplicateStructure },
 }))
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
@@ -182,6 +183,58 @@ describe("AcademicYearsTable", () => {
       ).toBeDisabled()
       expect(
         (await rowOf(2025)).getByRole("button", { name: "Reabrir" })
+      ).toBeDisabled()
+    })
+  })
+
+  it("offers to duplicate a structure only into open years", async () => {
+    renderTable()
+
+    for (const [year, enabled] of [
+      [2027, true],
+      [2026, true],
+      [2025, false],
+    ] as const) {
+      const button = (await rowOf(year)).getByRole("button", {
+        name: "Duplicar estructura",
+      })
+      if (enabled) expect(button).toBeEnabled()
+      else expect(button).toBeDisabled()
+    }
+  })
+
+  it("duplicates into the row's year from the year the dialog proposes", async () => {
+    duplicateStructure.mockResolvedValue({
+      coursesCreated: 1,
+      coursesSkipped: 0,
+      classGroupsCreated: 4,
+      skippedCourses: [],
+    })
+    renderTable()
+
+    await userEvent.click(
+      (await rowOf(2027)).getByRole("button", { name: "Duplicar estructura" })
+    )
+    const dialog = await screen.findByRole("dialog")
+    await userEvent.click(
+      within(dialog).getByRole("button", { name: "Duplicar" })
+    )
+
+    // 2027 is the target (id 2); the proposal is the active year, 2026 (id 1).
+    await waitFor(() => expect(duplicateStructure).toHaveBeenCalledWith(2, 1))
+  })
+
+  it("disables the duplicate button while another action is in flight", async () => {
+    activate.mockReturnValue(new Promise(() => {}))
+    renderTable()
+
+    await userEvent.click(
+      (await rowOf(2027)).getByRole("button", { name: "Activar" })
+    )
+
+    await waitFor(async () => {
+      expect(
+        (await rowOf(2027)).getByRole("button", { name: "Duplicar estructura" })
       ).toBeDisabled()
     })
   })

@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest"
 
-import { canActivate, canClose, canReopen } from "./yearActions"
+import {
+  canActivate,
+  canClose,
+  canDuplicate,
+  canReopen,
+  defaultSourceYear,
+} from "./yearActions"
 
 const activeOpen = { id: 1, year: 2026, active: true, closed: false }
 const open = { id: 2, year: 2027, active: false, closed: false }
@@ -23,5 +29,35 @@ describe("year actions", () => {
     expect(canReopen(closed)).toBe(true)
     expect(canReopen(open)).toBe(false)
     expect(canReopen(activeOpen)).toBe(false)
+  })
+})
+
+describe("duplicating a structure", () => {
+  it("only into a year that is still open", () => {
+    expect(canDuplicate(open)).toBe(true)
+    expect(canDuplicate(activeOpen)).toBe(true)
+    expect(canDuplicate(closed)).toBe(false)
+  })
+})
+
+describe("defaultSourceYear", () => {
+  it("prefers the active year when it is not the target", () => {
+    expect(defaultSourceYear([open, activeOpen, closed], open)?.id).toBe(1)
+  })
+
+  it("falls back to the newest other year when the target is the active one", () => {
+    expect(defaultSourceYear([open, activeOpen, closed], activeOpen)?.id).toBe(
+      2
+    )
+  })
+
+  it("falls back to the newest other year when no year is active", () => {
+    const older = { ...closed, id: 4, year: 2024 }
+    expect(defaultSourceYear([older, closed, open], open)?.id).toBe(3)
+  })
+
+  it("is undefined when the target is the only year", () => {
+    expect(defaultSourceYear([open], open)).toBeUndefined()
+    expect(defaultSourceYear(undefined, open)).toBeUndefined()
   })
 })

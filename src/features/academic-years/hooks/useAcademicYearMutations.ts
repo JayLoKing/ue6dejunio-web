@@ -7,7 +7,7 @@ import type { AcademicYearItem } from "@/features/catalog/types"
 import { invalidateCourses } from "@/features/courses/hooks/useCourses"
 
 import { AcademicYearService } from "../services/academicYearService"
-import type { CreatedAcademicYear } from "../types"
+import type { CreatedAcademicYear, DuplicateStructureSummary } from "../types"
 
 /**
  * Every transition can change which year is "the current one" or whether it accepts writes, so all
@@ -69,3 +69,24 @@ export const useReopenAcademicYear = () =>
     (id) => AcademicYearService.reopen(id),
     "Gestión reabierta."
   )
+
+/**
+ * Copies a year's courses and subjects into another. The summary is the dialog's to show, so the
+ * toast stays short. The copy lands in the course lists, so every one of them goes stale: the
+ * per-year lists the pickers read, the unscoped one and the overviews.
+ */
+export function useDuplicateYearStructure() {
+  const qc = useQueryClient()
+  return useMutation<
+    DuplicateStructureSummary,
+    Error,
+    { targetId: number; sourceId: number }
+  >({
+    mutationFn: ({ targetId, sourceId }) =>
+      AcademicYearService.duplicateStructure(targetId, sourceId),
+    onSuccess: () => {
+      toast.success("Estructura duplicada.")
+      invalidateCourses(qc)
+    },
+  })
+}

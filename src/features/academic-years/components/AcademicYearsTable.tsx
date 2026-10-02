@@ -1,5 +1,6 @@
 import { useState } from "react"
-import { LockIcon, LockOpenIcon, PowerIcon } from "lucide-react"
+import { useIsMutating } from "@tanstack/react-query"
+import { CopyIcon, LockIcon, LockOpenIcon, PowerIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -20,7 +21,13 @@ import {
   useCloseAcademicYear,
   useReopenAcademicYear,
 } from "../hooks/useAcademicYearMutations"
-import { canActivate, canClose, canReopen } from "../utils/yearActions"
+import {
+  canActivate,
+  canClose,
+  canDuplicate,
+  canReopen,
+} from "../utils/yearActions"
+import { DuplicateStructureDialog } from "./DuplicateStructureDialog"
 
 interface Pending {
   kind: "close" | "reopen"
@@ -35,8 +42,10 @@ export function AcademicYearsTable() {
   const close = useCloseAcademicYear()
   const reopen = useReopenAcademicYear()
   const [pending, setPending] = useState<Pending | null>(null)
+  const [duplicating, setDuplicating] = useState<AcademicYearItem | null>(null)
 
-  const busy = activate.isPending || close.isPending || reopen.isPending
+  // Any mutation in the page, the header's "Nueva gestión" and the duplication included.
+  const busy = useIsMutating() > 0
   const years = data ?? []
 
   const confirm = () => {
@@ -89,6 +98,15 @@ export function AcademicYearsTable() {
                     <Button
                       size="sm"
                       variant="ghost"
+                      disabled={busy || !canDuplicate(year)}
+                      onClick={() => setDuplicating(year)}
+                    >
+                      <CopyIcon data-icon="inline-start" />
+                      Duplicar estructura
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
                       className="text-destructive"
                       disabled={busy || !canClose(year)}
                       onClick={() => setPending({ kind: "close", year })}
@@ -128,6 +146,12 @@ export function AcademicYearsTable() {
         loading={busy}
         onConfirm={confirm}
         onOpenChange={(open) => !open && setPending(null)}
+      />
+
+      <DuplicateStructureDialog
+        target={duplicating}
+        years={years}
+        onClose={() => setDuplicating(null)}
       />
     </div>
   )

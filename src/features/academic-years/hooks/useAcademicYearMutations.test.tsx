@@ -6,10 +6,17 @@ const activate = vi.hoisted(() => vi.fn())
 const close = vi.hoisted(() => vi.fn())
 const reopen = vi.hoisted(() => vi.fn())
 const create = vi.hoisted(() => vi.fn())
+const duplicateStructure = vi.hoisted(() => vi.fn())
 const toast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }))
 
 vi.mock("../services/academicYearService", () => ({
-  AcademicYearService: { activate, close, reopen, create },
+  AcademicYearService: {
+    activate,
+    close,
+    reopen,
+    create,
+    duplicateStructure,
+  },
 }))
 vi.mock("sonner", () => ({ toast }))
 
@@ -17,6 +24,7 @@ import {
   useActivateAcademicYear,
   useCloseAcademicYear,
   useCreateAcademicYear,
+  useDuplicateYearStructure,
   useReopenAcademicYear,
 } from "./useAcademicYearMutations"
 
@@ -128,5 +136,55 @@ describe("useCreateAcademicYear", () => {
 
     expect(toast.success).not.toHaveBeenCalled()
     expect(invalidate).not.toHaveBeenCalled()
+  })
+})
+
+describe("useDuplicateYearStructure", () => {
+  const summary = {
+    coursesCreated: 2,
+    coursesSkipped: 1,
+    classGroupsCreated: 14,
+    skippedCourses: ["Primero A"],
+  }
+
+  it("sends target and source, and returns the summary", async () => {
+    duplicateStructure.mockResolvedValue(summary)
+    const { result } = renderHook(() => useDuplicateYearStructure(), {
+      wrapper,
+    })
+
+    result.current.mutate({ targetId: 9, sourceId: 7 })
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+
+    expect(duplicateStructure).toHaveBeenCalledWith(9, 7)
+    expect(result.current.data).toEqual(summary)
+  })
+
+  it("marks every course list stale, the per-year ones included", async () => {
+    duplicateStructure.mockResolvedValue(summary)
+    qc.setQueryData(["courses", "year", 9], { content: [] })
+    qc.setQueryData(["courses", "all"], { content: [] })
+    const { result } = renderHook(() => useDuplicateYearStructure(), {
+      wrapper,
+    })
+
+    result.current.mutate({ targetId: 9, sourceId: 7 })
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+
+    expect(qc.getQueryState(["courses", "year", 9])?.isInvalidated).toBe(true)
+    expect(qc.getQueryState(["courses", "all"])?.isInvalidated).toBe(true)
+  })
+
+  it("invalidates nothing when the API refuses", async () => {
+    duplicateStructure.mockRejectedValue(new Error("409"))
+    qc.setQueryData(["courses", "year", 9], { content: [] })
+    const { result } = renderHook(() => useDuplicateYearStructure(), {
+      wrapper,
+    })
+
+    result.current.mutate({ targetId: 9, sourceId: 7 })
+    await waitFor(() => expect(result.current.isError).toBe(true))
+
+    expect(qc.getQueryState(["courses", "year", 9])?.isInvalidated).toBe(false)
   })
 })

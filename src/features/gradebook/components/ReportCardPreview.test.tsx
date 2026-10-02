@@ -189,3 +189,48 @@ describe("ReportCardPreview", () => {
     expect(screen.queryByText("Juan Perez")).not.toBeInTheDocument()
   })
 })
+
+describe("ReportCardPreview of a closed year", () => {
+  it("prints the frozen result near the annual average", () => {
+    render(
+      <ReportCardPreview
+        card={{ ...card, frozen: true, finalResult: "APPROVED" }}
+        school={school}
+      />
+    )
+
+    expect(screen.getByText(/Resultado final/).parentElement).toHaveTextContent(
+      "Resultado final: APROBADO"
+    )
+  })
+
+  it("prints REPROBADO for a failed year", () => {
+    render(
+      <ReportCardPreview
+        card={{ ...card, frozen: true, finalResult: "FAILED" }}
+        school={school}
+      />
+    )
+
+    expect(screen.getByText(/Resultado final/).parentElement).toHaveTextContent(
+      "REPROBADO"
+    )
+  })
+
+  it("prints nothing extra when frozen without a result", () => {
+    render(
+      <ReportCardPreview
+        card={{ ...card, frozen: true, finalResult: null }}
+        school={school}
+      />
+    )
+
+    expect(screen.queryByText(/Resultado final/)).not.toBeInTheDocument()
+  })
+
+  it("is unchanged while the year is open", () => {
+    render(<ReportCardPreview card={card} school={school} />)
+
+    expect(screen.queryByText(/Resultado final/)).not.toBeInTheDocument()
+  })
+})

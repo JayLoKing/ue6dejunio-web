@@ -16,6 +16,7 @@ import {
 import type { Institution } from "@/features/institution/types"
 
 import { formatMark } from "./annualMarks"
+import { frozenResultLabel } from "./finalResult"
 import type {
   ReportCardArea,
   ReportCardField,
@@ -380,6 +381,7 @@ export function reportCardDocxOf({
   card,
   school,
 }: ReportCardDocxParams): Document {
+  const resultLabel = frozenResultLabel(card)
   const children = [
     text("LIBRETA ESCOLAR", {
       bold: true,
@@ -399,6 +401,7 @@ export function reportCardDocxOf({
     marksTable(card),
     new Paragraph({ children: [] }),
     labelled("Promedio Anual (literal):", card.finalAverageInWords),
+    ...(resultLabel ? [labelled("Resultado final:", resultLabel)] : []),
     new Paragraph({ children: [] }),
     new Paragraph({ children: [] }),
     new Paragraph({ children: [] }),

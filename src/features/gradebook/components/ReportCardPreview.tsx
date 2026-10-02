@@ -3,6 +3,7 @@ import { Fragment } from "react"
 import type { Institution } from "@/features/institution/types"
 
 import { formatMark } from "../utils/annualMarks"
+import { frozenResultLabel } from "../utils/finalResult"
 import type { ReportCardArea, StudentReportCard } from "../types"
 
 /** El id que el camino de impresión busca para sacar la hoja fuera de la aplicación. */
@@ -60,6 +61,7 @@ function AreaRow({ area }: { area: ReportCardArea }) {
  * nadie calificó.
  */
 export function ReportCardPreview({ card, school }: ReportCardPreviewProps) {
+  const resultLabel = frozenResultLabel(card)
   const outcomes = [1, 2, 3].map(
     (trimester) =>
       card.trimesterOutcomes.find((o) => o.trimester === trimester) ?? {
@@ -198,6 +200,13 @@ export function ReportCardPreview({ card, school }: ReportCardPreviewProps) {
         <span className="rc-label font-bold">Promedio Anual (literal):</span>{" "}
         {card.finalAverageInWords}
       </p>
+
+      {resultLabel && (
+        <p className="rc-literal mt-1">
+          <span className="rc-label font-bold">Resultado final:</span>{" "}
+          {resultLabel}
+        </p>
+      )}
 
       <table className="rc-signatures mt-16 w-full">
         <tbody>

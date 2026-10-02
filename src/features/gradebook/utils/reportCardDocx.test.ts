@@ -196,3 +196,31 @@ describe("reportCardDocxOf", () => {
     expect(blank).toContain("Sin áreas calificadas.")
   })
 })
+
+describe("reportCardDocxOf of a closed year", () => {
+  it("carries the frozen result in the file", async () => {
+    const approved = await documentXmlOf({
+      card: card({ frozen: true, finalResult: "APPROVED" }),
+      school,
+    })
+    const failed = await documentXmlOf({
+      card: card({ frozen: true, finalResult: "FAILED" }),
+      school,
+    })
+
+    expect(approved).toContain("Resultado final:")
+    expect(approved).toContain("APROBADO")
+    expect(failed).toContain("REPROBADO")
+  })
+
+  it("adds nothing when frozen without a result or while open", async () => {
+    const noResult = await documentXmlOf({
+      card: card({ frozen: true, finalResult: null }),
+      school,
+    })
+    const open = await documentXmlOf({ card: card(), school })
+
+    expect(noResult).not.toContain("Resultado final")
+    expect(open).not.toContain("Resultado final")
+  })
+})

@@ -18,3 +18,11 @@ export function hasFrozenRows(
 ): boolean {
   return rows.some((row) => row.frozen)
 }
+
+/** El resultado a imprimir en la libreta: sólo con el año cerrado, y nada si no hay resultado. */
+export function frozenResultLabel(card: {
+  frozen: boolean
+  finalResult: FinalResult | null
+}): string | null {
+  return card.frozen ? finalResultLabel(card.finalResult) : null
+}

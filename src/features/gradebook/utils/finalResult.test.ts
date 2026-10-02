@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest"
 
-import { finalResultLabel, hasFrozenRows } from "./finalResult"
+import {
+  finalResultLabel,
+  frozenResultLabel,
+  hasFrozenRows,
+} from "./finalResult"
 
 describe("finalResultLabel", () => {
   it("names an approved year", () => {
@@ -25,5 +29,17 @@ describe("hasFrozenRows", () => {
   it("is false for an open year and for no rows", () => {
     expect(hasFrozenRows([{ frozen: false }])).toBe(false)
     expect(hasFrozenRows([])).toBe(false)
+  })
+})
+
+describe("frozenResultLabel", () => {
+  it("labels the result only when the year is closed", () => {
+    expect(frozenResultLabel({ frozen: true, finalResult: "FAILED" })).toBe(
+      "REPROBADO"
+    )
+    expect(
+      frozenResultLabel({ frozen: false, finalResult: "FAILED" })
+    ).toBeNull()
+    expect(frozenResultLabel({ frozen: true, finalResult: null })).toBeNull()
   })
 })

@@ -1,6 +1,7 @@
 import {
   BookOpenIcon,
   CalendarCheckIcon,
+  CalendarDaysIcon,
   CalendarRangeIcon,
   ClipboardListIcon,
   BrainCircuitIcon,
@@ -145,6 +146,12 @@ export const ADMIN_LINKS: NavLink[] = [
     title: "Materias",
     to: "/subjects",
     icon: BookOpenIcon,
+    roles: ["DIRECTOR"],
+  },
+  {
+    title: "Gestiones",
+    to: "/gestiones",
+    icon: CalendarDaysIcon,
     roles: ["DIRECTOR"],
   },
   {

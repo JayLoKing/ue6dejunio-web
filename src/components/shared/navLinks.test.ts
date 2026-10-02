@@ -68,6 +68,19 @@ describe("la tabla de enlaces", () => {
   })
 })
 
+describe("Gestiones", () => {
+  it("is a Director-only admin link, listed before Trimestres", () => {
+    const routes = ADMIN_LINKS.map((l) => l.to)
+    expect(routes).toContain("/gestiones")
+    expect(routes.indexOf("/gestiones")).toBeLessThan(
+      routes.indexOf("/trimestres")
+    )
+    expect(ADMIN_LINKS.find((l) => l.to === "/gestiones")?.roles).toEqual([
+      "DIRECTOR",
+    ])
+  })
+})
+
 describe("visibleLinksFor", () => {
   /**
    * Las dos listas se filtran con la misma función, y eso es el punto.

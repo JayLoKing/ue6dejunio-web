@@ -1,0 +1,157 @@
+import { useState } from "react"
+import { LockIcon, LockOpenIcon, PowerIcon } from "lucide-react"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
+import { useAcademicYears } from "@/features/catalog/hooks/useCatalog"
+import type { AcademicYearItem } from "@/features/catalog/types"
+
+import {
+  useActivateAcademicYear,
+  useCloseAcademicYear,
+  useReopenAcademicYear,
+} from "../hooks/useAcademicYearMutations"
+import { canActivate, canClose, canReopen } from "../utils/yearActions"
+
+interface Pending {
+  kind: "close" | "reopen"
+  year: AcademicYearItem
+}
+
+const COLUMNS = 3
+
+export function AcademicYearsTable() {
+  const { data, isLoading, isError } = useAcademicYears()
+  const activate = useActivateAcademicYear()
+  const close = useCloseAcademicYear()
+  const reopen = useReopenAcademicYear()
+  const [pending, setPending] = useState<Pending | null>(null)
+
+  const busy = activate.isPending || close.isPending || reopen.isPending
+  const years = data ?? []
+
+  const confirm = () => {
+    if (!pending) return
+    const mutation = pending.kind === "close" ? close : reopen
+    mutation.mutate(pending.year.id, { onSuccess: () => setPending(null) })
+  }
+
+  return (
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Gestión</TableHead>
+            <TableHead>Estado</TableHead>
+            <TableHead className="text-right">Acciones</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {isLoading ? (
+            <MessageRow>Cargando...</MessageRow>
+          ) : isError ? (
+            // A failed fetch must not read as "no years": say it failed.
+            <MessageRow>No se pudieron cargar las gestiones.</MessageRow>
+          ) : years.length === 0 ? (
+            <MessageRow>Sin gestiones registradas.</MessageRow>
+          ) : (
+            years.map((year) => (
+              <TableRow key={year.id}>
+                <TableCell className="font-medium">{year.year}</TableCell>
+                <TableCell>
+                  <div className="flex gap-1">
+                    {year.active ? <Badge>Activa</Badge> : null}
+                    <Badge variant={year.closed ? "outline" : "secondary"}>
+                      {year.closed ? "Cerrada" : "Abierta"}
+                    </Badge>
+                  </div>
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={busy || !canActivate(year)}
+                      onClick={() => activate.mutate(year.id)}
+                    >
+                      <PowerIcon data-icon="inline-start" />
+                      Activar
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-destructive"
+                      disabled={busy || !canClose(year)}
+                      onClick={() => setPending({ kind: "close", year })}
+                    >
+                      <LockIcon data-icon="inline-start" />
+                      Cerrar
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={busy || !canReopen(year)}
+                      onClick={() => setPending({ kind: "reopen", year })}
+                    >
+                      <LockOpenIcon data-icon="inline-start" />
+                      Reabrir
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+
+      <ConfirmDialog
+        open={pending !== null}
+        title={
+          pending?.kind === "reopen"
+            ? `Reabrir la gestión ${pending.year.year}`
+            : `Cerrar la gestión ${pending?.year.year ?? ""}`
+        }
+        description={pending ? warningFor(pending) : undefined}
+        confirmLabel={
+          pending?.kind === "reopen" ? "Reabrir gestión" : "Cerrar gestión"
+        }
+        destructive={pending?.kind === "close"}
+        loading={busy}
+        onConfirm={confirm}
+        onOpenChange={(open) => !open && setPending(null)}
+      />
+    </div>
+  )
+}
+
+function MessageRow({ children }: { children: string }) {
+  return (
+    <TableRow>
+      <TableCell
+        colSpan={COLUMNS}
+        className="text-center text-muted-foreground"
+      >
+        {children}
+      </TableCell>
+    </TableRow>
+  )
+}
+
+function warningFor({ kind, year }: Pending): string {
+  if (kind === "reopen") {
+    return `La gestión ${year.year} volverá a admitir cambios. Los promedios y resultados finales congelados se conservan hasta que la vuelvas a cerrar, y la gestión no se activa sola.`
+  }
+  const base = `Al cerrar la gestión ${year.year} se congelan el promedio final y el resultado de cada estudiante, y se bloquean las notas, la asistencia, los planes y demás registros de esa gestión. Podrás reabrirla más adelante.`
+  return year.active
+    ? `${base} Es la gestión activa: ninguna gestión quedará activa hasta que actives otra.`
+    : base
+}

@@ -1,6 +1,6 @@
 import { annualStatusOf, type AcademicStatus } from "@/lib/grading"
 
-import type { FinalResult } from "../types"
+import type { FinalResult, StudentAnnualSummary } from "../types"
 
 /**
  * El resultado final del año tal como lo imprime la escuela. Es el único lugar donde se traduce
@@ -16,27 +16,23 @@ export function finalResultLabel(
   return null
 }
 
+export type AnnualSituationInput = Pick<
+  StudentAnnualSummary,
+  "finalAverage" | "finalResult" | "frozen"
+>
+
 /**
  * La situación final del año de un estudiante, para la pantalla y el documento. Un año cerrado
  * manda con lo congelado (null si no hay resultado: retirado o sin notas); uno abierto sigue la
  * regla anual sobre el promedio, y sin promedio no hay situación.
  */
-export function annualSituationOf(row: {
-  finalAverage: number | null
-  finalResult: FinalResult | null
-  frozen: boolean
-}): AcademicStatus | null {
+export function annualSituationOf(
+  row: AnnualSituationInput
+): AcademicStatus | null {
   if (row.frozen) return finalResultLabel(row.finalResult)
   return row.finalAverage == null
     ? null
     : annualStatusOf(Number(row.finalAverage))
-}
-
-/** El año está cerrado cuando alguna fila viene congelada (la API marca todas las de un año cerrado). */
-export function hasFrozenRows(
-  rows: ReadonlyArray<{ frozen: boolean }>
-): boolean {
-  return rows.some((row) => row.frozen)
 }
 
 /** El resultado a imprimir en la libreta: sólo con el año cerrado, y nada si no hay resultado. */

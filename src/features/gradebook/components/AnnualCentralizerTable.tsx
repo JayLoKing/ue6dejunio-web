@@ -157,10 +157,9 @@ export function AnnualCentralizerTable({
                         <span className="text-muted-foreground">—</span>
                       ) : (
                         <Badge className={cn("gap-1", statusClassName(status))}>
-                          {status === "APROBADO" ? "Aprobado" : "Reprobado"} ·{" "}
-                          {final == null
-                            ? null
-                            : qualitativeBandOf(Number(final)).code}
+                          {status === "APROBADO" ? "Aprobado" : "Reprobado"}
+                          {final != null &&
+                            ` · ${qualitativeBandOf(Number(final)).code}`}
                         </Badge>
                       )}
                     </td>

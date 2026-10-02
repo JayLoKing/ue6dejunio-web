@@ -4,7 +4,6 @@ import {
   annualSituationOf,
   finalResultLabel,
   frozenResultLabel,
-  hasFrozenRows,
 } from "./finalResult"
 
 describe("finalResultLabel", () => {
@@ -61,17 +60,6 @@ describe("annualSituationOf", () => {
     expect(
       annualSituationOf({ finalAverage: 60, finalResult: null, frozen: true })
     ).toBeNull()
-  })
-})
-
-describe("hasFrozenRows", () => {
-  it("is true when any row comes from a closed year", () => {
-    expect(hasFrozenRows([{ frozen: false }, { frozen: true }])).toBe(true)
-  })
-
-  it("is false for an open year and for no rows", () => {
-    expect(hasFrozenRows([{ frozen: false }])).toBe(false)
-    expect(hasFrozenRows([])).toBe(false)
   })
 })
 

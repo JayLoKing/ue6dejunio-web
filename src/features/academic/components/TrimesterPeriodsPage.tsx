@@ -4,17 +4,10 @@ import { Loader2Icon, SaveIcon, Trash2Icon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
+import { AcademicYearSelect } from "@/features/catalog/components/AcademicYearSelect"
 import { useAcademicYears } from "@/features/catalog/hooks/useCatalog"
-import { activeAcademicYear } from "@/features/catalog/utils/activeAcademicYear"
-import type { AcademicYearItem } from "@/features/catalog/types"
+import { useSelectedAcademicYear } from "@/features/catalog/hooks/useSelectedAcademicYear"
 import {
   useCreateTrimesterPeriod,
   useDeleteTrimesterPeriod,
@@ -30,19 +23,12 @@ const TRIMESTERS = [1, 2, 3] as const satisfies readonly Trimester[]
 
 const ORDINAL: Record<Trimester, string> = { 1: "1er", 2: "2do", 3: "3er" }
 
-const yearLabel = (year: AcademicYearItem): string =>
-  `Gestión ${year.year}${year.closed ? " (cerrada)" : ""}`
-
 export function TrimesterPeriodsPage() {
   const yearsQuery = useAcademicYears()
   const years = yearsQuery.data ?? []
-  const [chosenYearId, setChosenYearId] = useState<number | null>(null)
-
-  // La gestión activa mientras nadie eligió, derivada y no sincronizada en un efecto. Sin activa
-  // no hay caída a la primera de la lista: el Director elige o activa una en Gestiones.
-  const academicYearId =
-    chosenYearId ?? activeAcademicYear(yearsQuery.data)?.id ?? null
-  const selectedYear = years.find((y) => y.id === academicYearId)
+  const { academicYearId, selectedYear, choose } = useSelectedAcademicYear(
+    yearsQuery.data
+  )
   const closed = selectedYear?.closed ?? false
 
   const periodsQuery = useTrimesterPeriods(academicYearId)
@@ -76,21 +62,11 @@ export function TrimesterPeriodsPage() {
         </div>
       ) : (
         <>
-          <Select
-            value={academicYearId === null ? "" : String(academicYearId)}
-            onValueChange={(v) => setChosenYearId(Number(v))}
-          >
-            <SelectTrigger className="w-56" aria-label="Gestión">
-              <SelectValue placeholder="Elige una gestión" />
-            </SelectTrigger>
-            <SelectContent>
-              {years.map((y) => (
-                <SelectItem key={y.id} value={String(y.id)}>
-                  {yearLabel(y)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <AcademicYearSelect
+            years={years}
+            value={academicYearId}
+            onChange={choose}
+          />
 
           {academicYearId === null ? (
             <div className="rounded-md border border-dashed p-12 text-center text-muted-foreground">

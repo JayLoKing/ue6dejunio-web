@@ -202,6 +202,26 @@ describe("AnnualRanking", () => {
     ).toBeInTheDocument()
   })
 
+  it("judges the year by the mark the report card prints, not the raw average", () => {
+    // 50.6 prints as 51 on the report card: approved. 50.49 prints as 50: failed.
+    render(
+      <AnnualRanking
+        rows={[
+          { ...nelsy, fullName: "SOBRE EL LIMITE", finalAverage: 50.6 },
+          {
+            ...nelsy,
+            courseEnrollmentId: "enr-4",
+            fullName: "BAJO EL LIMITE",
+            finalAverage: 50.49,
+          },
+        ]}
+      />
+    )
+
+    expect(within(rowOf("SOBRE EL LIMITE")).getByText(/Aprobado/)).toBeVisible()
+    expect(within(rowOf("BAJO EL LIMITE")).getByText(/Reprobado/)).toBeVisible()
+  })
+
   it("sinks a student with no annual average to the bottom instead of treating it as a zero", () => {
     const ungraded: StudentAnnualSummary = {
       ...nelsy,

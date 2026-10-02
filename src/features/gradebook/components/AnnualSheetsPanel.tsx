@@ -5,7 +5,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DataTablePagination } from "@/components/shared/DataTablePagination"
 import { ExportReportButton } from "@/components/shared/ExportReportButton"
 import { useInstitution } from "@/features/institution/hooks/useInstitution"
-import { statusOf } from "@/lib/grading"
 import {
   centralizerColumns,
   centralizerRows,
@@ -14,6 +13,7 @@ import {
 import { useAnnualCentralizer } from "../hooks/useGradebook"
 import { AnnualCentralizerTable } from "./AnnualCentralizerTable"
 import { AnnualRanking } from "./AnnualRanking"
+import { annualSituationOf } from "../utils/finalResult"
 import { TrimesterAveragesTable } from "./TrimesterAveragesTable"
 import type { StudentAnnualSummary } from "../types"
 
@@ -67,8 +67,9 @@ export function AnnualSheetsPanel({
     let failed = 0
     let ungraded = 0
     for (const r of rows) {
-      if (r.finalAverage == null) ungraded++
-      else if (statusOf(Number(r.finalAverage)) === "APROBADO") passed++
+      const situation = annualSituationOf(r)
+      if (situation == null) ungraded++
+      else if (situation === "APROBADO") passed++
       else failed++
     }
     return { passed, failed, ungraded }

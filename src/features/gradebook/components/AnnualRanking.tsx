@@ -10,9 +10,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { qualitativeBandOf, statusClassName, statusOf } from "@/lib/grading"
+import { qualitativeBandOf, statusClassName } from "@/lib/grading"
 
 import { formatMark, rankedByFinalAverage } from "../utils/annualMarks"
+import { annualSituationOf } from "../utils/finalResult"
 import type { StudentAnnualSummary } from "../types"
 
 export interface AnnualRankingProps {
@@ -62,7 +63,7 @@ export function AnnualRanking({ rows, isLoading = false }: AnnualRankingProps) {
           ) : (
             ranked.map((row, idx) => {
               const final = row.finalAverage
-              const status = final == null ? null : statusOf(Number(final))
+              const status = annualSituationOf(row)
               const band =
                 final == null ? null : qualitativeBandOf(Number(final))
               return (

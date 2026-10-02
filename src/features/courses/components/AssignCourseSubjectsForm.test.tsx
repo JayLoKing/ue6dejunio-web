@@ -38,8 +38,15 @@ let yearsLoading = false
 
 vi.mock("../hooks/useCourses", () => ({
   useCreateCourse: () => ({ mutateAsync: vi.fn(), isPending: false }),
-  useAllCourses: () => ({
-    data: coursesLoading ? undefined : { content: [primeroA, primeroBDe2025] },
+  // Como la API: sólo los cursos de la gestión pedida.
+  useCoursesOfYear: (academicYearId: number | null) => ({
+    data: coursesLoading
+      ? undefined
+      : {
+          content: [primeroA, primeroBDe2025].filter(
+            (c) => c.academicYearId === academicYearId
+          ),
+        },
     isLoading: coursesLoading,
   }),
 }))

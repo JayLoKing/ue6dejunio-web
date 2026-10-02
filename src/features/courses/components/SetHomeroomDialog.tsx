@@ -20,7 +20,7 @@ import {
 import { useTeachers } from "@/features/catalog/hooks/useCatalog"
 
 import {
-  useAllCourses,
+  useCoursesOfYear,
   useSetHomeroom,
   useSwapHomeroom,
 } from "../hooks/useCourses"
@@ -53,7 +53,9 @@ interface SetHomeroomFormProps {
 
 function SetHomeroomForm({ course, onClose }: SetHomeroomFormProps) {
   const aulaTeachers = useTeachers(false)
-  const allCourses = useAllCourses()
+  // Sólo los cursos de la gestión de este curso: ser de aula en otro año no ocupa a nadie en este,
+  // ni habilita un intercambio con un curso que no es de la misma gestión.
+  const allCourses = useCoursesOfYear(course.academicYearId)
   const setHomeroom = useSetHomeroom()
   const swapHomeroom = useSwapHomeroom()
   const [teacherId, setTeacherId] = useState<string | undefined>(

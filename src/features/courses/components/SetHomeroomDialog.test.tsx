@@ -34,6 +34,17 @@ const otherCourse: Course = {
   homeroomTeacherActive: true,
 }
 
+/** De la gestión siguiente: su docente de aula (t-3) no ocupa nada en la gestión de baseCourse. */
+const nextYearCourse: Course = {
+  ...otherCourse,
+  id: "course-4",
+  academicYearId: 2,
+  year: 2027,
+  homeroomTeacherId: "t-3",
+  homeroomTeacherName: "Carla Rojas",
+}
+
+const yearsAsked: (number | null)[] = []
 const mutateAsync = vi.fn()
 const swapMutateAsync = vi.fn()
 let coursesLoading = false
@@ -43,10 +54,20 @@ let coursesLoading = false
 vi.mock("../hooks/useCourses", () => ({
   useSetHomeroom: () => ({ mutateAsync, isPending: false }),
   useSwapHomeroom: () => ({ mutateAsync: swapMutateAsync, isPending: false }),
-  useAllCourses: () => ({
-    data: coursesLoading ? undefined : { content: [baseCourse, otherCourse] },
-    isLoading: coursesLoading,
-  }),
+  // Como la API: sólo los cursos de la gestión pedida.
+  useCoursesOfYear: (academicYearId: number | null) => {
+    yearsAsked.push(academicYearId)
+    return {
+      data: coursesLoading
+        ? undefined
+        : {
+            content: [baseCourse, otherCourse, nextYearCourse].filter(
+              (c) => c.academicYearId === academicYearId
+            ),
+          },
+      isLoading: coursesLoading,
+    }
+  },
 }))
 
 vi.mock("@/features/catalog/hooks/useCatalog", () => ({
@@ -63,6 +84,7 @@ vi.mock("@/features/catalog/hooks/useCatalog", () => ({
 describe("SetHomeroomDialog", () => {
   beforeEach(() => {
     coursesLoading = false
+    yearsAsked.length = 0
     vi.clearAllMocks()
   })
 
@@ -183,6 +205,23 @@ describe("SetHomeroomDialog, curso sin docente de aula", () => {
     expect(screen.getByText(/Segundo B/)).toBeInTheDocument()
     expect(screen.getByRole("button", { name: /asignar/i })).toBeDisabled()
     expect(mutateAsync).not.toHaveBeenCalled()
+  })
+
+  it("busca el otro curso del docente sólo en la gestión del curso", () => {
+    render(<SetHomeroomDialog course={orphanCourse} onClose={vi.fn()} />)
+
+    expect(yearsAsked.at(-1)).toBe(orphanCourse.academicYearId)
+  })
+
+  it("no cuenta como ocupado al docente de aula de otra gestión", async () => {
+    render(<SetHomeroomDialog course={orphanCourse} onClose={vi.fn()} />)
+
+    // Carla Rojas es de aula de un curso de 2027; en la gestión de este curso no tiene ninguno.
+    await userEvent.click(screen.getByRole("combobox"))
+    await userEvent.click(screen.getByRole("option", { name: "Carla Rojas" }))
+
+    expect(screen.queryByText(/ya es docente de aula/i)).not.toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /asignar/i })).toBeEnabled()
   })
 
   it("deja asignar a un docente libre", async () => {

@@ -30,7 +30,7 @@ import {
   useTeachers,
 } from "@/features/catalog/hooks/useCatalog"
 
-import { useAllCourses, useCreateCourse } from "../hooks/useCourses"
+import { useCoursesOfYear, useCreateCourse } from "../hooks/useCourses"
 import { homeroomCourses, takenParallels } from "../utils/courseAvailability"
 import {
   resolveSubjectTeacher,
@@ -53,7 +53,6 @@ export function AssignCourseSubjectsForm() {
   const aulaTeachers = useTeachers(false)
   const technicalTeachers = useTeachers(true)
   const academicYears = useAcademicYears()
-  const allCourses = useAllCourses()
 
   const [gradeId, setGradeId] = useState<number | undefined>()
   const [parallelId, setParallelId] = useState<number | undefined>()
@@ -74,6 +73,9 @@ export function AssignCourseSubjectsForm() {
    */
   const currentAcademicYearId =
     activeAcademicYear(academicYears.data)?.id ?? null
+  // Sólo los cursos de esa gestión: con varias gestiones a la vez, la página ancha de todas podía
+  // dejar afuera justo los de la actual.
+  const allCourses = useCoursesOfYear(currentAcademicYearId)
   const courses = useMemo(
     () => allCourses.data?.content ?? [],
     [allCourses.data]

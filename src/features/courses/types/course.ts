@@ -75,7 +75,8 @@ export interface ClassGroupItem {
   parallelName: string
   subjectId: string
   subjectName: string
-  teacherId: string
-  teacherName: string
+  /** Null en una materia que nació de duplicar la estructura de otra gestión: el docente se elige después. */
+  teacherId: string | null
+  teacherName: string | null
   active: boolean
 }

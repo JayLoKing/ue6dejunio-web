@@ -28,3 +28,32 @@ export function resolveSubjectTeacher(
   }
   return choice?.teacherId ?? homeroomTeacherId
 }
+
+export interface TeacherOption {
+  id: string
+  fullName: string
+}
+
+/**
+ * A quién se le puede dar una materia ya creada.
+ *
+ * La misma regla del alta, vista desde la lista: una materia común es de un docente no técnico, y
+ * una técnica es de un técnico o del docente de aula del curso (el hueco que la escuela llena así).
+ * Sin docente de aula en el curso, la técnica sólo ofrece a los técnicos.
+ */
+export function eligibleSubjectTeachers(
+  technical: boolean,
+  teachers: {
+    technicalTeachers: readonly TeacherOption[]
+    aulaTeachers: readonly TeacherOption[]
+    homeroomTeacherId: string | null | undefined
+  }
+): TeacherOption[] {
+  if (!technical) return [...teachers.aulaTeachers]
+  const homeroom = teachers.aulaTeachers.find(
+    (t) => t.id === teachers.homeroomTeacherId
+  )
+  return homeroom
+    ? [...teachers.technicalTeachers, homeroom]
+    : [...teachers.technicalTeachers]
+}

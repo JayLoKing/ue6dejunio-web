@@ -187,6 +187,29 @@ export function useSetHomeroom() {
   })
 }
 
+/** Director: cambia el docente de una materia del curso. */
+export function useReassignSubjectTeacher() {
+  const invalidate = useInvalidateCourses()
+  return useMutation({
+    mutationFn: (v: {
+      courseId: string
+      classGroupId: string
+      teacherId: string
+    }) =>
+      CourseService.reassignSubjectTeacher(
+        v.courseId,
+        v.classGroupId,
+        v.teacherId
+      ),
+    onSuccess: () => {
+      toast.success("Docente de la materia actualizado.")
+      // El overview del curso lleva las materias con su docente, y la lista de materias del
+      // docente es la de ambos: el que sale y el que entra.
+      invalidate()
+    },
+  })
+}
+
 /** Intercambia el docente de aula entre dos cursos, ambos activos (ninguno de baja). */
 export function useSwapHomeroom() {
   const invalidate = useInvalidateCourses()

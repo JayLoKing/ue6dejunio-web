@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest"
 
-import { resolveSubjectTeacher } from "./subjectTeacher"
+import {
+  eligibleSubjectTeachers,
+  resolveSubjectTeacher,
+} from "./subjectTeacher"
 
 const HOMEROOM = "aula-1"
 const TECHNICAL = "tecnico-1"
@@ -90,5 +93,43 @@ describe("resolveSubjectTeacher", () => {
   it("treats a subject nobody touched as having made no choice", () => {
     expect(resolveSubjectTeacher(false, undefined, HOMEROOM)).toBe(HOMEROOM)
     expect(resolveSubjectTeacher(true, undefined, HOMEROOM)).toBeUndefined()
+  })
+})
+
+describe("eligibleSubjectTeachers", () => {
+  const aula = [
+    { id: "aula-1", fullName: "Nora Arnez" },
+    { id: "aula-2", fullName: "Ana Perez" },
+  ]
+  const tecnicos = [{ id: "tecnico-1", fullName: "Luis Mamani" }]
+
+  it("offers only the non-technical teachers for an ordinary subject", () => {
+    expect(
+      eligibleSubjectTeachers(false, {
+        technicalTeachers: tecnicos,
+        aulaTeachers: aula,
+        homeroomTeacherId: "aula-1",
+      }).map((t) => t.id)
+    ).toEqual(["aula-1", "aula-2"])
+  })
+
+  it("offers the technical teachers plus the course's homeroom teacher for a technical subject", () => {
+    expect(
+      eligibleSubjectTeachers(true, {
+        technicalTeachers: tecnicos,
+        aulaTeachers: aula,
+        homeroomTeacherId: "aula-1",
+      }).map((t) => t.id)
+    ).toEqual(["tecnico-1", "aula-1"])
+  })
+
+  it("offers no homeroom teacher for a technical subject when the course has none", () => {
+    expect(
+      eligibleSubjectTeachers(true, {
+        technicalTeachers: tecnicos,
+        aulaTeachers: aula,
+        homeroomTeacherId: null,
+      }).map((t) => t.id)
+    ).toEqual(["tecnico-1"])
   })
 })

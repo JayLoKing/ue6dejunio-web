@@ -101,6 +101,21 @@ export default class CourseServiceHelper {
       controller,
     }
   }
+  reassignSubjectTeacherAsync(
+    courseId: string,
+    classGroupId: string,
+    teacherId: string
+  ): UseApiCall<ClassGroupItem> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.put<ClassGroupItem>(
+        CourseUrl.ClassGroupTeacher(courseId, classGroupId),
+        { teacherId },
+        { signal: controller.signal }
+      ),
+      controller,
+    }
+  }
   swapHomeroomAsync(courseAId: string, courseBId: string): UseApiCall<Course> {
     const controller = loadAbort()
     return {

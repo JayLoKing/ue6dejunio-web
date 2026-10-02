@@ -6,6 +6,9 @@ export const CourseUrl = {
   Overview: (id: string) => `/courses/${id}/overview`,
   /** RF 37: el porcentaje de asistencia por estudiante. `trimester` ausente = alcance anual. */
   AttendanceByStudent: (id: string) => `/courses/${id}/attendance-by-student`,
+  /** El docente de una materia (class group) del curso. */
+  ClassGroupTeacher: (courseId: string, classGroupId: string) =>
+    `/courses/${courseId}/class-groups/${classGroupId}/teacher`,
 } as const
 
 export const CourseEnrollmentUrl = {

@@ -47,6 +47,20 @@ export class CourseService {
   static async setHomeroom(id: string, teacherId: string): Promise<Course> {
     return (await helper.setHomeroomAsync(id, teacherId).call).data
   }
+  /** Director: el docente de una materia del curso. La API rechaza una gestión cerrada (409). */
+  static async reassignSubjectTeacher(
+    courseId: string,
+    classGroupId: string,
+    teacherId: string
+  ): Promise<ClassGroupItem> {
+    return (
+      await helper.reassignSubjectTeacherAsync(
+        courseId,
+        classGroupId,
+        teacherId
+      ).call
+    ).data
+  }
   static async swapHomeroom(
     courseAId: string,
     courseBId: string

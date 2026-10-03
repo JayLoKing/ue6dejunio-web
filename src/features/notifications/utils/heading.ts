@@ -14,6 +14,8 @@ export const HEADING: Record<NotificationType, string> = {
   ATTENDANCE: "Asistencias",
   PDC_PROGRESS: "Avance del PDC",
   SUMMONS: "Citación a dirección",
+  STUDENT_WITHDRAWN: "Baja de estudiante",
+  STUDENT_REINSTATED: "Reincorporación de estudiante",
   // Never read: a custom notification is headed by the subject its sender typed.
   CUSTOM: "Aviso",
 }

@@ -37,6 +37,15 @@ describe("headingOf", () => {
     )
   })
 
+  it("headings the notices a student status change writes", () => {
+    expect(headingOf(notification({ type: "STUDENT_WITHDRAWN" }))).toBe(
+      "Baja de estudiante"
+    )
+    expect(headingOf(notification({ type: "STUDENT_REINSTATED" }))).toBe(
+      "Reincorporación de estudiante"
+    )
+  })
+
   it("uses the subject the Director typed on a custom one", () => {
     expect(
       headingOf(notification({ type: "CUSTOM", subject: "Reunión de padres" }))

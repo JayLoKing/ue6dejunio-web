@@ -10,6 +10,8 @@ export type NotificationType =
   | "ATTENDANCE"
   | "PDC_PROGRESS"
   | "SUMMONS"
+  | "STUDENT_WITHDRAWN"
+  | "STUDENT_REINSTATED"
   | "CUSTOM"
 
 export interface NotificationItem {

@@ -34,6 +34,14 @@ export function useEnrollSingle() {
     mutationFn: (payload) => StudentService.enrollSingle(payload),
     onSuccess: (r) => {
       invalidate()
+      const skipped = r.skippedWithdrawn[0]
+      if (skipped) {
+        // Un solo estudiante: si se omitió, no se inscribió, y decir lo contrario sería falso.
+        toast.warning(
+          `${skipped.fullName} está retirado y no se inscribió. Solo el Director puede reincorporarlo.`
+        )
+        return
+      }
       toast.success(
         `Estudiante inscrito. ${r.enrollmentsCreated} inscripción(es) generadas.`
       )
@@ -48,8 +56,10 @@ export function useEnrollBatch() {
     mutationFn: (payload) => StudentService.enrollBatch(payload),
     onSuccess: (r) => {
       invalidate()
+      // El detalle (de dónde vino cada estudiante y a quién se omitió) lo muestra el resumen del
+      // formulario; el aviso sólo confirma que la carga terminó.
       toast.success(
-        `Nómina procesada. ${r.studentsCreated} nuevos, ${r.studentsExisting} existentes, ${r.enrollmentsCreated} inscripciones.`
+        `Nómina procesada. ${r.enrollmentsCreated} inscripciones generadas.`
       )
     },
   })

@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
@@ -19,7 +20,9 @@ import {
 
 import { studentPayloadSchema } from "../models/schemas/student-schemas"
 import { useEnrollSingle } from "../hooks/useEnroll"
+import type { EnrollResponse } from "../models/response/enroll-response"
 import type { StudentPayload } from "../types"
+import { EnrollResultSummary } from "./EnrollResultSummary"
 
 export interface ManualEnrollFormProps {
   courseId: string | null
@@ -48,16 +51,39 @@ export function ManualEnrollForm({
   })
 
   const enroll = useEnrollSingle()
+  const [skipped, setSkipped] = useState<EnrollResponse | null>(null)
 
   const onSubmit = handleSubmit(async (values) => {
     if (!courseId) return
     try {
-      await enroll.mutateAsync({ id_course: courseId, student: values })
-      onSuccess()
+      const response = await enroll.mutateAsync({
+        id_course: courseId,
+        student: values,
+      })
+      // Un retirado no se inscribe: el diálogo se queda para decirlo, en vez de cerrarse como si
+      // hubiera salido bien.
+      if (response.skippedWithdrawn.length > 0) setSkipped(response)
+      else onSuccess()
     } catch {
       /* toast via interceptor */
     }
   })
+
+  if (skipped) {
+    return (
+      <div className="flex flex-col gap-4">
+        <p className="text-sm">
+          El estudiante no se inscribió porque está retirado.
+        </p>
+        <EnrollResultSummary result={skipped} />
+        <div className="flex justify-end pt-2">
+          <Button type="button" onClick={onSuccess}>
+            Cerrar
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>

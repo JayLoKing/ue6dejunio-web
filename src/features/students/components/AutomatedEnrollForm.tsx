@@ -15,7 +15,9 @@ import {
 
 import { useParseStudentsPdf } from "../hooks/useParseStudentsPdf"
 import { useEnrollBatch } from "../hooks/useEnroll"
+import type { EnrollResponse } from "../models/response/enroll-response"
 import type { ParsedStudentRow } from "../types"
+import { EnrollResultSummary } from "./EnrollResultSummary"
 
 export interface AutomatedEnrollFormProps {
   courseId: string | null
@@ -29,6 +31,7 @@ export function AutomatedEnrollForm({
   const [file, setFile] = useState<File | null>(null)
   const [rows, setRows] = useState<ParsedStudentRow[]>([])
   const [parseError, setParseError] = useState<string | null>(null)
+  const [result, setResult] = useState<EnrollResponse | null>(null)
 
   const parse = useParseStudentsPdf()
   const parsing = parse.isPending
@@ -57,7 +60,7 @@ export function AutomatedEnrollForm({
   const handleSubmit = async () => {
     if (!courseId || rows.length === 0) return
     try {
-      await enroll.mutateAsync({
+      const response = await enroll.mutateAsync({
         id_course: courseId,
         students: rows.map(
           ({
@@ -77,7 +80,8 @@ export function AutomatedEnrollForm({
           })
         ),
       })
-      onSuccess()
+      // No se cierra solo: el resumen dice a quién se omitió, y cerrar lo taparía.
+      setResult(response)
     } catch {
       /* toast via interceptor */
     }
@@ -85,6 +89,19 @@ export function AutomatedEnrollForm({
 
   const maleCount = rows.filter((r) => r.gender === "M").length
   const femaleCount = rows.length - maleCount
+
+  if (result) {
+    return (
+      <div className="flex flex-col gap-4">
+        <EnrollResultSummary result={result} />
+        <div className="flex justify-end pt-2">
+          <Button type="button" onClick={onSuccess}>
+            Cerrar
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-4">

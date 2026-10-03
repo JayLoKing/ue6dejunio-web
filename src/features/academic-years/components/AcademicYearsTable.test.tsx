@@ -17,6 +17,8 @@ vi.mock("../services/academicYearService", () => ({
 }))
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
+import { useAuthStore } from "@/features/auth/store/authStore"
+
 import { AcademicYearsTable } from "./AcademicYearsTable"
 
 const ACTIVE = { id: 1, year: 2026, active: true, closed: false }
@@ -41,6 +43,7 @@ const rowOf = async (year: number) =>
   )
 
 beforeEach(() => {
+  useAuthStore.setState({ role: "DIRECTOR" })
   vi.clearAllMocks()
   years.mockResolvedValue([OPEN, ACTIVE, CLOSED])
   activate.mockResolvedValue(OPEN)
@@ -254,5 +257,28 @@ describe("AcademicYearsTable", () => {
     renderTable()
 
     expect(await screen.findByText(/sin gestiones/i)).toBeInTheDocument()
+  })
+})
+
+describe("AcademicYearsTable, secretaría", () => {
+  // Duplicating a structure is shared with the secretariat; activating, closing and reopening a
+  // year are the Director's, and the API answers 403 to anyone else.
+  it("offers only the duplication", async () => {
+    useAuthStore.setState({ role: "SECRETARY" })
+    renderTable()
+
+    const open = await rowOf(2027)
+    expect(
+      open.getByRole("button", { name: "Duplicar estructura" })
+    ).toBeEnabled()
+    expect(
+      open.queryByRole("button", { name: "Activar" })
+    ).not.toBeInTheDocument()
+    expect(
+      open.queryByRole("button", { name: "Cerrar" })
+    ).not.toBeInTheDocument()
+    expect(
+      (await rowOf(2025)).queryByRole("button", { name: "Reabrir" })
+    ).not.toBeInTheDocument()
   })
 })

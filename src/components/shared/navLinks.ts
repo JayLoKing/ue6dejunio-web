@@ -70,7 +70,7 @@ export const TOP_LINKS: NavLink[] = [
     title: "Registrar Curso",
     to: "/courses",
     icon: ClipboardListIcon,
-    roles: ["DIRECTOR"],
+    roles: ["DIRECTOR", "SECRETARY"],
   },
   {
     title: "Estudiantes",
@@ -120,7 +120,7 @@ export const TOP_LINKS: NavLink[] = [
   },
 ]
 
-/** El catálogo académico: lo administra Dirección y nadie más lo ve. */
+/** El catálogo académico: lo administra Dirección. Gestiones también lo abre Secretaría, sólo para duplicar. */
 export const ADMIN_LINKS: NavLink[] = [
   { title: "Niveles", to: "/levels", icon: LayersIcon, roles: ["DIRECTOR"] },
   {
@@ -150,9 +150,11 @@ export const ADMIN_LINKS: NavLink[] = [
   },
   {
     title: "Gestiones",
+    // Secretaría entra sólo a duplicar la estructura de una gestión: la pantalla le esconde el alta,
+    // activar, cerrar y reabrir, que la API le responde con 403.
     to: "/gestiones",
     icon: CalendarDaysIcon,
-    roles: ["DIRECTOR"],
+    roles: ["DIRECTOR", "SECRETARY"],
   },
   {
     title: "Trimestres",

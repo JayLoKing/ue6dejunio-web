@@ -34,10 +34,21 @@ describe("enlaces de Secretaría", () => {
    */
   it("no le ofrece ninguna pantalla de administración", () => {
     expect(rolesOf("/users")).toEqual(["DIRECTOR"])
-    expect(rolesOf("/courses")).toEqual(["DIRECTOR"])
-    for (const link of ADMIN_LINKS) {
+    for (const link of ADMIN_LINKS.filter((l) => l.to !== "/gestiones")) {
       expect(link.roles).toEqual(["DIRECTOR"])
     }
+  })
+
+  /**
+   * El ciclo de vida del curso es de las dos: alta de curso y duplicar la estructura de una
+   * gestión. El alta tiene su enlace; la duplicación vive en Gestiones, que la secretaría abre
+   * sólo para eso (la pantalla le esconde crear, activar, cerrar y reabrir).
+   */
+  it("le da el alta de curso y la duplicación de estructura", () => {
+    expect(rolesOf("/courses")).toEqual(["DIRECTOR", "SECRETARY"])
+    expect(ADMIN_LINKS.find((l) => l.to === "/gestiones")?.roles).toContain(
+      "SECRETARY"
+    )
   })
 
   /**
@@ -69,7 +80,7 @@ describe("la tabla de enlaces", () => {
 })
 
 describe("Gestiones", () => {
-  it("is a Director-only admin link, listed before Trimestres", () => {
+  it("is an admin link shared with the Secretary, listed before Trimestres", () => {
     const routes = ADMIN_LINKS.map((l) => l.to)
     expect(routes).toContain("/gestiones")
     expect(routes.indexOf("/gestiones")).toBeLessThan(
@@ -77,6 +88,7 @@ describe("Gestiones", () => {
     )
     expect(ADMIN_LINKS.find((l) => l.to === "/gestiones")?.roles).toEqual([
       "DIRECTOR",
+      "SECRETARY",
     ])
   })
 })
@@ -94,7 +106,9 @@ describe("visibleLinksFor", () => {
     expect(visibleLinksFor(ADMIN_LINKS, "DIRECTOR")).toHaveLength(
       ADMIN_LINKS.length
     )
-    expect(visibleLinksFor(ADMIN_LINKS, "SECRETARY")).toEqual([])
+    expect(visibleLinksFor(ADMIN_LINKS, "SECRETARY").map((l) => l.to)).toEqual([
+      "/gestiones",
+    ])
     expect(visibleLinksFor(ADMIN_LINKS, "TEACHER")).toEqual([])
   })
 
@@ -104,6 +118,7 @@ describe("visibleLinksFor", () => {
 
     expect(titlesFor("SECRETARY")).toEqual([
       "/dashboard",
+      "/courses",
       "/estudiantes",
       "/reports",
       "/cuadro-de-honor",

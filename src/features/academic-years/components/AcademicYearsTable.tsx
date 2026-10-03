@@ -13,6 +13,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
+import { useAuthStore } from "@/features/auth/store/authStore"
+import { coursePermissions } from "@/features/courses/utils/coursePermissions"
 import { useAcademicYears } from "@/features/catalog/hooks/useCatalog"
 import type { AcademicYearItem } from "@/features/catalog/types"
 
@@ -37,6 +39,9 @@ interface Pending {
 const COLUMNS = 3
 
 export function AcademicYearsTable() {
+  const { canManageYears, canDuplicateStructure } = coursePermissions(
+    useAuthStore((s) => s.role)
+  )
   const { data, isLoading, isError } = useAcademicYears()
   const activate = useActivateAcademicYear()
   const close = useCloseAcademicYear()
@@ -86,43 +91,51 @@ export function AcademicYearsTable() {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      disabled={busy || !canActivate(year)}
-                      onClick={() => activate.mutate(year.id)}
-                    >
-                      <PowerIcon data-icon="inline-start" />
-                      Activar
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      disabled={busy || !canDuplicate(year)}
-                      onClick={() => setDuplicating(year)}
-                    >
-                      <CopyIcon data-icon="inline-start" />
-                      Duplicar estructura
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-destructive"
-                      disabled={busy || !canClose(year)}
-                      onClick={() => setPending({ kind: "close", year })}
-                    >
-                      <LockIcon data-icon="inline-start" />
-                      Cerrar
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      disabled={busy || !canReopen(year)}
-                      onClick={() => setPending({ kind: "reopen", year })}
-                    >
-                      <LockOpenIcon data-icon="inline-start" />
-                      Reabrir
-                    </Button>
+                    {canManageYears ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={busy || !canActivate(year)}
+                        onClick={() => activate.mutate(year.id)}
+                      >
+                        <PowerIcon data-icon="inline-start" />
+                        Activar
+                      </Button>
+                    ) : null}
+                    {canDuplicateStructure ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={busy || !canDuplicate(year)}
+                        onClick={() => setDuplicating(year)}
+                      >
+                        <CopyIcon data-icon="inline-start" />
+                        Duplicar estructura
+                      </Button>
+                    ) : null}
+                    {canManageYears ? (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-destructive"
+                          disabled={busy || !canClose(year)}
+                          onClick={() => setPending({ kind: "close", year })}
+                        >
+                          <LockIcon data-icon="inline-start" />
+                          Cerrar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={busy || !canReopen(year)}
+                          onClick={() => setPending({ kind: "reopen", year })}
+                        >
+                          <LockOpenIcon data-icon="inline-start" />
+                          Reabrir
+                        </Button>
+                      </>
+                    ) : null}
                   </div>
                 </TableCell>
               </TableRow>

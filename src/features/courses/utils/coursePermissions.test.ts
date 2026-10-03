@@ -12,6 +12,8 @@ describe("coursePermissions", () => {
       canReassignSubjectTeacher: true,
       canOpenNotebook: true,
       canManageYears: true,
+      canCreateYear: true,
+      canDeactivateCourse: true,
     })
   })
 
@@ -25,6 +27,8 @@ describe("coursePermissions", () => {
       canReassignSubjectTeacher: false,
       canOpenNotebook: false,
       canManageYears: false,
+      canCreateYear: true,
+      canDeactivateCourse: true,
     })
   })
 

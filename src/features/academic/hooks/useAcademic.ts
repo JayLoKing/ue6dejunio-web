@@ -167,7 +167,8 @@ export const useCreateSubject = mutationFactory(
   "subjects",
   (p: { name: string; id_area: number; technical: boolean }) =>
     SubjectAdminService.create(p),
-  "Materia creada."
+  "Materia creada.",
+  [["catalog", "subjects"]]
 )
 export const useUpdateSubject = mutationFactory(
   "subjects",
@@ -191,7 +192,8 @@ export const useUpdateSubject = mutationFactory(
 export const useDeleteSubject = mutationFactory(
   "subjects",
   (id: string) => SubjectAdminService.remove(id),
-  "Materia eliminada."
+  "Materia eliminada.",
+  [["catalog", "subjects"]]
 )
 
 // Trimester periods (fechas por trimestre del año académico)

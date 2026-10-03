@@ -187,6 +187,29 @@ export function useSetHomeroom() {
   })
 }
 
+/** Da de baja un curso. Sin toast de error: el interceptor ya muestra el mensaje de la API. */
+export function useDeactivateCourse() {
+  const invalidate = useInvalidateCourses()
+  return useMutation({
+    mutationFn: (id: string) => CourseService.remove(id),
+    onSuccess: () => {
+      toast.success("Curso dado de baja.")
+      invalidate()
+    },
+  })
+}
+
+export function useReactivateCourse() {
+  const invalidate = useInvalidateCourses()
+  return useMutation({
+    mutationFn: (id: string) => CourseService.reactivate(id),
+    onSuccess: () => {
+      toast.success("Curso reactivado.")
+      invalidate()
+    },
+  })
+}
+
 /** Director: cambia el docente de una materia del curso. */
 export function useReassignSubjectTeacher() {
   const invalidate = useInvalidateCourses()

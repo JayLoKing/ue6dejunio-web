@@ -67,8 +67,13 @@ export class CourseService {
   ): Promise<Course> {
     return (await helper.swapHomeroomAsync(courseAId, courseBId).call).data
   }
+  /** Da de baja el curso. La API responde 409 si tiene estudiantes inscritos o registros académicos. */
   static async remove(id: string): Promise<void> {
     await helper.deleteAsync(id).call
+  }
+  /** Reactiva un curso dado de baja. La API responde 409 si su docente de aula ya lo es de otro. */
+  static async reactivate(id: string): Promise<Course> {
+    return (await helper.setActiveAsync(id, true).call).data
   }
   static async students(
     courseId: string,

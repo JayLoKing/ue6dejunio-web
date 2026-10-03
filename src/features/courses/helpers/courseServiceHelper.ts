@@ -127,6 +127,19 @@ export default class CourseServiceHelper {
       controller,
     }
   }
+  /** PUT /courses/{id}: la API sólo acepta el docente de aula y la bandera `active`. */
+  setActiveAsync(id: string, active: boolean): UseApiCall<Course> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.put<Course>(
+        CourseUrl.ById(id),
+        { active },
+        { signal: controller.signal }
+      ),
+      controller,
+    }
+  }
+
   deleteAsync(id: string): UseApiCall<void> {
     const controller = loadAbort()
     return {

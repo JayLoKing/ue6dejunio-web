@@ -3,13 +3,11 @@ import type {
   EnrollBatchRequest,
   EnrollSingleRequest,
 } from "../models/requests/enroll-request"
-import type {
-  ReinstateStudentRequest,
-  ReinstateStudentResponse,
-} from "../models/requests/reinstate-request"
+import type { ReinstateStudentRequest } from "../models/requests/reinstate-request"
 import type { WithdrawStudentRequest } from "../models/requests/withdraw-request"
 import type { EnrollResponse } from "../models/response/enroll-response"
 import type { NotReenrolledResponse } from "../models/response/not-reenrolled-response"
+import type { ReinstateStudentResponse } from "../models/response/reinstate-response"
 import type { StudentDetail, StudentMovementSummary } from "../types"
 
 const helper = new StudentServiceHelper()

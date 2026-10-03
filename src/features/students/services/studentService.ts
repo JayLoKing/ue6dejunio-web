@@ -3,6 +3,10 @@ import type {
   EnrollBatchRequest,
   EnrollSingleRequest,
 } from "../models/requests/enroll-request"
+import type {
+  ReinstateStudentRequest,
+  ReinstateStudentResponse,
+} from "../models/requests/reinstate-request"
 import type { WithdrawStudentRequest } from "../models/requests/withdraw-request"
 import type { EnrollResponse } from "../models/response/enroll-response"
 import type { StudentDetail, StudentMovementSummary } from "../types"
@@ -22,6 +26,14 @@ export class StudentService {
     payload: WithdrawStudentRequest
   ): Promise<void> {
     await helper.withdrawAsync(id, payload).call
+  }
+
+  /** Devuelve a un retirado al padrón. Sólo Dirección. */
+  static async reinstate(
+    id: string,
+    payload: ReinstateStudentRequest
+  ): Promise<ReinstateStudentResponse> {
+    return (await helper.reinstateAsync(id, payload).call).data
   }
 
   static async enrollSingle(

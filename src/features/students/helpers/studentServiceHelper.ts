@@ -7,6 +7,10 @@ import type {
   EnrollBatchRequest,
   EnrollSingleRequest,
 } from "../models/requests/enroll-request"
+import type {
+  ReinstateStudentRequest,
+  ReinstateStudentResponse,
+} from "../models/requests/reinstate-request"
 import type { WithdrawStudentRequest } from "../models/requests/withdraw-request"
 import type { EnrollResponse } from "../models/response/enroll-response"
 import type { StudentDetail, StudentMovementSummary } from "../types"
@@ -28,6 +32,21 @@ export default class StudentServiceHelper {
       call: httpClient.post<void>(StudentUrl.Withdraw(id), payload, {
         signal: controller.signal,
       }),
+      controller,
+    }
+  }
+
+  reinstateAsync(
+    id: string,
+    payload: ReinstateStudentRequest
+  ): UseApiCall<ReinstateStudentResponse> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.post<ReinstateStudentResponse>(
+        StudentUrl.Reinstate(id),
+        payload,
+        { signal: controller.signal }
+      ),
       controller,
     }
   }

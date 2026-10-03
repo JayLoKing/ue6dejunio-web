@@ -15,6 +15,7 @@ import type {
   Level,
   Parallel,
   Subject,
+  SubjectStatusFilter,
   TrimesterPeriod,
   UpdateTrimesterPeriodPayload,
 } from "../types"
@@ -119,8 +120,11 @@ export class KnowledgeAreaAdminService {
 
 // ---- Subjects ----
 export class SubjectAdminService {
-  static async list(q: PageQuery): Promise<PagedResponse<Subject>> {
-    const { call } = subjectHelper.listAsync(q)
+  static async list(
+    q: PageQuery,
+    status: SubjectStatusFilter
+  ): Promise<PagedResponse<Subject>> {
+    const { call } = subjectHelper.listAsync(q, status)
     return (await call).data
   }
   static async create(payload: {

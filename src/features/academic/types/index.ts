@@ -27,6 +27,9 @@ export interface KnowledgeArea {
   displayOrder: number
 }
 
+/** Qué materias lista la pantalla de administración: el parámetro `status` de la API. */
+export type SubjectStatusFilter = "active" | "inactive" | "all"
+
 export interface Subject {
   id: string
   name: string

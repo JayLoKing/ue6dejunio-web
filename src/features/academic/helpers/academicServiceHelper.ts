@@ -19,6 +19,7 @@ import type {
   Level,
   Parallel,
   Subject,
+  SubjectStatusFilter,
   TrimesterPeriod,
   UpdateTrimesterPeriodPayload,
 } from "../types"
@@ -201,12 +202,15 @@ export class KnowledgeAreaServiceHelper {
 
 // ---- Subjects ----
 export class SubjectServiceHelper {
-  listAsync(query: PageQuery): UseApiCall<PagedResponse<Subject>> {
+  listAsync(
+    query: PageQuery,
+    status: SubjectStatusFilter
+  ): UseApiCall<PagedResponse<Subject>> {
     const controller = loadAbort()
     return {
       call: httpClient.get<PagedResponse<Subject>>(SubjectUrl.Base, {
         signal: controller.signal,
-        params: toPageParams(query),
+        params: toPageParams(query, { status }),
       }),
       controller,
     }

@@ -19,6 +19,7 @@ import {
 } from "../services/academicServices"
 import type {
   CreateTrimesterPeriodPayload,
+  SubjectStatusFilter,
   UpdateTrimesterPeriodPayload,
 } from "../types"
 
@@ -39,8 +40,13 @@ export const useGradesAdmin = (q: PageQuery) =>
   useResourceList("grades", GradeAdminService.list, q)
 export const useParallels = (q: PageQuery) =>
   useResourceList("parallels", ParallelService.list, q)
-export const useSubjectsAdmin = (q: PageQuery) =>
-  useResourceList("subjects", SubjectAdminService.list, q)
+/** La clave lleva el filtro: cada estado es otra lista y no puede servirse de la caché de otra. */
+export const useSubjectsAdmin = (q: PageQuery, status: SubjectStatusFilter) =>
+  useQuery({
+    queryKey: ["subjects", q, status],
+    queryFn: () => SubjectAdminService.list(q, status),
+    placeholderData: keepPreviousData,
+  })
 export const useKnowledgeAreas = (q: PageQuery) =>
   useResourceList("knowledge-areas", KnowledgeAreaAdminService.list, q)
 
@@ -61,7 +67,9 @@ export const useAllKnowledgeAreas = () =>
 function mutationFactory<V>(
   key: string,
   fn: (v: V) => Promise<unknown>,
-  successMsg: string
+  successMsg: string,
+  // Otras cachés que leen lo mismo, p. ej. el catálogo que alimenta los selectores.
+  alsoInvalidate: readonly (readonly string[])[] = []
 ) {
   return function useResourceMutation() {
     const qc = useQueryClient()
@@ -70,6 +78,9 @@ function mutationFactory<V>(
       onSuccess: () => {
         toast.success(successMsg)
         void qc.invalidateQueries({ queryKey: [key] })
+        for (const k of alsoInvalidate) {
+          void qc.invalidateQueries({ queryKey: k })
+        }
       },
     })
   }
@@ -160,13 +171,22 @@ export const useCreateSubject = mutationFactory(
 )
 export const useUpdateSubject = mutationFactory(
   "subjects",
-  (v: { id: string; name: string; id_area: number; technical: boolean }) =>
+  (v: {
+    id: string
+    name: string
+    id_area: number
+    technical: boolean
+    /** Solo al reactivar; al editar se omite y la API deja el estado como está. */
+    active?: boolean
+  }) =>
     SubjectAdminService.update(v.id, {
       name: v.name,
       id_area: v.id_area,
       technical: v.technical,
+      active: v.active,
     }),
-  "Materia actualizada."
+  "Materia actualizada.",
+  [["catalog", "subjects"]]
 )
 export const useDeleteSubject = mutationFactory(
   "subjects",

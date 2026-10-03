@@ -2,7 +2,7 @@ import { useMemo, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
+import { PencilIcon, PlusIcon, RotateCcwIcon, Trash2Icon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
@@ -35,7 +35,19 @@ import {
   useSubjectsAdmin,
   useUpdateSubject,
 } from "../hooks/useAcademic"
-import type { Subject } from "../types"
+import type { Subject, SubjectStatusFilter } from "../types"
+
+const STATUS_OPTIONS: { value: SubjectStatusFilter; label: string }[] = [
+  { value: "active", label: "Activas" },
+  { value: "inactive", label: "Inactivas" },
+  { value: "all", label: "Todas" },
+]
+
+const EMPTY_COPY: Record<SubjectStatusFilter, string> = {
+  active: "Sin materias.",
+  inactive: "No hay materias inactivas.",
+  all: "Sin materias.",
+}
 
 const schema = z.object({
   name: trimmedString({ min: 1, max: 100, field: "Nombre" }),
@@ -51,12 +63,16 @@ export function SubjectsPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Subject | null>(null)
   const [deleting, setDeleting] = useState<Subject | null>(null)
+  const [status, setStatus] = useState<SubjectStatusFilter>("active")
 
   const query = useMemo<PageQuery>(
     () => ({ offset: page, limit, sort: "asc" }),
     [page, limit]
   )
-  const { data, isLoading, isFetching, refetch } = useSubjectsAdmin(query)
+  const { data, isLoading, isFetching, isError, refetch } = useSubjectsAdmin(
+    query,
+    status
+  )
   // Todas de una: son cuatro y el selector no puede ofrecer un área que quedó fuera de una página.
   const areas = useAllKnowledgeAreas()
   const create = useCreateSubject()
@@ -101,6 +117,16 @@ export function SubjectsPage() {
     }
   })
 
+  const reactivate = (s: Subject) =>
+    // La API acepta el cuerpo completo del PUT; se manda lo que la fila ya trae y solo cambia `active`.
+    update.mutate({
+      id: s.id,
+      name: s.name,
+      id_area: s.areaId,
+      technical: s.technical,
+      active: true,
+    })
+
   const rows = data?.content ?? []
   const saving = create.isPending || update.isPending
 
@@ -122,13 +148,39 @@ export function SubjectsPage() {
         </Button>
       </div>
 
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-muted-foreground">Mostrar</span>
+        <Select
+          value={status}
+          onValueChange={(v) => {
+            setStatus(v as SubjectStatusFilter)
+            setPage(1)
+          }}
+        >
+          <SelectTrigger className="w-40" aria-label="Estado">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {STATUS_OPTIONS.map((o) => (
+              <SelectItem key={o.value} value={o.value}>
+                {o.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       {isLoading ? (
         <div className="rounded-md border border-dashed p-10 text-center text-sm text-muted-foreground">
           Cargando…
         </div>
+      ) : isError ? (
+        <div className="rounded-md border border-dashed border-destructive/40 p-10 text-center text-sm text-destructive">
+          No se pudieron cargar las materias. Intenta de nuevo.
+        </div>
       ) : rows.length === 0 ? (
         <div className="rounded-md border border-dashed p-10 text-center text-sm text-muted-foreground">
-          Sin materias.
+          {EMPTY_COPY[status]}
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -149,15 +201,29 @@ export function SubjectsPage() {
                   >
                     <PencilIcon className="size-4" />
                   </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="size-8 text-destructive"
-                    aria-label={`Eliminar ${s.name}`}
-                    onClick={() => setDeleting(s)}
-                  >
-                    <Trash2Icon className="size-4" />
-                  </Button>
+                  {s.active ? (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="size-8 text-destructive"
+                      aria-label={`Eliminar ${s.name}`}
+                      onClick={() => setDeleting(s)}
+                    >
+                      <Trash2Icon className="size-4" />
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8"
+                      aria-label={`Reactivar ${s.name}`}
+                      disabled={update.isPending}
+                      onClick={() => reactivate(s)}
+                    >
+                      <RotateCcwIcon data-icon="inline-start" />
+                      Reactivar
+                    </Button>
+                  )}
                 </div>
               </div>
               <div className="flex flex-wrap gap-1.5">

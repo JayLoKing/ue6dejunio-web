@@ -1,4 +1,4 @@
-import { InfoIcon, UserMinusIcon } from "lucide-react"
+import { InfoIcon, UserCheckIcon, UserMinusIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -36,6 +36,8 @@ export interface StudentDirectoryTableProps {
    * secretaría lee este mismo listado.
    */
   onWithdraw?: (student: StudentDirectoryResponse) => void
+  /** Reincorpora a un retirado. Ausente, no se ofrece: también es del Director. */
+  onReinstate?: (student: StudentDirectoryResponse) => void
 }
 
 export function StudentDirectoryTable({
@@ -50,6 +52,7 @@ export function StudentDirectoryTable({
   onPageSizeChange,
   onOpenWithdrawal,
   onWithdraw,
+  onReinstate,
 }: StudentDirectoryTableProps) {
   return (
     <div className="flex flex-col gap-4">
@@ -64,7 +67,7 @@ export function StudentDirectoryTable({
               <TableHead>Paralelo</TableHead>
               <TableHead>Gestión</TableHead>
               <TableHead>Estado</TableHead>
-              <TableHead className="w-10" />
+              <TableHead className="w-20" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -99,18 +102,34 @@ export function StudentDirectoryTable({
                   </TableCell>
                   <TableCell className="text-right">
                     {s.status === WITHDRAWN ? (
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="size-8"
-                        title="Ver el motivo de la baja"
-                        onClick={() => onOpenWithdrawal(s.id)}
-                      >
-                        <InfoIcon className="size-4" />
-                        <span className="sr-only">
-                          Ver el motivo de la baja de {s.fullName}
-                        </span>
-                      </Button>
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-8"
+                          title="Ver el motivo de la baja"
+                          onClick={() => onOpenWithdrawal(s.id)}
+                        >
+                          <InfoIcon className="size-4" />
+                          <span className="sr-only">
+                            Ver el motivo de la baja de {s.fullName}
+                          </span>
+                        </Button>
+                        {onReinstate ? (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="size-8"
+                            title="Reincorporar"
+                            onClick={() => onReinstate(s)}
+                          >
+                            <UserCheckIcon className="size-4" />
+                            <span className="sr-only">
+                              Reincorporar a {s.fullName}
+                            </span>
+                          </Button>
+                        ) : null}
+                      </div>
                     ) : s.status === EFFECTIVE && onWithdraw ? (
                       <Button
                         size="icon"

@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-query"
 import { toast } from "sonner"
 
+import { invalidateCourses } from "@/features/courses/hooks/useCourses"
 import type { PageQuery } from "@/lib/types/pagination"
 
 import { StudentDirectoryService } from "../services/studentDirectoryService"
@@ -49,6 +50,32 @@ export function useWithdrawStudent() {
       void qc.invalidateQueries({ queryKey: ["students", v.id] })
       // El padrón del docente y el curso muestran al mismo estudiante desde otra consulta.
       void qc.invalidateQueries({ queryKey: ["courses"] })
+    },
+  })
+}
+
+/**
+ * La reincorporación de un retirado.
+ *
+ * Invalida todo `["students"]`: cambia el directorio, la ficha, el movimiento matricular y el
+ * reporte de quienes no volvieron. Además los cursos y padrones (`invalidateCourses`) y el padrón
+ * del docente, porque el estudiante reaparece en ellos.
+ *
+ * Sin toast de error: el interceptor ya muestra el mensaje de la API.
+ */
+export function useReinstateStudent() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (v: { id: string; courseId?: string }) =>
+      StudentService.reinstate(
+        v.id,
+        v.courseId ? { id_course: v.courseId } : {}
+      ),
+    onSuccess: () => {
+      toast.success("Estudiante reincorporado.")
+      void qc.invalidateQueries({ queryKey: ["students"] })
+      void qc.invalidateQueries({ queryKey: ["teachers"] })
+      invalidateCourses(qc)
     },
   })
 }

@@ -6,6 +6,10 @@ import { useAuthStore } from "@/features/auth/store/authStore"
 import { isRole } from "@/features/auth/types"
 import { StudentDirectoryFilters as DirectoryFilters } from "@/features/students/components/StudentDirectoryFilters"
 import { StudentDirectoryTable } from "@/features/students/components/StudentDirectoryTable"
+import {
+  ReinstateStudentDialog,
+  type ReinstateTarget,
+} from "@/features/students/components/ReinstateStudentDialog"
 import { StudentWithdrawalDialog } from "@/features/students/components/StudentWithdrawalDialog"
 import {
   WithdrawStudentDialog,
@@ -33,6 +37,7 @@ export const Route = createFileRoute("/_app/estudiantes")({
 function StudentDirectoryPage() {
   const role = useAuthStore((s) => s.role)
   const canWithdraw = isRole(role, "DIRECTOR")
+  const canReinstate = isRole(role, "DIRECTOR")
 
   const [filters, setFilters] = useState<StudentDirectoryFilters>(
     EMPTY_DIRECTORY_FILTERS
@@ -64,6 +69,7 @@ function StudentDirectoryPage() {
   // distintas sobre la misma fila, y cada una tiene su diálogo.
   const [withdrawing, setWithdrawing] = useState<WithdrawalTarget | null>(null)
   const [readingReason, setReadingReason] = useState<string | null>(null)
+  const [reinstating, setReinstating] = useState<ReinstateTarget | null>(null)
 
   const rows = directory.data?.content ?? []
 
@@ -104,12 +110,21 @@ function StudentDirectoryPage() {
               ? (s) => setWithdrawing({ id: s.id, fullName: s.fullName })
               : undefined
           }
+          onReinstate={
+            canReinstate
+              ? (s) => setReinstating({ id: s.id, fullName: s.fullName })
+              : undefined
+          }
         />
       )}
 
       <WithdrawStudentDialog
         student={withdrawing}
         onClose={() => setWithdrawing(null)}
+      />
+      <ReinstateStudentDialog
+        student={reinstating}
+        onClose={() => setReinstating(null)}
       />
       <StudentWithdrawalDialog
         studentId={readingReason}

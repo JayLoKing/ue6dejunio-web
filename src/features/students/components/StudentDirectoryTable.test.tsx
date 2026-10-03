@@ -104,4 +104,45 @@ describe("StudentDirectoryTable", () => {
     ).not.toBeInTheDocument()
     expect(screen.getByText("Dado de baja")).toBeInTheDocument()
   })
+
+  /** Bringing someone back is the Director's alone; the secretariat reads this same listing. */
+  it("offers no reinstatement when the caller cannot decide one", () => {
+    render(
+      <StudentDirectoryTable {...props} rows={[row({ status: "Withdrawn" })]} />
+    )
+
+    expect(
+      screen.queryByRole("button", { name: /Reincorporar a/ })
+    ).not.toBeInTheDocument()
+  })
+
+  it("offers the reinstatement on a withdrawn student", async () => {
+    const onReinstate = vi.fn()
+    render(
+      <StudentDirectoryTable
+        {...props}
+        rows={[row({ status: "Withdrawn" })]}
+        onReinstate={onReinstate}
+      />
+    )
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /Reincorporar a Ana Quispe/ })
+    )
+
+    expect(onReinstate).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "st-1" })
+    )
+  })
+
+  /** Someone still on the roll has nothing to be reinstated from (the API answers 409). */
+  it("does not offer the reinstatement on a student still on the roll", () => {
+    render(
+      <StudentDirectoryTable {...props} rows={[row()]} onReinstate={vi.fn()} />
+    )
+
+    expect(
+      screen.queryByRole("button", { name: /Reincorporar a/ })
+    ).not.toBeInTheDocument()
+  })
 })

@@ -17,6 +17,7 @@ import {
   WithdrawStudentDialog,
   type WithdrawalTarget,
 } from "@/features/students/components/WithdrawStudentDialog"
+import { directoryPermissions } from "@/features/students/utils/studentDirectoryPermissions"
 import { useStudentDirectory } from "@/features/students/hooks/useStudentDirectory"
 import {
   EMPTY_DIRECTORY_FILTERS,
@@ -38,8 +39,7 @@ export const Route = createFileRoute("/_app/estudiantes")({
 
 function StudentDirectoryPage() {
   const role = useAuthStore((s) => s.role)
-  const canWithdraw = isRole(role, "DIRECTOR")
-  const canReinstate = isRole(role, "DIRECTOR")
+  const { canWithdraw, canReinstate } = directoryPermissions(role)
 
   const [filters, setFilters] = useState<StudentDirectoryFilters>(
     EMPTY_DIRECTORY_FILTERS

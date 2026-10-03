@@ -2,6 +2,8 @@ import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
+import { useAuthStore } from "@/features/auth/store/authStore"
+
 import { ParallelCoursesPage } from "./ParallelCoursesPage"
 import type { Course } from "../types/course"
 
@@ -70,6 +72,7 @@ vi.mock("./CourseInfoModal", () => ({ CourseInfoModal: () => null }))
 vi.mock("./SetHomeroomDialog", () => ({ SetHomeroomDialog: () => null }))
 
 beforeEach(() => {
+  useAuthStore.setState({ role: "DIRECTOR" })
   yearCalls.length = 0
   years = {
     data: [
@@ -148,5 +151,23 @@ describe("ParallelCoursesPage", () => {
     render(<ParallelCoursesPage parallelId="1" />)
     expect(yearCalls.at(-1)).toBeNull()
     expect(screen.getByText(/No hay una gestión activa/)).toBeInTheDocument()
+  })
+})
+
+describe("ParallelCoursesPage, actions by role", () => {
+  it("gives the Director the notebook, the info and the homeroom teacher", () => {
+    render(<ParallelCoursesPage parallelId="1" />)
+    expect(screen.getByText("Cuaderno")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /Info/ })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /Docente/ })).toBeInTheDocument()
+  })
+
+  // The notebook behind that link reads endpoints the API keeps for the Director.
+  it("gives the Secretary the homeroom teacher and the info, not the notebook", () => {
+    useAuthStore.setState({ role: "SECRETARY" })
+    render(<ParallelCoursesPage parallelId="1" />)
+    expect(screen.queryByText("Cuaderno")).not.toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /Info/ })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /Docente/ })).toBeInTheDocument()
   })
 })

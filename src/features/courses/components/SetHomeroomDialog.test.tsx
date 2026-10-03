@@ -2,6 +2,8 @@ import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
+import { useAuthStore } from "@/features/auth/store/authStore"
+
 import { SetHomeroomDialog } from "./SetHomeroomDialog"
 import type { Course } from "../types/course"
 
@@ -83,6 +85,7 @@ vi.mock("@/features/catalog/hooks/useCatalog", () => ({
 
 describe("SetHomeroomDialog", () => {
   beforeEach(() => {
+    useAuthStore.setState({ role: "DIRECTOR" })
     coursesLoading = false
     yearsAsked.length = 0
     vi.clearAllMocks()
@@ -188,6 +191,8 @@ describe("SetHomeroomDialog", () => {
  * antes, y no dejar que el Director lo descubra apretando.
  */
 describe("SetHomeroomDialog, curso sin docente de aula", () => {
+  beforeEach(() => useAuthStore.setState({ role: "DIRECTOR" }))
+
   const orphanCourse: Course = {
     ...baseCourse,
     id: "course-3",
@@ -231,5 +236,46 @@ describe("SetHomeroomDialog, curso sin docente de aula", () => {
     await userEvent.click(screen.getByRole("option", { name: "Carla Rojas" }))
 
     expect(screen.getByRole("button", { name: /asignar/i })).toBeEnabled()
+  })
+})
+
+/**
+ * El intercambio de docentes de aula es de Dirección: la API le responde 403 a la secretaría. La
+ * reasignación llana de un curso sí es suya, y el diálogo no debe ofrecerle el camino que cierra.
+ */
+describe("SetHomeroomDialog, secretaría", () => {
+  beforeEach(() => {
+    coursesLoading = false
+    vi.clearAllMocks()
+    useAuthStore.setState({ role: "SECRETARY" })
+  })
+
+  it("no ofrece el intercambio: explica que es de Dirección y bloquea el botón", async () => {
+    render(<SetHomeroomDialog course={baseCourse} onClose={vi.fn()} />)
+
+    await userEvent.click(screen.getByRole("combobox"))
+    await userEvent.click(screen.getByRole("option", { name: "Ana Perez" }))
+
+    expect(
+      screen.queryByRole("button", { name: /Intercambiar/i })
+    ).not.toBeInTheDocument()
+    expect(screen.getByText(/lo hace Dirección/i)).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /Asignar/i })).toBeDisabled()
+    expect(swapMutateAsync).not.toHaveBeenCalled()
+  })
+
+  it("deja reasignar a un docente de aula sin curso cuando el actual ya está de baja", async () => {
+    const course: Course = { ...baseCourse, homeroomTeacherActive: false }
+    const onClose = vi.fn()
+    render(<SetHomeroomDialog course={course} onClose={onClose} />)
+
+    await userEvent.click(screen.getByRole("combobox"))
+    await userEvent.click(screen.getByRole("option", { name: "Carla Rojas" }))
+    await userEvent.click(screen.getByRole("button", { name: /Asignar/i }))
+
+    expect(mutateAsync).toHaveBeenCalledWith({
+      id: "course-1",
+      teacherId: "t-3",
+    })
   })
 })

@@ -40,6 +40,7 @@ import { useAuthStore } from "@/features/auth/store/authStore"
 import { isRole } from "@/features/auth/types"
 import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
 import { useCourseOverview } from "@/features/courses/hooks/useCourses"
+import { coursePermissions } from "@/features/courses/utils/coursePermissions"
 import { isTechnicalSubject } from "@/features/courses/utils/subject"
 import { useParallels } from "@/features/catalog/hooks/useCatalog"
 
@@ -49,6 +50,9 @@ export function AppSidebar() {
 
   const teacher = isRole(role, "TEACHER")
   const director = isRole(role, "DIRECTOR")
+  // Dirección y secretaría entran a Cursos: la secretaría reasigna el docente de aula, y qué ve
+  // cada una en la lista lo decide la página.
+  const showCourses = coursePermissions(role).canSetHomeroom
 
   const ctx = useCurrentContext()
   const isTechnical = ctx.isTechnical
@@ -187,8 +191,8 @@ export function AppSidebar() {
                 </Collapsible>
               ) : null}
 
-              {/* Director: Cursos → parallels */}
-              {director ? (
+              {/* Dirección y secretaría: Cursos → parallels */}
+              {showCourses ? (
                 <Collapsible className="group/collapsible" asChild>
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>

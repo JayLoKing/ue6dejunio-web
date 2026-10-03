@@ -10,6 +10,7 @@ import {
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { useAuthStore } from "@/features/auth/store/authStore"
 import { AcademicYearSelect } from "@/features/catalog/components/AcademicYearSelect"
 import {
   useAcademicYears,
@@ -19,6 +20,7 @@ import { useSelectedAcademicYear } from "@/features/catalog/hooks/useSelectedAca
 
 import { useCoursesOfYear } from "../hooks/useCourses"
 import type { Course } from "../types/course"
+import { coursePermissions } from "../utils/coursePermissions"
 import { CourseInfoModal } from "./CourseInfoModal"
 import { SetHomeroomDialog } from "./SetHomeroomDialog"
 
@@ -43,6 +45,9 @@ const Failure = ({ children }: { children: string }) => (
 
 /** Los cursos de un paralelo en la gestión elegida (la activa mientras nadie elija otra). */
 export function ParallelCoursesPage({ parallelId }: ParallelCoursesPageProps) {
+  const { canOpenNotebook, canSetHomeroom } = coursePermissions(
+    useAuthStore((s) => s.role)
+  )
   const parallels = useParallels()
   const yearsQuery = useAcademicYears()
   const years = yearsQuery.data ?? []
@@ -134,28 +139,32 @@ export function ParallelCoursesPage({ parallelId }: ParallelCoursesPageProps) {
                   <InfoIcon data-icon="inline-start" />
                   Info
                 </Button>
-                <Button
-                  size="sm"
-                  className="flex-1 bg-brand text-brand-foreground hover:bg-brand/90"
-                  asChild
-                >
-                  <Link
-                    to="/cursos/$parallelId/curso/$courseId"
-                    params={{ parallelId, courseId: c.id }}
+                {canOpenNotebook ? (
+                  <Button
+                    size="sm"
+                    className="flex-1 bg-brand text-brand-foreground hover:bg-brand/90"
+                    asChild
                   >
-                    <BookOpenIcon data-icon="inline-start" />
-                    Cuaderno
-                  </Link>
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => setHomeroom(c)}
-                >
-                  <UserCogIcon data-icon="inline-start" />
-                  Docente
-                </Button>
+                    <Link
+                      to="/cursos/$parallelId/curso/$courseId"
+                      params={{ parallelId, courseId: c.id }}
+                    >
+                      <BookOpenIcon data-icon="inline-start" />
+                      Cuaderno
+                    </Link>
+                  </Button>
+                ) : null}
+                {canSetHomeroom ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setHomeroom(c)}
+                  >
+                    <UserCogIcon data-icon="inline-start" />
+                    Docente
+                  </Button>
+                ) : null}
               </div>
             </div>
           ))}

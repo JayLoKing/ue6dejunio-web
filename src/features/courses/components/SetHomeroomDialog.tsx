@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useAuthStore } from "@/features/auth/store/authStore"
 import { useTeachers } from "@/features/catalog/hooks/useCatalog"
 
 import {
@@ -25,6 +26,7 @@ import {
   useSwapHomeroom,
 } from "../hooks/useCourses"
 import type { Course } from "../types/course"
+import { coursePermissions } from "../utils/coursePermissions"
 
 export interface SetHomeroomDialogProps {
   course: Course | null
@@ -52,6 +54,7 @@ interface SetHomeroomFormProps {
 }
 
 function SetHomeroomForm({ course, onClose }: SetHomeroomFormProps) {
+  const { canSwapHomeroom } = coursePermissions(useAuthStore((s) => s.role))
   const aulaTeachers = useTeachers(false)
   // Sólo los cursos de la gestión de este curso: ser de aula en otro año no ocupa a nadie en este,
   // ni habilita un intercambio con un curso que no es de la misma gestión.
@@ -69,8 +72,12 @@ function SetHomeroomForm({ course, onClose }: SetHomeroomFormProps) {
   const swapWith = allCourses.data?.content.find(
     (c) => c.id !== course.id && c.homeroomTeacherId === teacherId
   )
-  const isSwap =
+  const swapCandidate =
     Boolean(swapWith) && Boolean(course.homeroomTeacherId) && !sameAsCurrent
+  const isSwap = swapCandidate && canSwapHomeroom
+  // El intercambio es de Dirección (la API le responde 403 a la secretaría): para ella el mismo
+  // caso es un bloqueo, no un botón.
+  const blockedBySwapOnlyDirector = swapCandidate && !canSwapHomeroom
 
   // Solo un docente puede ser de aula de un curso a la vez. Mientras el docente actual siga
   // activo, una reasignación LLANA queda bloqueada aquí (no solo en el backend): el Director
@@ -96,7 +103,12 @@ function SetHomeroomForm({ course, onClose }: SetHomeroomFormProps) {
           courseBId: swapWith.id,
         })
       } else {
-        if (blockedByActiveTeacher || blockedByTeacherWithAnotherCourse) return
+        if (
+          blockedByActiveTeacher ||
+          blockedByTeacherWithAnotherCourse ||
+          blockedBySwapOnlyDirector
+        )
+          return
         await setHomeroom.mutateAsync({ id: course.id, teacherId })
       }
       onClose()
@@ -133,6 +145,15 @@ function SetHomeroomForm({ course, onClose }: SetHomeroomFormProps) {
             {course.gradeName} {course.parallelName}
           </strong>
           ).
+        </p>
+      ) : blockedBySwapOnlyDirector && swapWith ? (
+        <p className="text-sm text-muted-foreground">
+          <strong>{selectedTeacherName}</strong> ya es docente de aula de{" "}
+          <strong>
+            {swapWith.gradeName} {swapWith.parallelName}
+          </strong>
+          . Cambiar a dos docentes de aula entre sí lo hace Dirección: elige un
+          docente sin curso.
         </p>
       ) : blockedByTeacherWithAnotherCourse && swapWith ? (
         <p className="text-sm text-muted-foreground">
@@ -188,7 +209,8 @@ function SetHomeroomForm({ course, onClose }: SetHomeroomFormProps) {
             !teacherId ||
             isPending ||
             blockedByActiveTeacher ||
-            blockedByTeacherWithAnotherCourse
+            blockedByTeacherWithAnotherCourse ||
+            blockedBySwapOnlyDirector
           }
           onClick={submit}
         >

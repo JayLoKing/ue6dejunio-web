@@ -1,0 +1,44 @@
+import { describe, expect, it } from "vitest"
+
+import { coursePermissions } from "./coursePermissions"
+
+describe("coursePermissions", () => {
+  it("gives the Director every course action", () => {
+    expect(coursePermissions("DIRECTOR")).toEqual({
+      canCreateCourse: true,
+      canSetHomeroom: true,
+      canDuplicateStructure: true,
+      canSwapHomeroom: true,
+      canReassignSubjectTeacher: true,
+      canOpenNotebook: true,
+      canManageYears: true,
+    })
+  })
+
+  // The secretariat runs the course lifecycle; the API keeps the rest behind the Director.
+  it("gives the Secretary the lifecycle and nothing around it", () => {
+    expect(coursePermissions("SECRETARY")).toEqual({
+      canCreateCourse: true,
+      canSetHomeroom: true,
+      canDuplicateStructure: true,
+      canSwapHomeroom: false,
+      canReassignSubjectTeacher: false,
+      canOpenNotebook: false,
+      canManageYears: false,
+    })
+  })
+
+  it("gives the Teacher nothing", () => {
+    expect(Object.values(coursePermissions("TEACHER")).some(Boolean)).toBe(
+      false
+    )
+  })
+
+  it("grants nothing without a role", () => {
+    expect(Object.values(coursePermissions(null)).some(Boolean)).toBe(false)
+  })
+
+  it("ignores how the role is spelled", () => {
+    expect(coursePermissions("secretary").canCreateCourse).toBe(true)
+  })
+})

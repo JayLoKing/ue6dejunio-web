@@ -1,13 +1,12 @@
 import { createFileRoute, redirect } from "@tanstack/react-router"
 
 import { useAuthStore } from "@/features/auth/store/authStore"
-import { isRole } from "@/features/auth/types"
 import { AssignCourseSubjectsForm } from "@/features/courses/components/AssignCourseSubjectsForm"
+import { coursePermissions } from "@/features/courses/utils/coursePermissions"
 
 export const Route = createFileRoute("/_app/courses")({
   beforeLoad: () => {
-    const role = useAuthStore.getState().role
-    if (!isRole(role, "DIRECTOR")) {
+    if (!coursePermissions(useAuthStore.getState().role).canCreateCourse) {
       throw redirect({ to: "/dashboard" })
     }
   },

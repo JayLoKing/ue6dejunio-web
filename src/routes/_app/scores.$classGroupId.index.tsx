@@ -48,5 +48,11 @@ function ClassGroupScorePage() {
 
   const readOnly = classGroup.teacherId !== userId
 
-  return <SubjectScoreSheet classGroup={classGroup} readOnly={readOnly} />
+  return (
+    <SubjectScoreSheet
+      classGroup={classGroup}
+      readOnly={readOnly}
+      studentSummaryLink={homeroomCourseId !== classGroup.courseId}
+    />
+  )
 }

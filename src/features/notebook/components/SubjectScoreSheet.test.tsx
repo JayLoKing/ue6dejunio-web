@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest"
 vi.mock("@tanstack/react-router", () => ({
   Link: ({
     children,
-    to: _to,
+    to,
     params: _params,
     search: _search,
     ...rest
@@ -15,7 +15,7 @@ vi.mock("@tanstack/react-router", () => ({
     params?: unknown
     search?: unknown
   }) => (
-    <a href="#" {...rest}>
+    <a href="#" data-to={to} {...rest}>
       {children}
     </a>
   ),
@@ -123,5 +123,25 @@ describe("SubjectScoreSheet, estudiante dado de baja", () => {
     expect(inputs).not.toHaveLength(0)
     for (const input of inputs) expect(input).toBeEnabled()
     expect(rowOf("Ana Quispe")).not.toHaveTextContent(/dado de baja/i)
+  })
+})
+
+describe("SubjectScoreSheet, enlace al resumen del estudiante", () => {
+  const summaryLink = (name: string) =>
+    screen.getByText(name).closest("a") as HTMLElement | null
+
+  it("lleva el nombre al resumen cuando se pide el enlace", () => {
+    render(<SubjectScoreSheet classGroup={classGroup} studentSummaryLink />)
+
+    expect(summaryLink("Ana Quispe")).toHaveAttribute(
+      "data-to",
+      "/scores/$classGroupId/estudiante/$enrollmentId"
+    )
+  })
+
+  it("deja el nombre como texto sin el enlace", () => {
+    render(<SubjectScoreSheet classGroup={classGroup} />)
+
+    expect(summaryLink("Ana Quispe")).toBeNull()
   })
 })

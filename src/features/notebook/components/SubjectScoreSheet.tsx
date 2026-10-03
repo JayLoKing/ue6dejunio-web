@@ -48,6 +48,8 @@ export interface SubjectScoreSheetProps {
   classGroup: ClassGroupItem
   /** true = el docente de aula viendo una materia técnica: sin editar/borrar. */
   readOnly?: boolean
+  /** true = el nombre del estudiante lleva a su resumen (docente que no es de aula del curso). */
+  studentSummaryLink?: boolean
 }
 
 /**
@@ -72,6 +74,7 @@ const VERTICAL_HEAD =
 export function SubjectScoreSheet({
   classGroup,
   readOnly = false,
+  studentSummaryLink = false,
 }: SubjectScoreSheetProps) {
   const [trimester, setTrimester] = useState<Trimester>(1)
   // Solo lo TECLEADO, no un espejo del servidor: una casilla sin tocar no tiene entrada
@@ -453,7 +456,20 @@ export function SubjectScoreSheet({
                                 withdrawn && "text-muted-foreground"
                               )}
                             >
-                              {s.fullName}
+                              {studentSummaryLink ? (
+                                <Link
+                                  to="/scores/$classGroupId/estudiante/$enrollmentId"
+                                  params={{
+                                    classGroupId: classGroup.id,
+                                    enrollmentId: ce,
+                                  }}
+                                  className="text-brand underline-offset-4 hover:underline"
+                                >
+                                  {s.fullName}
+                                </Link>
+                              ) : (
+                                s.fullName
+                              )}
                               {/* Una fila apagada sin motivo se lee como un error del sistema. */}
                               {withdrawn ? (
                                 <Badge variant="secondary" className="ml-2">

@@ -61,17 +61,25 @@ vi.mock("@/features/catalog/hooks/useCatalog", () => ({
   useParallels: () => ({ data: [{ id: 1, name: "A" }] }),
 }))
 
+const reactivate = vi.fn()
+
 vi.mock("../hooks/useCourses", () => ({
   useCoursesOfYear: (id: number | null) => {
     yearCalls.push(id)
     return coursesState(id)
   },
+  useReactivateCourse: () => ({ mutate: reactivate, isPending: false }),
 }))
 
 vi.mock("./CourseInfoModal", () => ({ CourseInfoModal: () => null }))
 vi.mock("./SetHomeroomDialog", () => ({ SetHomeroomDialog: () => null }))
+vi.mock("./DeactivateCourseDialog", () => ({
+  DeactivateCourseDialog: ({ course }: { course: Course | null }) =>
+    course ? <div role="alertdialog">Baja de {course.id}</div> : null,
+}))
 
 beforeEach(() => {
+  reactivate.mockReset()
   useAuthStore.setState({ role: "DIRECTOR" })
   yearCalls.length = 0
   years = {
@@ -169,5 +177,46 @@ describe("ParallelCoursesPage, actions by role", () => {
     expect(screen.queryByText("Cuaderno")).not.toBeInTheDocument()
     expect(screen.getByRole("button", { name: /Info/ })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: /Docente/ })).toBeInTheDocument()
+  })
+
+  it("gives the Director and the Secretary the deactivation, behind a confirmation", async () => {
+    for (const role of ["DIRECTOR", "SECRETARY"]) {
+      useAuthStore.setState({ role })
+      const { unmount } = render(<ParallelCoursesPage parallelId="1" />)
+      await userEvent.click(screen.getByRole("button", { name: /Dar de baja/ }))
+      expect(screen.getByRole("alertdialog")).toHaveTextContent("c-2026")
+      unmount()
+    }
+  })
+
+  it("offers a Teacher no way to deactivate or reactivate", () => {
+    useAuthStore.setState({ role: "TEACHER" })
+    coursesState = () => ({
+      data: { content: [c2026, course({ id: "c-off", active: false })] },
+      isLoading: false,
+      isError: false,
+    })
+    render(<ParallelCoursesPage parallelId="1" />)
+    expect(
+      screen.queryByRole("button", { name: /Dar de baja/ })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole("button", { name: /Reactivar/ })
+    ).not.toBeInTheDocument()
+  })
+
+  it("shows a deactivated course as such and lets it be reactivated", async () => {
+    coursesState = () => ({
+      data: { content: [course({ id: "c-off", active: false })] },
+      isLoading: false,
+      isError: false,
+    })
+    render(<ParallelCoursesPage parallelId="1" />)
+    expect(screen.getByText("De baja")).toBeInTheDocument()
+    expect(
+      screen.queryByRole("button", { name: /Dar de baja/ })
+    ).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole("button", { name: /Reactivar/ }))
+    expect(reactivate).toHaveBeenCalledWith("c-off")
   })
 })

@@ -5,6 +5,8 @@ import {
   GraduationCapIcon,
   InfoIcon,
   Loader2Icon,
+  PowerIcon,
+  UndoIcon,
   UserCogIcon,
 } from "lucide-react"
 
@@ -18,9 +20,10 @@ import {
 } from "@/features/catalog/hooks/useCatalog"
 import { useSelectedAcademicYear } from "@/features/catalog/hooks/useSelectedAcademicYear"
 
-import { useCoursesOfYear } from "../hooks/useCourses"
+import { useCoursesOfYear, useReactivateCourse } from "../hooks/useCourses"
 import type { Course } from "../types/course"
 import { coursePermissions } from "../utils/coursePermissions"
+import { DeactivateCourseDialog } from "./DeactivateCourseDialog"
 import { CourseInfoModal } from "./CourseInfoModal"
 import { SetHomeroomDialog } from "./SetHomeroomDialog"
 
@@ -45,9 +48,8 @@ const Failure = ({ children }: { children: string }) => (
 
 /** Los cursos de un paralelo en la gestión elegida (la activa mientras nadie elija otra). */
 export function ParallelCoursesPage({ parallelId }: ParallelCoursesPageProps) {
-  const { canOpenNotebook, canSetHomeroom } = coursePermissions(
-    useAuthStore((s) => s.role)
-  )
+  const { canOpenNotebook, canSetHomeroom, canDeactivateCourse } =
+    coursePermissions(useAuthStore((s) => s.role))
   const parallels = useParallels()
   const yearsQuery = useAcademicYears()
   const years = yearsQuery.data ?? []
@@ -56,6 +58,8 @@ export function ParallelCoursesPage({ parallelId }: ParallelCoursesPageProps) {
 
   const [homeroom, setHomeroom] = useState<Course | null>(null)
   const [info, setInfo] = useState<Course | null>(null)
+  const [deactivating, setDeactivating] = useState<Course | null>(null)
+  const reactivate = useReactivateCourse()
 
   const parallel = parallels.data?.find((p) => String(p.id) === parallelId)
   const parallelName = parallel?.name ?? parallelId
@@ -109,6 +113,14 @@ export function ParallelCoursesPage({ parallelId }: ParallelCoursesPageProps) {
               <div className="flex items-start justify-between gap-2">
                 <div className="flex flex-col">
                   <span className="text-lg font-semibold">{c.gradeName}</span>
+                  {c.active ? null : (
+                    <Badge
+                      variant="outline"
+                      className="mt-1 w-fit text-muted-foreground"
+                    >
+                      De baja
+                    </Badge>
+                  )}
                   <span className="text-xs text-muted-foreground">
                     Paralelo {parallelName}
                   </span>
@@ -165,6 +177,30 @@ export function ParallelCoursesPage({ parallelId }: ParallelCoursesPageProps) {
                     Docente
                   </Button>
                 ) : null}
+                {canDeactivateCourse ? (
+                  c.active ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 text-destructive"
+                      onClick={() => setDeactivating(c)}
+                    >
+                      <PowerIcon data-icon="inline-start" />
+                      Dar de baja
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      disabled={reactivate.isPending}
+                      onClick={() => reactivate.mutate(c.id)}
+                    >
+                      <UndoIcon data-icon="inline-start" />
+                      Reactivar
+                    </Button>
+                  )
+                ) : null}
               </div>
             </div>
           ))}
@@ -173,6 +209,10 @@ export function ParallelCoursesPage({ parallelId }: ParallelCoursesPageProps) {
 
       <CourseInfoModal course={info} onClose={() => setInfo(null)} />
       <SetHomeroomDialog course={homeroom} onClose={() => setHomeroom(null)} />
+      <DeactivateCourseDialog
+        course={deactivating}
+        onClose={() => setDeactivating(null)}
+      />
     </div>
   )
 }

@@ -89,6 +89,22 @@ describe("NotReenrolledReport", () => {
     expect(screen.getByText(/2 estudiantes/)).toBeInTheDocument()
   })
 
+  it("says estudiante in the singular for one student", () => {
+    useNotReenrolled.mockReturnValue(
+      loaded(report({ students: report().students.slice(0, 1) }))
+    )
+    render(<NotReenrolledReport />)
+
+    expect(screen.getByText("1 estudiante")).toBeInTheDocument()
+  })
+
+  it("does not repeat the count line when nobody is missing", () => {
+    useNotReenrolled.mockReturnValue(loaded(report({ students: [] })))
+    render(<NotReenrolledReport />)
+
+    expect(screen.queryByText(/no tienen curso/)).not.toBeInTheDocument()
+  })
+
   /** Only a withdrawn student carries the badge; the other has simply not come back. */
   it("marks the withdrawn student, and only that one", () => {
     render(<NotReenrolledReport />)

@@ -120,53 +120,60 @@ function ReportBody({
 
   const { students } = data
 
+  // Sin faltantes sólo queda la frase de que todos volvieron: un encabezado "0 estudiantes" la repetiría.
+  if (students.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        Todos los estudiantes de la gestión {data.previousYear.year} ya tienen
+        curso en la {data.academicYear.year}.
+      </p>
+    )
+  }
+
+  const one = students.length === 1
+
   return (
     <div className="flex flex-col gap-3">
       <p className="text-sm">
-        <span className="font-medium">{students.length} estudiantes</span> de la
-        gestión {data.previousYear.year} no tienen curso en la gestión{" "}
-        {data.academicYear.year}.
+        <span className="font-medium">
+          {students.length} {one ? "estudiante" : "estudiantes"}
+        </span>{" "}
+        de la gestión {data.previousYear.year} {one ? "no tiene" : "no tienen"}{" "}
+        curso en la gestión {data.academicYear.year}.
       </p>
 
-      {students.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Todos los estudiantes de la gestión {data.previousYear.year} ya tienen
-          curso en la {data.academicYear.year}.
-        </p>
-      ) : (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Curso anterior</TableHead>
-                <TableHead>Nombre completo</TableHead>
-                <TableHead>RUDE</TableHead>
-                <TableHead>Carnet</TableHead>
-                <TableHead />
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Curso anterior</TableHead>
+              <TableHead>Nombre completo</TableHead>
+              <TableHead>RUDE</TableHead>
+              <TableHead>Carnet</TableHead>
+              <TableHead />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {students.map((s) => (
+              <TableRow key={s.studentId}>
+                <TableCell>{s.lastCourse.name}</TableCell>
+                <TableCell>{s.fullName}</TableCell>
+                <TableCell className="font-mono text-xs">
+                  {s.rudeCode}
+                </TableCell>
+                <TableCell className="font-mono text-xs">
+                  {s.identityCard}
+                </TableCell>
+                <TableCell>
+                  {s.status === WITHDRAWN ? (
+                    <Badge variant="outline">Retirado</Badge>
+                  ) : null}
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {students.map((s) => (
-                <TableRow key={s.studentId}>
-                  <TableCell>{s.lastCourse.name}</TableCell>
-                  <TableCell>{s.fullName}</TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {s.rudeCode}
-                  </TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {s.identityCard}
-                  </TableCell>
-                  <TableCell>
-                    {s.status === WITHDRAWN ? (
-                      <Badge variant="outline">Retirado</Badge>
-                    ) : null}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   )
 }

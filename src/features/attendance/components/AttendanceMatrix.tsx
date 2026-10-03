@@ -7,6 +7,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 
 import type { AttendanceApiStatus, AttendanceCellStatus } from "../types"
 import { CELL_TO_API, nextStatus } from "../utils/attendanceStatus"
+import { isEditableAttendanceDay } from "../utils/editableDay"
 
 export interface AttendanceStudentRow {
   courseEnrollmentId: string
@@ -29,7 +30,7 @@ export interface AttendanceMatrixProps {
     status: AttendanceApiStatus
   ) => void | Promise<unknown>
   /**
-   * Marca de una vez a todos los estudiantes del día editable.
+   * Marca de una vez a todos los estudiantes de un día editable de la semana.
    *
    * Opcional: sin ella los botones de marcado masivo no aparecen, en vez de aparecer y resolverse
    * con treinta llamadas sueltas. Quien la provee manda un lote, que es una transacción sola.
@@ -65,6 +66,9 @@ const LEGEND = (["P", "A", "L"] as const).map((cell) => ({
 }))
 
 const WEEKDAY_LETTER = ["D", "L", "M", "M", "J", "V", "S"]
+const WEEKDAY_SHORT = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"]
+/** 2026-08-27 → 27/08/2026, cortando el texto y sin pasar por Date (un ISO sin hora corre un día). */
+const displayDate = (iso: string) => iso.split("-").reverse().join("/")
 const pad = (n: number) => String(n).padStart(2, "0")
 const isoOf = (y: number, m: number, d: number) => `${y}-${pad(m)}-${pad(d)}`
 
@@ -105,6 +109,20 @@ export function AttendanceMatrix({
   >({})
   const cols = useMemo(() => weekdaysOfMonth(year, month), [year, month])
   const today = todayIso()
+  // Sólo los días de la ventana que además caen en el mes a la vista: la matriz muestra un mes y no
+  // se puede marcar una columna que no está dibujada.
+  const bulkDays = useMemo(
+    () => cols.filter((c) => isEditableAttendanceDay(c.iso, today)),
+    [cols, today]
+  )
+  const [chosenDay, setChosenDay] = useState<string | null>(null)
+  // Hoy salvo que el docente elija otro; si hoy no es columna (fin de semana, otro mes) el último
+  // día abierto es el más cercano a lo que quería corregir.
+  const bulkDay =
+    bulkDays.find((c) => c.iso === chosenDay)?.iso ??
+    bulkDays.find((c) => c.iso === today)?.iso ??
+    bulkDays.at(-1)?.iso ??
+    null
 
   const cellOf = (ceId: string, iso: string): AttendanceCellStatus =>
     marked[ceId]?.[iso] ?? initialData?.[ceId]?.[iso] ?? null
@@ -116,7 +134,7 @@ export function AttendanceMatrix({
     }))
 
   const click = (ceId: string, iso: string) => {
-    if (iso !== today) return
+    if (!isEditableAttendanceDay(iso, today)) return
     const previous = cellOf(ceId, iso)
     const next = nextStatus(previous)
     write(ceId, iso, next)
@@ -142,11 +160,12 @@ export function AttendanceMatrix({
    * anteriores que no eran de este lote.
    */
   const markAll = (status: Exclude<AttendanceCellStatus, null>) => {
-    if (!onMarkAll) return
+    if (!onMarkAll || !bulkDay) return
+    const day = bulkDay
     const previous = Object.fromEntries(
       students.map((s) => [
         s.courseEnrollmentId,
-        cellOf(s.courseEnrollmentId, today),
+        cellOf(s.courseEnrollmentId, day),
       ])
     )
     setMarked((prev) => {
@@ -154,19 +173,19 @@ export function AttendanceMatrix({
       for (const s of students) {
         next[s.courseEnrollmentId] = {
           ...(prev[s.courseEnrollmentId] ?? {}),
-          [today]: status,
+          [day]: status,
         }
       }
       return next
     })
-    void Promise.resolve(onMarkAll(today, CELL_TO_API[status])).catch(() => {
+    void Promise.resolve(onMarkAll(day, CELL_TO_API[status])).catch(() => {
       setMarked((prev) => {
         const back = { ...prev }
         for (const s of students) {
-          if ((prev[s.courseEnrollmentId]?.[today] ?? null) !== status) continue
+          if ((prev[s.courseEnrollmentId]?.[day] ?? null) !== status) continue
           back[s.courseEnrollmentId] = {
             ...(prev[s.courseEnrollmentId] ?? {}),
-            [today]: previous[s.courseEnrollmentId] ?? null,
+            [day]: previous[s.courseEnrollmentId] ?? null,
           }
         }
         return back
@@ -184,7 +203,7 @@ export function AttendanceMatrix({
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border bg-muted/40 px-3 py-2.5 text-sm">
         <span className="inline-flex items-center gap-1.5 text-muted-foreground">
           <CalendarDaysIcon className="size-4" />
-          Lun a Vie. Solo hoy ({today}) se puede editar.
+          Lun a Vie. Puedes editar los días de esta semana hasta hoy.
         </span>
         <span className="inline-flex flex-wrap items-center gap-x-3 gap-y-1">
           {LEGEND.map((item) => (
@@ -208,12 +227,30 @@ export function AttendanceMatrix({
 
       {onMarkAll ? (
         <div className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="text-muted-foreground">
-            Marcar todo el curso hoy:
-          </span>
+          {bulkDay ? (
+            <>
+              <select
+                aria-label="Día a marcar"
+                className="h-8 rounded-md border bg-background px-2 text-sm"
+                value={bulkDay}
+                onChange={(e) => setChosenDay(e.target.value)}
+              >
+                {bulkDays.map((c) => (
+                  <option key={c.iso} value={c.iso}>
+                    {WEEKDAY_SHORT[new Date(year, month - 1, c.day).getDay()]}{" "}
+                    {displayDate(c.iso)}
+                  </option>
+                ))}
+              </select>
+              <span className="text-muted-foreground">
+                Marcar todo el curso el {displayDate(bulkDay)}:
+              </span>
+            </>
+          ) : null}
           {LEGEND.map((item) => (
             <Button
               key={item.cell}
+              disabled={!bulkDay}
               onClick={() => markAll(item.cell)}
               size="sm"
               type="button"
@@ -288,7 +325,7 @@ export function AttendanceMatrix({
                       {cols.map((c) => {
                         const status = cellOf(s.courseEnrollmentId, c.iso)
                         const style = status ? STATUS_STYLE[status] : null
-                        const editable = c.iso === today
+                        const editable = isEditableAttendanceDay(c.iso, today)
                         return (
                           <td
                             key={c.iso}

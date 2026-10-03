@@ -256,4 +256,95 @@ describe("AttendanceMatrix", () => {
     expect(screen.getByText("Licencia")).toBeInTheDocument()
     expect(screen.getByText(/clic en una celda/i)).toBeInTheDocument()
   })
+
+  // ---------------------------------------------------------------- ventana de la semana
+
+  const cellOn = (iso: string) =>
+    screen.getByRole("button", { name: new RegExp(`^Ana Quispe, ${iso}:`) })
+
+  /** La API acepta cualquier día hábil de la semana en curso hasta hoy; la pantalla no puede ser más estricta. */
+  it("deja corregir un día anterior de esta semana", async () => {
+    const user = userEvent.setup()
+    const onMark = vi.fn()
+    render(
+      <AttendanceMatrix
+        students={students}
+        year={2026}
+        month={8}
+        initialData={noData()}
+        onMark={onMark}
+      />
+    )
+
+    await user.click(cellOn("2026-08-25"))
+
+    expect(onMark).toHaveBeenCalledWith("ce-1", "2026-08-25", "Present")
+  })
+
+  it("mantiene cerrados la semana anterior y los días que aún no llegan", async () => {
+    const user = userEvent.setup()
+    const onMark = vi.fn()
+    render(
+      <AttendanceMatrix
+        students={students}
+        year={2026}
+        month={8}
+        initialData={noData()}
+        onMark={onMark}
+      />
+    )
+
+    expect(cellOn("2026-08-21")).toBeDisabled()
+    expect(cellOn("2026-08-28")).toBeDisabled()
+    await user.click(cellOn("2026-08-21"))
+    expect(onMark).not.toHaveBeenCalled()
+  })
+
+  it("marca a todo el curso en el día elegido dentro de la ventana", async () => {
+    const user = userEvent.setup()
+    const onMarkAll = vi.fn().mockResolvedValue({ total: 1, saved: 1 })
+    render(
+      <AttendanceMatrix
+        students={students}
+        year={2026}
+        month={8}
+        initialData={noData()}
+        onMark={vi.fn()}
+        onMarkAll={onMarkAll}
+      />
+    )
+
+    // Por defecto actúa sobre hoy y lo dice en la etiqueta.
+    expect(
+      screen.getByText("Marcar todo el curso el 27/08/2026:")
+    ).toBeInTheDocument()
+
+    await user.selectOptions(
+      screen.getByLabelText(/día a marcar/i),
+      "2026-08-25"
+    )
+    expect(
+      screen.getByText("Marcar todo el curso el 25/08/2026:")
+    ).toBeInTheDocument()
+    await user.click(screen.getByRole("button", { name: /presente/i }))
+
+    expect(onMarkAll).toHaveBeenCalledExactlyOnceWith("2026-08-25", "Present")
+    expect(cellOn("2026-08-25")).toHaveTextContent("P")
+  })
+
+  it("dice que se puede editar la semana en curso hasta hoy", () => {
+    render(
+      <AttendanceMatrix
+        students={students}
+        year={2026}
+        month={8}
+        initialData={noData()}
+        onMark={vi.fn()}
+      />
+    )
+
+    expect(
+      screen.getByText(/días de esta semana hasta hoy/i)
+    ).toBeInTheDocument()
+  })
 })

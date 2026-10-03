@@ -3,9 +3,11 @@ import { createFileRoute, redirect } from "@tanstack/react-router"
 import { Loader2Icon } from "lucide-react"
 
 import { useAuthStore } from "@/features/auth/store/authStore"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { isRole } from "@/features/auth/types"
 import { StudentDirectoryFilters as DirectoryFilters } from "@/features/students/components/StudentDirectoryFilters"
 import { StudentDirectoryTable } from "@/features/students/components/StudentDirectoryTable"
+import { NotReenrolledReport } from "@/features/students/components/NotReenrolledReport"
 import {
   ReinstateStudentDialog,
   type ReinstateTarget,
@@ -71,6 +73,8 @@ function StudentDirectoryPage() {
   const [readingReason, setReadingReason] = useState<string | null>(null)
   const [reinstating, setReinstating] = useState<ReinstateTarget | null>(null)
 
+  const [tab, setTab] = useState<"directory" | "not-reenrolled">("directory")
+
   const rows = directory.data?.content ?? []
 
   return (
@@ -83,40 +87,61 @@ function StudentDirectoryPage() {
         </p>
       </div>
 
-      <DirectoryFilters value={filters} onChange={changeFilters} />
+      {/* Un solo estudiante puede aparecer en las dos: el directorio habla de quienes están en una
+          gestión, y el reporte de quienes estuvieron en la anterior y no volvieron. */}
+      <Tabs
+        value={tab}
+        onValueChange={(v) => {
+          if (v === "directory" || v === "not-reenrolled") setTab(v)
+        }}
+        className="gap-6"
+      >
+        <TabsList>
+          <TabsTrigger value="directory">Directorio</TabsTrigger>
+          <TabsTrigger value="not-reenrolled">Sin reinscribir</TabsTrigger>
+        </TabsList>
 
-      {directory.isLoading ? (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2Icon className="size-4 animate-spin" />
-          Cargando estudiantes...
-        </div>
-      ) : (
-        <StudentDirectoryTable
-          rows={rows}
-          page={page}
-          pageSize={pageSize}
-          total={directory.data?.total ?? 0}
-          totalPages={directory.data?.totalPages ?? 1}
-          isFetching={directory.isFetching}
-          onRefresh={() => void directory.refetch()}
-          onPageChange={setPage}
-          onPageSizeChange={(s) => {
-            setPageSize(s)
-            setPage(1)
-          }}
-          onOpenWithdrawal={setReadingReason}
-          onWithdraw={
-            canWithdraw
-              ? (s) => setWithdrawing({ id: s.id, fullName: s.fullName })
-              : undefined
-          }
-          onReinstate={
-            canReinstate
-              ? (s) => setReinstating({ id: s.id, fullName: s.fullName })
-              : undefined
-          }
-        />
-      )}
+        <TabsContent value="directory" className="flex flex-col gap-6">
+          <DirectoryFilters value={filters} onChange={changeFilters} />
+
+          {directory.isLoading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2Icon className="size-4 animate-spin" />
+              Cargando estudiantes...
+            </div>
+          ) : (
+            <StudentDirectoryTable
+              rows={rows}
+              page={page}
+              pageSize={pageSize}
+              total={directory.data?.total ?? 0}
+              totalPages={directory.data?.totalPages ?? 1}
+              isFetching={directory.isFetching}
+              onRefresh={() => void directory.refetch()}
+              onPageChange={setPage}
+              onPageSizeChange={(s) => {
+                setPageSize(s)
+                setPage(1)
+              }}
+              onOpenWithdrawal={setReadingReason}
+              onWithdraw={
+                canWithdraw
+                  ? (s) => setWithdrawing({ id: s.id, fullName: s.fullName })
+                  : undefined
+              }
+              onReinstate={
+                canReinstate
+                  ? (s) => setReinstating({ id: s.id, fullName: s.fullName })
+                  : undefined
+              }
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="not-reenrolled">
+          <NotReenrolledReport />
+        </TabsContent>
+      </Tabs>
 
       <WithdrawStudentDialog
         student={withdrawing}

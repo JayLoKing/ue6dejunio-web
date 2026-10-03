@@ -13,6 +13,7 @@ import type {
 } from "../models/requests/reinstate-request"
 import type { WithdrawStudentRequest } from "../models/requests/withdraw-request"
 import type { EnrollResponse } from "../models/response/enroll-response"
+import type { NotReenrolledResponse } from "../models/response/not-reenrolled-response"
 import type { StudentDetail, StudentMovementSummary } from "../types"
 
 export default class StudentServiceHelper {
@@ -82,6 +83,23 @@ export default class StudentServiceHelper {
     const controller = loadAbort()
     return {
       call: httpClient.get<StudentMovementSummary>(StudentUrl.MovementSummary, {
+        signal: controller.signal,
+        params:
+          academicYearId === undefined
+            ? undefined
+            : { id_academic_year: academicYearId },
+      }),
+      controller,
+    }
+  }
+
+  /** Quienes cursaron la gestión anterior y no volvieron. Sin `academicYearId`, la gestión actual. */
+  notReenrolledAsync(
+    academicYearId?: number
+  ): UseApiCall<NotReenrolledResponse> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.get<NotReenrolledResponse>(StudentUrl.NotReenrolled, {
         signal: controller.signal,
         params:
           academicYearId === undefined

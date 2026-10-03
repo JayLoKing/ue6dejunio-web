@@ -9,6 +9,7 @@ import type {
 } from "../models/requests/reinstate-request"
 import type { WithdrawStudentRequest } from "../models/requests/withdraw-request"
 import type { EnrollResponse } from "../models/response/enroll-response"
+import type { NotReenrolledResponse } from "../models/response/not-reenrolled-response"
 import type { StudentDetail, StudentMovementSummary } from "../types"
 
 const helper = new StudentServiceHelper()
@@ -57,5 +58,11 @@ export class StudentService {
   ): Promise<StudentMovementSummary> {
     const { call } = helper.movementSummaryAsync(academicYearId)
     return (await call).data
+  }
+
+  static async notReenrolled(
+    academicYearId?: number
+  ): Promise<NotReenrolledResponse> {
+    return (await helper.notReenrolledAsync(academicYearId).call).data
   }
 }

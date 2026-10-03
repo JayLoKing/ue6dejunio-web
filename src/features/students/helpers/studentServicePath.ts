@@ -17,4 +17,6 @@ export const StudentUrl = {
    * Dirección y Secretaría.
    */
   MovementSummary: `${studentsModuleUrl}/movement-summary`,
+  /** Quienes cursaron la gestión anterior y no volvieron. Dirección y Secretaría. */
+  NotReenrolled: `${studentsModuleUrl}/not-reenrolled`,
 } as const

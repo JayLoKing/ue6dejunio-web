@@ -30,3 +30,18 @@ export function useStudentMovementSummary(academicYearId?: number) {
     queryFn: () => StudentService.movementSummary(academicYearId),
   })
 }
+
+/**
+ * Quienes cursaron la gestión anterior y no tienen cupo en la consultada. Sólo Dirección y
+ * Secretaría.
+ *
+ * Como el movimiento matricular: sin gestión es una consulta válida (la API responde por la
+ * actual), y la clave distingue "sin elegir" de una gestión puntual. Cuelga de `["students"]`, así
+ * que reincorporar a alguien la invalida junto con el resto.
+ */
+export function useNotReenrolled(academicYearId?: number) {
+  return useQuery({
+    queryKey: ["students", "not-reenrolled", academicYearId ?? "current"],
+    queryFn: () => StudentService.notReenrolled(academicYearId),
+  })
+}

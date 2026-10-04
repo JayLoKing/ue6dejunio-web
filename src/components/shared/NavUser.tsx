@@ -3,6 +3,7 @@ import {
   ChevronsUpDownIcon,
   KeyRoundIcon,
   LogOutIcon,
+  UserCogIcon,
   UserIcon,
 } from "lucide-react"
 
@@ -25,6 +26,8 @@ import {
 import { ProfileDialog } from "@/features/auth/components/ProfileDialog"
 import { ChangePasswordMenuDialog } from "@/features/auth/components/ChangePasswordMenuDialog"
 import { useAuthStore } from "@/features/auth/store/authStore"
+import { isRole } from "@/features/auth/types"
+import { DirectorHandoverDialog } from "@/features/handover/components/DirectorHandoverDialog"
 import { roleLabel } from "@/lib/labels"
 
 export function NavUser() {
@@ -36,6 +39,7 @@ export function NavUser() {
 
   const [profileOpen, setProfileOpen] = useState(false)
   const [changePassOpen, setChangePassOpen] = useState(false)
+  const [handoverOpen, setHandoverOpen] = useState(false)
 
   const initial = (fullName ?? "U").slice(0, 1).toUpperCase()
 
@@ -104,6 +108,12 @@ export function NavUser() {
                 <KeyRoundIcon />
                 Cambiar contraseña
               </DropdownMenuItem>
+              {isRole(role, "DIRECTOR") ? (
+                <DropdownMenuItem onSelect={() => setHandoverOpen(true)}>
+                  <UserCogIcon />
+                  Cambio de Director
+                </DropdownMenuItem>
+              ) : null}
             </DropdownMenuGroup>
 
             <DropdownMenuSeparator />
@@ -120,6 +130,12 @@ export function NavUser() {
         open={changePassOpen}
         onOpenChange={setChangePassOpen}
       />
+      {isRole(role, "DIRECTOR") ? (
+        <DirectorHandoverDialog
+          open={handoverOpen}
+          onOpenChange={setHandoverOpen}
+        />
+      ) : null}
     </SidebarMenu>
   )
 }

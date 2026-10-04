@@ -4,11 +4,13 @@ import type {
   CredentialsRequest,
   ForgotPasswordRequest,
   ResetPasswordRequest,
+  UpdateProfileRequest,
 } from "../models/requests/credentials-request"
 import type {
   CredentialResponse,
   ForgotPasswordResponse,
   MeResponse,
+  ProfileResponse,
 } from "../models/response/credential-response"
 import { loadAbort } from "@/lib/loadAbort"
 import { AuthUrl } from "./authServicePath"
@@ -43,6 +45,27 @@ export default class AuthServiceHelper {
     const controller = loadAbort()
     return {
       call: httpClient.get<MeResponse>(AuthUrl.Me, {
+        signal: controller.signal,
+      }),
+      controller,
+    }
+  }
+
+  profileAsync(): UseApiCall<ProfileResponse> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.get<ProfileResponse>(AuthUrl.Profile, {
+        signal: controller.signal,
+      }),
+      controller,
+    }
+  }
+
+  /** Responde un `MeResponse` que no se usa: el nombre del token sigue viejo, así que se renueva. */
+  updateProfileAsync(payload: UpdateProfileRequest): UseApiCall<void> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.put<void>(AuthUrl.Profile, payload, {
         signal: controller.signal,
       }),
       controller,

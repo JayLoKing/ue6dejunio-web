@@ -1,6 +1,11 @@
 import { z } from "zod"
 
-import { emailString, passwordString } from "@/lib/validation/rules"
+import {
+  emailString,
+  nameString,
+  passwordString,
+  phoneString,
+} from "@/lib/validation/rules"
 
 export const credentialsSchema = z.object({
   email: emailString(),
@@ -41,3 +46,11 @@ export const resetPasswordSchema = z
   })
 
 export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>
+
+export const profileSchema = z.object({
+  names: nameString("Nombres"),
+  lastNames: nameString("Apellidos"),
+  phone: phoneString(),
+})
+
+export type ProfileFormValues = z.infer<typeof profileSchema>

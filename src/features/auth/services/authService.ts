@@ -4,11 +4,13 @@ import type {
   CredentialsRequest,
   ForgotPasswordRequest,
   ResetPasswordRequest,
+  UpdateProfileRequest,
 } from "../models/requests/credentials-request"
 import type {
   CredentialResponse,
   ForgotPasswordResponse,
   MeResponse,
+  ProfileResponse,
 } from "../models/response/credential-response"
 
 const helper = new AuthServiceHelper()
@@ -29,6 +31,16 @@ export class AuthService {
     const { call } = helper.meAsync()
     const response = await call
     return response.data
+  }
+
+  static async getProfile(): Promise<ProfileResponse> {
+    const { call } = helper.profileAsync()
+    return (await call).data
+  }
+
+  static async updateProfile(payload: UpdateProfileRequest): Promise<void> {
+    const { call } = helper.updateProfileAsync(payload)
+    await call
   }
 
   static async changePassword(payload: ChangePasswordRequest): Promise<void> {

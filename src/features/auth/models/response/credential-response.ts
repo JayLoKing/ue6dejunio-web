@@ -29,3 +29,12 @@ export interface MeResponse {
   courseId: string | null
   technical: boolean | null
 }
+
+/** Lo que el formulario de perfil muestra y edita; el token sólo trae el nombre ya unido. */
+export interface ProfileResponse {
+  ci: string
+  names: string
+  lastNames: string
+  phone: string | null
+  email: string
+}

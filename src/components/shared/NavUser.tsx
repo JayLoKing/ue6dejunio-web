@@ -98,7 +98,7 @@ export function NavUser() {
             <DropdownMenuGroup>
               <DropdownMenuItem onSelect={() => setProfileOpen(true)}>
                 <UserIcon />
-                Ver perfil
+                Mi perfil
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => setChangePassOpen(true)}>
                 <KeyRoundIcon />

@@ -17,6 +17,14 @@ export function isEditable(status: PdcStatus): boolean {
   return status === "Draft" || status === "With Observations"
 }
 
+/**
+ * Whether progress can be reported on a plan. Only the Director's approval makes the plan the one
+ * being taught; the API answers 409 to progress on any other status.
+ */
+export function acceptsProgress(status: PdcStatus): boolean {
+  return status === "Approved"
+}
+
 /** How a status is shaded in the listing: draft muted, review amber, observations alarming. */
 export const STATUS_BADGE: Record<PdcStatus, string> = {
   Draft: "bg-muted text-muted-foreground",

@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest"
 
 import type { PdcStatus } from "../types"
-import { isEditable, STATUS_BADGE, STATUS_LABEL } from "./status"
+import {
+  acceptsProgress,
+  isEditable,
+  STATUS_BADGE,
+  STATUS_LABEL,
+} from "./status"
 
 const EVERY_STATUS: PdcStatus[] = [
   "Draft",
@@ -23,6 +28,17 @@ describe("isEditable", () => {
     expect(isEditable("Published")).toBe(false)
     expect(isEditable("Under Review")).toBe(false)
     expect(isEditable("Approved")).toBe(false)
+  })
+})
+
+describe("acceptsProgress", () => {
+  // The API answers 409 to progress on any plan the Director has not approved, so the button only
+  // belongs where the call can succeed.
+  it("accepts progress only on an approved plan", () => {
+    expect(acceptsProgress("Approved")).toBe(true)
+    for (const status of EVERY_STATUS.filter((s) => s !== "Approved")) {
+      expect(acceptsProgress(status)).toBe(false)
+    }
   })
 })
 

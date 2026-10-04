@@ -36,6 +36,7 @@ import { PdcReviewDialog } from "@/features/pdc/components/PdcReviewDialog"
 import { PdcWizard } from "@/features/pdc/components/PdcWizard"
 import { planLabel } from "@/features/pdc/utils/planLabel"
 import {
+  acceptsProgress,
   isEditable,
   STATUS_BADGE,
   STATUS_LABEL,
@@ -184,7 +185,7 @@ function PdcPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      {isTeacher ? (
+                      {isTeacher && acceptsProgress(p.status) ? (
                         <Button
                           size="icon"
                           variant="ghost"

@@ -77,7 +77,9 @@ export function AppSidebar() {
 
   // Las dos listas se filtran igual: el `roles` que cada enlace declara es lo único que decide si
   // se ve. El catálogo académico antes se abría con el flag `director` sin mirar ese campo.
-  const visibleTop = visibleLinksFor(TOP_LINKS, role)
+  const visibleTop = visibleLinksFor(TOP_LINKS, role, {
+    technical: isTechnical,
+  })
   const visibleAdmin = visibleLinksFor(ADMIN_LINKS, role)
 
   return (

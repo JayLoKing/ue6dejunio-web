@@ -24,6 +24,8 @@ export interface NavLink {
   to: string
   icon: LucideIcon
   roles: UserRole[]
+  /** El docente técnico no ve este enlace: su pantalla presupone un curso de aula que él no tiene. */
+  excludeTechnical?: boolean
 }
 
 /**
@@ -40,13 +42,21 @@ export interface NavLink {
  * su etiqueta y su contenido, no una fila más. Eso significa que su visibilidad no está cubierta
  * por ningún test: mudarlos acá pide antes decidir cómo se agrupan.
  *
+ * `technical` es el docente sin curso de aula: los enlaces con `excludeTechnical` se le ocultan. Mientras
+ * el contexto carga llega como `false`, así que el menú no parpadea ni pierde enlaces de más.
+ *
  * Sin rol no devuelve nada: una sesión a medio cargar muestra un menú vacío, no el de Dirección.
  */
 export function visibleLinksFor(
   links: NavLink[],
-  role: string | null
+  role: string | null,
+  { technical = false }: { technical?: boolean } = {}
 ): NavLink[] {
-  return links.filter((link) => link.roles.some((r) => isRole(role, r)))
+  return links.filter(
+    (link) =>
+      link.roles.some((r) => isRole(role, r)) &&
+      !(technical && link.excludeTechnical)
+  )
 }
 
 /**
@@ -77,6 +87,7 @@ export const TOP_LINKS: NavLink[] = [
     to: "/students",
     icon: UserSquare2Icon,
     roles: ["TEACHER"],
+    excludeTechnical: true,
   },
   // Mismo título, otra pantalla y otro público: el docente ve el padrón de su curso, Dirección y
   // secretaría ven la institución entera. Ningún rol tiene los dos, así que el nombre no se repite.

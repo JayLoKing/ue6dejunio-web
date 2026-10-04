@@ -137,6 +137,22 @@ describe("visibleLinksFor", () => {
     expect(visibleLinksFor(ADMIN_LINKS, null)).toEqual([])
   })
 
+  /**
+   * El docente técnico no tiene curso de aula: `/students` es el padrón de ese curso y para él es
+   * una pantalla vacía. El enlace lo declara con `excludeTechnical` y el filtro lo respeta.
+   */
+  it("le esconde Estudiantes al docente técnico y a nadie más", () => {
+    const toFor = (technical: boolean) =>
+      visibleLinksFor(TOP_LINKS, "TEACHER", { technical }).map((l) => l.to)
+
+    expect(toFor(true)).not.toContain("/students")
+    expect(toFor(true)).toContain("/attendance")
+    expect(toFor(false)).toContain("/students")
+    expect(visibleLinksFor(TOP_LINKS, "TEACHER").map((l) => l.to)).toContain(
+      "/students"
+    )
+  })
+
   it("no le importa cómo venga escrito el rol", () => {
     expect(visibleLinksFor(ADMIN_LINKS, "director")).toHaveLength(
       ADMIN_LINKS.length

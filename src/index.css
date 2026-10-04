@@ -526,3 +526,10 @@
     break-inside: avoid;
   }
 }
+
+/* Edge trae su propio ojo (y una "x") dentro de los campos de contraseña; Chrome y Firefox no. El
+   botón de mostrar/ocultar del sistema es el único, igual en todos los navegadores. */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}

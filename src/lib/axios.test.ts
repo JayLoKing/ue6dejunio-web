@@ -140,6 +140,26 @@ describe("el 401 de una sesión que venció", () => {
   })
 })
 
+describe("el 401 de una cuenta dada de baja", () => {
+  /**
+   * El Director saliente de un cambio de dirección: su token sigue vigente, pero la API relee
+   * `active` en cada pedido y contesta 401. Tiene que caer en la misma salida que una sesión
+   * vencida —store vaciado y cartel de ingreso—, y no quedar con la pantalla puesta y cada pedido
+   * fallando. El caso sirve de ejemplo para cualquier baja: no hay una rama aparte.
+   */
+  it("cierra la sesión y levanta el cartel, sin toast", async () => {
+    useAuthStore.setState({ accessToken: "token-aun-vigente", userId: "dir-1" })
+    const client = clientRejectingWith(401, { message: "Cuenta desactivada" })
+
+    await expect(client.get("/users/director-handover")).rejects.toThrow()
+
+    expect(useAuthStore.getState().accessToken).toBeNull()
+    expect(useAuthStore.getState().userId).toBeNull()
+    expect(useAuthStore.getState().sessionExpired).toBe(true)
+    expect(toastError).not.toHaveBeenCalled()
+  })
+})
+
 describe("el resto de los errores", () => {
   it("los cuenta con su código", async () => {
     const client = clientRejectingWith(409, { message: "El curso ya existe" })

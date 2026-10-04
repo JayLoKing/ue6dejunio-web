@@ -4,6 +4,7 @@ import { GraduationCapIcon, SaveIcon, UserIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -44,6 +45,22 @@ import type { SubjectAssignment } from "../types/course"
  */
 interface SubjectState extends SubjectTeacherChoice {
   checked: boolean
+}
+
+/**
+ * Lo elegido para una materia al marcarla o desmarcarla. Es el único camino: marcar a mano y
+ * "Todo" pasan por acá, así cada materia conserva el mismo docente y el mismo "la dicta el aula"
+ * sin importar cómo se la marcó.
+ */
+function withChecked(
+  prev: SubjectState | undefined,
+  checked: boolean
+): SubjectState {
+  return {
+    checked,
+    teacherId: prev?.teacherId ?? null,
+    byHomeroom: prev?.byHomeroom ?? false,
+  }
 }
 
 export function AssignCourseSubjectsForm() {
@@ -121,12 +138,19 @@ export function AssignCourseSubjectsForm() {
   const toggleSubject = (id: string, checked: boolean) => {
     setSubjectStates((prev) => ({
       ...prev,
-      [id]: {
-        checked,
-        teacherId: prev[id]?.teacherId ?? null,
-        byHomeroom: prev[id]?.byHomeroom ?? false,
-      },
+      [id]: withChecked(prev[id], checked),
     }))
+  }
+
+  /** Marca o desmarca todas las materias listadas, una por una por el mismo camino que a mano. */
+  const toggleAllSubjects = (checked: boolean) => {
+    setSubjectStates((prev) => {
+      const next = { ...prev }
+      for (const subject of subjects.data ?? []) {
+        next[subject.id] = withChecked(prev[subject.id], checked)
+      }
+      return next
+    })
   }
 
   const setSubjectTeacher = (id: string, teacherId: string) => {
@@ -156,6 +180,18 @@ export function AssignCourseSubjectsForm() {
       },
     }))
   }
+
+  const listedSubjects = subjects.data ?? []
+  const listedChecked = listedSubjects.filter(
+    (subject) => subjectStates[subject.id]?.checked
+  ).length
+  const allChecked =
+    listedSubjects.length > 0 && listedChecked === listedSubjects.length
+  const selectAllState: boolean | "indeterminate" = allChecked
+    ? true
+    : listedChecked > 0
+      ? "indeterminate"
+      : false
 
   const checkedCount = useMemo(
     () => Object.values(subjectStates).filter((s) => s.checked).length,
@@ -336,6 +372,22 @@ export function AssignCourseSubjectsForm() {
             Marca materias comunes (docente de aula). En Música o Religión elige
             un docente técnico, o marca que la dicta el docente de aula.
           </CardDescription>
+          {listedSubjects.length > 0 ? (
+            <CardAction>
+              <label
+                htmlFor="select-all-subjects"
+                className="flex items-center gap-2 text-sm font-medium"
+              >
+                <Checkbox
+                  id="select-all-subjects"
+                  aria-label="Seleccionar todas las materias"
+                  checked={selectAllState}
+                  onCheckedChange={() => toggleAllSubjects(!allChecked)}
+                />
+                Todo
+              </label>
+            </CardAction>
+          ) : null}
         </CardHeader>
         <CardContent>
           {subjects.isLoading ? (

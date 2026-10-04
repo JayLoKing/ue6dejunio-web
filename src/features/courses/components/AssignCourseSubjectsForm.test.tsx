@@ -36,6 +36,13 @@ const primeroBDe2025 = course({
 let coursesLoading = false
 let yearsLoading = false
 
+const catalogSubjects = [
+  { id: "s-1", name: "Matematica", technical: false },
+  { id: "s-2", name: "Musica", technical: true },
+  { id: "s-3", name: "Lenguaje", technical: false },
+]
+let subjectsInCatalog: typeof catalogSubjects = []
+
 vi.mock("../hooks/useCourses", () => ({
   useCreateCourse: () => ({ mutateAsync: vi.fn(), isPending: false }),
   // Como la API: sólo los cursos de la gestión pedida.
@@ -66,7 +73,7 @@ vi.mock("@/features/catalog/hooks/useCatalog", () => ({
     ],
     isLoading: false,
   }),
-  useSubjects: () => ({ data: [], isLoading: false }),
+  useSubjects: () => ({ data: subjectsInCatalog, isLoading: false }),
   useTeachers: () => ({
     data: [
       { id: "t-1", fullName: "Nora Arnez" },
@@ -220,5 +227,76 @@ describe("AssignCourseSubjectsForm, mientras no sabe qué está ocupado", () => 
     expect(
       screen.getByRole("combobox", { name: /docente de aula/i })
     ).toBeDisabled()
+  })
+})
+
+describe("AssignCourseSubjectsForm, seleccionar todas las materias", () => {
+  beforeEach(() => {
+    coursesLoading = false
+    yearsLoading = false
+    subjectsInCatalog = catalogSubjects
+  })
+
+  const todo = () =>
+    screen.getByRole("checkbox", { name: /seleccionar todas las materias/i })
+
+  it("marca todas las materias y el contador dice cuantas", async () => {
+    render(<AssignCourseSubjectsForm />)
+
+    await userEvent.click(todo())
+
+    expect(screen.getByText("3 materia(s) seleccionada(s)")).toBeInTheDocument()
+    expect(todo()).toHaveAttribute("aria-checked", "true")
+  })
+
+  it("al volver a pulsarlo con todas marcadas, las desmarca", async () => {
+    render(<AssignCourseSubjectsForm />)
+
+    await userEvent.click(todo())
+    await userEvent.click(todo())
+
+    expect(screen.getByText("0 materia(s) seleccionada(s)")).toBeInTheDocument()
+    expect(todo()).toHaveAttribute("aria-checked", "false")
+  })
+
+  it("queda indeterminado cuando se marco una sola a mano y marca el resto al pulsarlo", async () => {
+    render(<AssignCourseSubjectsForm />)
+
+    await userEvent.click(screen.getByRole("checkbox", { name: /Matematica/ }))
+    expect(todo()).toHaveAttribute("aria-checked", "mixed")
+
+    await userEvent.click(todo())
+    expect(screen.getByText("3 materia(s) seleccionada(s)")).toBeInTheDocument()
+  })
+
+  it("no aparece si el catalogo no tiene materias", () => {
+    subjectsInCatalog = []
+    render(<AssignCourseSubjectsForm />)
+
+    expect(
+      screen.queryByRole("checkbox", {
+        name: /seleccionar todas las materias/i,
+      })
+    ).not.toBeInTheDocument()
+  })
+
+  it("una materia tecnica marcada con Todo sigue pidiendo su docente para guardar", async () => {
+    render(<AssignCourseSubjectsForm />)
+
+    await openSelect(/grado/i)
+    await userEvent.click(screen.getByRole("option", { name: /Segundo/ }))
+    await openSelect(/paralelo/i)
+    await userEvent.click(screen.getByRole("option", { name: "A" }))
+    await openSelect(/docente de aula/i)
+    await userEvent.click(screen.getByRole("option", { name: "Carla Rojas" }))
+
+    await userEvent.click(todo())
+    const save = screen.getByRole("button", { name: /guardar curso/i })
+    expect(save).toBeDisabled()
+
+    await userEvent.click(
+      screen.getByRole("checkbox", { name: /la dicta el docente de aula/i })
+    )
+    expect(save).toBeEnabled()
   })
 })

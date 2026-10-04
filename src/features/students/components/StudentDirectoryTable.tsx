@@ -1,4 +1,10 @@
-import { InfoIcon, UserCheckIcon, UserMinusIcon } from "lucide-react"
+import { Link } from "@tanstack/react-router"
+import {
+  BookOpenIcon,
+  InfoIcon,
+  UserCheckIcon,
+  UserMinusIcon,
+} from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -38,6 +44,30 @@ export interface StudentDirectoryTableProps {
   onWithdraw?: (student: StudentDirectoryResponse) => void
   /** Reincorpora a un retirado. Ausente, no se ofrece: también es del Director. */
   onReinstate?: (student: StudentDirectoryResponse) => void
+  /** Ofrece abrir el cuaderno del curso de la fila. Ausente, no hay enlace. */
+  canOpenCourse?: boolean
+}
+
+/** El enlace al cuaderno: sólo con permiso y con un curso al que ir (el sin inscribir no lo tiene). */
+function courseLink(s: StudentDirectoryResponse, canOpenCourse?: boolean) {
+  if (!canOpenCourse || !s.courseId || s.parallelId === null) return null
+  return (
+    <Button
+      size="icon"
+      variant="ghost"
+      className="size-8"
+      title="Ver curso"
+      asChild
+    >
+      <Link
+        to="/cursos/$parallelId/curso/$courseId"
+        params={{ parallelId: String(s.parallelId), courseId: s.courseId }}
+      >
+        <BookOpenIcon className="size-4" />
+        <span className="sr-only">Ver curso de {s.fullName}</span>
+      </Link>
+    </Button>
+  )
 }
 
 export function StudentDirectoryTable({
@@ -53,6 +83,7 @@ export function StudentDirectoryTable({
   onOpenWithdrawal,
   onWithdraw,
   onReinstate,
+  canOpenCourse,
 }: StudentDirectoryTableProps) {
   return (
     <div className="flex flex-col gap-4">
@@ -67,7 +98,7 @@ export function StudentDirectoryTable({
               <TableHead>Paralelo</TableHead>
               <TableHead>Gestión</TableHead>
               <TableHead>Estado</TableHead>
-              <TableHead className="w-20" />
+              <TableHead className="w-28" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -103,6 +134,7 @@ export function StudentDirectoryTable({
                   <TableCell className="text-right">
                     {s.status === WITHDRAWN ? (
                       <div className="flex justify-end gap-1">
+                        {courseLink(s, canOpenCourse)}
                         <Button
                           size="icon"
                           variant="ghost"
@@ -130,19 +162,24 @@ export function StudentDirectoryTable({
                           </Button>
                         ) : null}
                       </div>
-                    ) : s.status === EFFECTIVE && onWithdraw ? (
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="size-8"
-                        title="Dar de baja"
-                        onClick={() => onWithdraw(s)}
-                      >
-                        <UserMinusIcon className="size-4" />
-                        <span className="sr-only">
-                          Dar de baja a {s.fullName}
-                        </span>
-                      </Button>
+                    ) : s.status === EFFECTIVE ? (
+                      <div className="flex justify-end gap-1">
+                        {courseLink(s, canOpenCourse)}
+                        {onWithdraw ? (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="size-8"
+                            title="Dar de baja"
+                            onClick={() => onWithdraw(s)}
+                          >
+                            <UserMinusIcon className="size-4" />
+                            <span className="sr-only">
+                              Dar de baja a {s.fullName}
+                            </span>
+                          </Button>
+                        ) : null}
+                      </div>
                     ) : null}
                   </TableCell>
                 </TableRow>

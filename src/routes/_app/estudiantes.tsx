@@ -39,7 +39,8 @@ export const Route = createFileRoute("/_app/estudiantes")({
 
 function StudentDirectoryPage() {
   const role = useAuthStore((s) => s.role)
-  const { canWithdraw, canReinstate } = directoryPermissions(role)
+  const { canWithdraw, canReinstate, canOpenCourse } =
+    directoryPermissions(role)
 
   const [filters, setFilters] = useState<StudentDirectoryFilters>(
     EMPTY_DIRECTORY_FILTERS
@@ -129,6 +130,7 @@ function StudentDirectoryPage() {
                   ? (s) => setWithdrawing({ id: s.id, fullName: s.fullName })
                   : undefined
               }
+              canOpenCourse={canOpenCourse}
               onReinstate={
                 canReinstate
                   ? (s) => setReinstating({ id: s.id, fullName: s.fullName })

@@ -16,4 +16,8 @@ export interface StudentDirectoryResponse {
   status: string
   /** El año del que son ciertos el grado y el paralelo de arriba. */
   academicYear: number | null
+  /** El curso de la fila, para abrir su cuaderno. Nulo en quien no está inscrito. */
+  courseId: string | null
+  /** El paralelo de ese curso, que la ruta del cuaderno lleva en la URL. */
+  parallelId: number | null
 }

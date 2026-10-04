@@ -10,11 +10,17 @@ import { isRole } from "@/features/auth/types"
 export interface DirectoryPermissions {
   canWithdraw: boolean
   canReinstate: boolean
+  /** Abrir el cuaderno del curso de la fila: lo leen Dirección y secretaría. */
+  canOpenCourse: boolean
 }
 
 export function directoryPermissions(
   role: string | null
 ): DirectoryPermissions {
   const isDirector = isRole(role, "DIRECTOR")
-  return { canWithdraw: isDirector, canReinstate: isDirector }
+  return {
+    canWithdraw: isDirector,
+    canReinstate: isDirector,
+    canOpenCourse: isDirector || isRole(role, "SECRETARY"),
+  }
 }

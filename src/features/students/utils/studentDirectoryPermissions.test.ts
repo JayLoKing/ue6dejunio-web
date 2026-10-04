@@ -7,6 +7,7 @@ describe("directoryPermissions", () => {
     expect(directoryPermissions("DIRECTOR")).toEqual({
       canWithdraw: true,
       canReinstate: true,
+      canOpenCourse: true,
     })
   })
 
@@ -15,10 +16,12 @@ describe("directoryPermissions", () => {
     expect(directoryPermissions("SECRETARY")).toEqual({
       canWithdraw: false,
       canReinstate: false,
+      canOpenCourse: true,
     })
   })
 
   it("grants nothing without a role", () => {
     expect(directoryPermissions(null).canReinstate).toBe(false)
+    expect(directoryPermissions(null).canOpenCourse).toBe(false)
   })
 })

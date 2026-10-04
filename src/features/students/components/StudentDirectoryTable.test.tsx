@@ -2,6 +2,20 @@ import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({
+    children,
+    to,
+    params,
+  }: {
+    children: React.ReactNode
+    to: string
+    params: Record<string, string>
+  }) => (
+    <a href={to.replace(/\$(\w+)/g, (_, k: string) => params[k])}>{children}</a>
+  ),
+}))
+
 import { StudentDirectoryTable } from "./StudentDirectoryTable"
 import type { StudentDirectoryResponse } from "../models/response/student-directory-response"
 
@@ -17,6 +31,8 @@ const row = (
   level: "Primaria Comunitaria Vocacional",
   status: "Effective",
   academicYear: 2026,
+  courseId: "c-1",
+  parallelId: 3,
   ...over,
 })
 
@@ -144,5 +160,33 @@ describe("StudentDirectoryTable", () => {
     expect(
       screen.queryByRole("button", { name: /Reincorporar a/ })
     ).not.toBeInTheDocument()
+  })
+
+  describe("course link", () => {
+    it("links a row to its course when the caller may open it", () => {
+      render(<StudentDirectoryTable {...props} rows={[row()]} canOpenCourse />)
+
+      expect(
+        screen.getByRole("link", { name: /Ver curso de Ana Quispe/ })
+      ).toHaveAttribute("href", "/cursos/3/curso/c-1")
+    })
+
+    it("offers no link when the caller may not open the course", () => {
+      render(<StudentDirectoryTable {...props} rows={[row()]} />)
+
+      expect(screen.queryByRole("link")).not.toBeInTheDocument()
+    })
+
+    it("offers no link on a student without a course", () => {
+      render(
+        <StudentDirectoryTable
+          {...props}
+          rows={[row({ courseId: null, parallelId: null })]}
+          canOpenCourse
+        />
+      )
+
+      expect(screen.queryByRole("link")).not.toBeInTheDocument()
+    })
   })
 })

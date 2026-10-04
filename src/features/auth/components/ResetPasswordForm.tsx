@@ -10,7 +10,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
+import { PasswordInput } from "@/components/shared/PasswordInput"
 import { PasswordRequirements } from "@/components/shared/PasswordRequirements"
 
 import {
@@ -76,9 +76,8 @@ function ResetForm({ token }: { token: string }) {
       <FieldGroup>
         <Field data-invalid={Boolean(errors.newPassword) || undefined}>
           <FieldLabel htmlFor="newPassword">Nueva contraseña</FieldLabel>
-          <Input
+          <PasswordInput
             id="newPassword"
-            type="password"
             autoComplete="new-password"
             className="h-11"
             aria-invalid={Boolean(errors.newPassword) || undefined}
@@ -94,9 +93,8 @@ function ResetForm({ token }: { token: string }) {
           <FieldLabel htmlFor="confirmPassword">
             Confirmar contraseña
           </FieldLabel>
-          <Input
+          <PasswordInput
             id="confirmPassword"
-            type="password"
             autoComplete="new-password"
             className="h-11"
             aria-invalid={Boolean(errors.confirmPassword) || undefined}

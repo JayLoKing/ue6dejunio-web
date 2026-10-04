@@ -10,6 +10,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
+import { PasswordInput } from "@/components/shared/PasswordInput"
 import { Input } from "@/components/ui/input"
 
 import {
@@ -75,9 +76,8 @@ export function LoginForm() {
               ¿La olvidaste?
             </Link>
           </div>
-          <Input
+          <PasswordInput
             id="password"
-            type="password"
             autoComplete="current-password"
             className="h-11"
             aria-invalid={Boolean(errors.password) || undefined}

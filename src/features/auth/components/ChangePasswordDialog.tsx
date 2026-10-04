@@ -17,7 +17,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
+import { PasswordInput } from "@/components/shared/PasswordInput"
 import { PasswordRequirements } from "@/components/shared/PasswordRequirements"
 
 import {
@@ -85,9 +85,8 @@ export function ChangePasswordDialog({ open }: ChangePasswordDialogProps) {
               <FieldLabel htmlFor="currentPassword">
                 Contraseña actual
               </FieldLabel>
-              <Input
+              <PasswordInput
                 id="currentPassword"
-                type="password"
                 autoComplete="current-password"
                 aria-invalid={Boolean(errors.currentPassword) || undefined}
                 {...register("currentPassword")}
@@ -99,9 +98,8 @@ export function ChangePasswordDialog({ open }: ChangePasswordDialogProps) {
 
             <Field data-invalid={Boolean(errors.newPassword) || undefined}>
               <FieldLabel htmlFor="newPassword">Nueva contraseña</FieldLabel>
-              <Input
+              <PasswordInput
                 id="newPassword"
-                type="password"
                 autoComplete="new-password"
                 aria-invalid={Boolean(errors.newPassword) || undefined}
                 {...register("newPassword")}
@@ -118,9 +116,8 @@ export function ChangePasswordDialog({ open }: ChangePasswordDialogProps) {
               <FieldLabel htmlFor="confirmPassword">
                 Confirmar contraseña
               </FieldLabel>
-              <Input
+              <PasswordInput
                 id="confirmPassword"
-                type="password"
                 autoComplete="new-password"
                 aria-invalid={Boolean(errors.confirmPassword) || undefined}
                 {...register("confirmPassword")}

@@ -16,7 +16,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
+import { PasswordInput } from "@/components/shared/PasswordInput"
 import { PasswordRequirements } from "@/components/shared/PasswordRequirements"
 
 import {
@@ -84,9 +84,8 @@ export function ChangePasswordMenuDialog({
           <FieldGroup>
             <Field data-invalid={Boolean(errors.currentPassword) || undefined}>
               <FieldLabel htmlFor="cpm-current">Contraseña actual</FieldLabel>
-              <Input
+              <PasswordInput
                 id="cpm-current"
-                type="password"
                 autoComplete="current-password"
                 {...register("currentPassword")}
               />
@@ -97,9 +96,8 @@ export function ChangePasswordMenuDialog({
 
             <Field data-invalid={Boolean(errors.newPassword) || undefined}>
               <FieldLabel htmlFor="cpm-new">Nueva contraseña</FieldLabel>
-              <Input
+              <PasswordInput
                 id="cpm-new"
-                type="password"
                 autoComplete="new-password"
                 {...register("newPassword")}
               />
@@ -115,9 +113,8 @@ export function ChangePasswordMenuDialog({
               <FieldLabel htmlFor="cpm-confirm">
                 Confirmar contraseña
               </FieldLabel>
-              <Input
+              <PasswordInput
                 id="cpm-confirm"
-                type="password"
                 autoComplete="new-password"
                 {...register("confirmPassword")}
               />

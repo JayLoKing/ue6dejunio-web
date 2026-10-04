@@ -42,6 +42,11 @@ export class UserService {
     return response.data
   }
 
+  static async resendCredentials(id: string): Promise<void> {
+    const { call } = helper.resendCredentialsAsync(id)
+    await call
+  }
+
   static async deactivate(id: string): Promise<void> {
     const { call } = helper.deactivateAsync(id)
     await call

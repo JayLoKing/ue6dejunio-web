@@ -12,6 +12,7 @@ const user = (over: Partial<UsersListItem>): UsersListItem => ({
   email: "ana@ue6.bo",
   role: "TEACHER",
   active: true,
+  mustChangePassword: false,
   ...over,
 })
 

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { PencilIcon, SearchIcon, UserMinusIcon } from "lucide-react"
+import { MailIcon, PencilIcon, SearchIcon, UserMinusIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -19,6 +19,7 @@ import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue"
 
 import { useUsers } from "../hooks/useUsers"
 import { useDeactivateUser } from "../hooks/useDeactivateUser"
+import { useResendCredentials } from "../hooks/useResendCredentials"
 import { EditUserDialog } from "./EditUserDialog"
 import type { UsersListItem } from "../models/response/user-response"
 import { roleBadgeVariant, roleLabel } from "@/lib/labels"
@@ -30,6 +31,7 @@ export function UsersTable() {
   const [sort] = useState<SortDir>("asc")
   const [editing, setEditing] = useState<UsersListItem | null>(null)
   const [deleting, setDeleting] = useState<UsersListItem | null>(null)
+  const [resending, setResending] = useState<UsersListItem | null>(null)
 
   const debouncedSearch = useDebouncedValue(search, 350)
 
@@ -45,11 +47,21 @@ export function UsersTable() {
 
   const { data, isLoading, isFetching, refetch } = useUsers(query)
   const deactivate = useDeactivateUser()
+  const resend = useResendCredentials()
 
   const confirmDelete = () => {
     if (!deleting) return
     deactivate.mutate(deleting.id, {
       onSuccess: () => setDeleting(null),
+    })
+  }
+
+  const confirmResend = () => {
+    if (!resending) return
+    resend.mutate(resending.id, {
+      // Salga bien o mal el diálogo se cierra: el error ya lo mostró el interceptor, y dejarlo
+      // abierto invitaría a reintentar sobre un 409 que no va a cambiar.
+      onSettled: () => setResending(null),
     })
   }
 
@@ -135,6 +147,21 @@ export function UsersTable() {
                       <Button
                         size="icon"
                         variant="ghost"
+                        className="size-8"
+                        aria-label="Reenviar credenciales"
+                        title={
+                          u.mustChangePassword
+                            ? "Reenviar credenciales"
+                            : "Ya cambió su contraseña temporal"
+                        }
+                        disabled={!u.active || !u.mustChangePassword}
+                        onClick={() => setResending(u)}
+                      >
+                        <MailIcon className="size-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
                         className="size-8 text-destructive"
                         title="Dar de baja"
                         disabled={!u.active}
@@ -166,6 +193,20 @@ export function UsersTable() {
       />
 
       <EditUserDialog user={editing} onClose={() => setEditing(null)} />
+
+      <ConfirmDialog
+        open={Boolean(resending)}
+        title="Reenviar credenciales"
+        description={
+          resending
+            ? `Se generará una contraseña temporal nueva y se enviará a ${resending.email}. La anterior dejará de servir.`
+            : undefined
+        }
+        confirmLabel="Reenviar"
+        loading={resend.isPending}
+        onConfirm={confirmResend}
+        onOpenChange={(o) => !o && setResending(null)}
+      />
 
       <ConfirmDialog
         open={Boolean(deleting)}

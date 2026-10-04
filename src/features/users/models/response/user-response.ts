@@ -20,6 +20,8 @@ export interface UsersListItem {
   email: string
   role: string
   active: boolean
+  /** true mientras la persona no pasó de la contraseña temporal: es lo que habilita el reenvío. */
+  mustChangePassword: boolean
 }
 
 export interface PagedResponse<T> {

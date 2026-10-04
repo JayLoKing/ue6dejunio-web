@@ -59,6 +59,16 @@ export default class UserServiceHelper {
     }
   }
 
+  resendCredentialsAsync(id: string): UseApiCall<void> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.post<void>(UserUrl.ResendCredentials(id), undefined, {
+        signal: controller.signal,
+      }),
+      controller,
+    }
+  }
+
   deactivateAsync(id: string): UseApiCall<void> {
     const controller = loadAbort()
     return {

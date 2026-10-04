@@ -51,8 +51,12 @@ describe("guard del cuaderno de un curso", () => {
     expect(runGuard(NotebookRoute, "DIRECTOR")).toBeUndefined()
   })
 
-  it("redirige a la secretaría al dashboard", () => {
-    const thrown = runGuard(NotebookRoute, "SECRETARY") as {
+  it("deja pasar a la secretaría: lee el cuaderno", () => {
+    expect(runGuard(NotebookRoute, "SECRETARY")).toBeUndefined()
+  })
+
+  it("redirige al docente al dashboard", () => {
+    const thrown = runGuard(NotebookRoute, "TEACHER") as {
       options?: { to?: string }
     }
     expect(thrown?.options?.to).toBe("/dashboard")

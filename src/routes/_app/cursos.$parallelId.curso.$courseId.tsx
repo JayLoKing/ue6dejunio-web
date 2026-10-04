@@ -7,8 +7,8 @@ import { coursePermissions } from "@/features/courses/utils/coursePermissions"
 export const Route = createFileRoute(
   "/_app/cursos/$parallelId/curso/$courseId"
 )({
-  // La API le responde 403 a la secretaría en las lecturas del cuaderno: la lista de cursos de su
-  // paralelo es hasta donde llega.
+  // Dirección y secretaría abren el cuaderno; la API responde 200 a la secretaría en todas sus
+  // lecturas. Las escrituras (baja, atender una predicción) no se ofrecen a la secretaría.
   beforeLoad: () => {
     if (!coursePermissions(useAuthStore.getState().role).canOpenNotebook) {
       throw redirect({ to: "/dashboard" })

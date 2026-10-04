@@ -4,10 +4,12 @@ import { isRole } from "@/features/auth/types"
  * Lo que el rol puede hacer sobre los cursos.
  *
  * Dirección y secretaría comparten el ciclo de vida del curso: alta con sus materias, el docente de
- * aula de UN curso, darlo de baja o reactivarlo, crear una gestión y duplicar su estructura. Lo demás sigue detrás de la Dirección
- * en la API (intercambiar docentes de aula, el docente de una materia, el cuaderno del curso y la
- * administración de gestiones), así que la pantalla no lo ofrece a otro rol: un botón que termina
- * en 403 es peor que no tenerlo. Vive aparte para probar la decisión sin montar las pantallas.
+ * aula de UN curso, darlo de baja o reactivarlo, crear una gestión y duplicar su estructura. El
+ * cuaderno del curso también lo abren las dos, pero la secretaría sólo para leerlo: sus escrituras
+ * (la baja, atender una predicción) no se le ofrecen. Lo demás sigue detrás de la Dirección en la
+ * API (intercambiar docentes de aula, el docente de una materia y la administración de gestiones),
+ * así que la pantalla no lo ofrece a otro rol: un botón que termina en 403 es peor que no tenerlo.
+ * Vive aparte para probar la decisión sin montar las pantallas.
  */
 export interface CoursePermissions {
   canCreateCourse: boolean
@@ -33,7 +35,7 @@ export function coursePermissions(role: string | null): CoursePermissions {
     canDuplicateStructure: runsLifecycle,
     canSwapHomeroom: isDirector,
     canReassignSubjectTeacher: isDirector,
-    canOpenNotebook: isDirector,
+    canOpenNotebook: isDirector || isRole(role, "SECRETARY"),
     canManageYears: isDirector,
     canCreateYear: runsLifecycle,
     canDeactivateCourse: runsLifecycle,

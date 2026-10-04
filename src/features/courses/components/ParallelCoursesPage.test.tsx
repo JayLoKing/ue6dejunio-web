@@ -170,11 +170,11 @@ describe("ParallelCoursesPage, actions by role", () => {
     expect(screen.getByRole("button", { name: /Docente/ })).toBeInTheDocument()
   })
 
-  // The notebook behind that link reads endpoints the API keeps for the Director.
-  it("gives the Secretary the homeroom teacher and the info, not the notebook", () => {
+  // The API answers 200 to the Secretary on every notebook read; the writes stay closed in the panels.
+  it("gives the Secretary the homeroom teacher, the info and the notebook", () => {
     useAuthStore.setState({ role: "SECRETARY" })
     render(<ParallelCoursesPage parallelId="1" />)
-    expect(screen.queryByText("Cuaderno")).not.toBeInTheDocument()
+    expect(screen.getByText("Cuaderno")).toBeInTheDocument()
     expect(screen.getByRole("button", { name: /Info/ })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: /Docente/ })).toBeInTheDocument()
   })

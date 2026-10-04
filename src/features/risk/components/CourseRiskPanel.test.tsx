@@ -75,6 +75,38 @@ describe("CourseRiskPanel", () => {
   })
 })
 
+describe("CourseRiskPanel attend control", () => {
+  // The notebook route (Director, Secretary) passes no ownedClassGroupIds: read-only for both.
+  it("draws no attend control without ownedClassGroupIds", () => {
+    useCourseRisk.mockReturnValue(query({ data: [risk] }))
+    useMarkRiskAttended.mockReturnValue(mutation)
+
+    render(<CourseRiskPanel courseId="c-1" trimester={1} />)
+
+    expect(screen.getByText("Quispe Ana")).toBeInTheDocument()
+    expect(
+      screen.queryByRole("button", { name: /Marcar como/ })
+    ).not.toBeInTheDocument()
+  })
+
+  it("draws it on a row the reader owns", () => {
+    useCourseRisk.mockReturnValue(query({ data: [risk] }))
+    useMarkRiskAttended.mockReturnValue(mutation)
+
+    render(
+      <CourseRiskPanel
+        courseId="c-1"
+        trimester={1}
+        ownedClassGroupIds={["cg-1"]}
+      />
+    )
+
+    expect(
+      screen.getByRole("button", { name: /Marcar como atendida/ })
+    ).toBeInTheDocument()
+  })
+})
+
 describe("ClassGroupRiskPanel", () => {
   it("says the listing failed rather than drawing an empty one", () => {
     useClassGroupRisk.mockReturnValue(query({ isError: true }))

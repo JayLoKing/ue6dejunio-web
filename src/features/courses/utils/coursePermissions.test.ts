@@ -18,14 +18,14 @@ describe("coursePermissions", () => {
   })
 
   // The secretariat runs the course lifecycle; the API keeps the rest behind the Director.
-  it("gives the Secretary the lifecycle and nothing around it", () => {
+  it("gives the Secretary the lifecycle and a read-only look at the notebook", () => {
     expect(coursePermissions("SECRETARY")).toEqual({
       canCreateCourse: true,
       canSetHomeroom: true,
       canDuplicateStructure: true,
       canSwapHomeroom: false,
       canReassignSubjectTeacher: false,
-      canOpenNotebook: false,
+      canOpenNotebook: true,
       canManageYears: false,
       canCreateYear: true,
       canDeactivateCourse: true,

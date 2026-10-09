@@ -22,6 +22,11 @@ export const GradebookUrl = {
   CourseSummary: `${baseModuleUrl}/course-summary`,
   Attendance: `${baseModuleUrl}/attendance`,
   /**
+   * RF 37 de una sola materia: el porcentaje de asistencia por estudiante con las marcas de sesión de
+   * un class group. Lo lee quien lee el class group, así que es el reporte del docente técnico.
+   */
+  ClassGroupAttendanceByStudent: `${baseModuleUrl}/attendance/session/by-student`,
+  /**
    * El informe pedagógico del curso en un trimestre. Lo lee quien lee el curso; lo escribe sólo el
    * docente de aula, que es el único DOCENTE que el formulario de la escuela lleva.
    */

@@ -5,6 +5,7 @@ import type {
   CourseAcademicSummary,
   CourseAttendanceRow,
   CourseAttendanceStats,
+  CourseStudentAttendance,
   EnrollmentScore,
   HonorRollEntry,
   PedagogicalReport,
@@ -37,6 +38,20 @@ export class GradebookService {
     query: PageQuery
   ): Promise<PagedResponse<StudentAnnualSummary>> {
     return (await helper.annualCentralizerAsync(courseId, query).call).data
+  }
+  /** RF 37 de una materia. `trimester` en null = alcance anual. */
+  static async classGroupAttendanceByStudent(
+    classGroupId: string,
+    trimester: number | null,
+    query: PageQuery
+  ): Promise<CourseStudentAttendance> {
+    return (
+      await helper.classGroupAttendanceByStudentAsync(
+        classGroupId,
+        trimester,
+        query
+      ).call
+    ).data
   }
   static async honorRoll(
     courseId: string,
@@ -87,7 +102,8 @@ export class GradebookService {
     academicYearId: number,
     trimester: number
   ): Promise<CourseAcademicSummary[]> {
-    return (await helper.courseSummaryAsync(academicYearId, trimester).call).data
+    return (await helper.courseSummaryAsync(academicYearId, trimester).call)
+      .data
   }
   static async attendanceStats(
     courseId: string,

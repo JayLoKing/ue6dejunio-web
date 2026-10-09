@@ -9,6 +9,7 @@ import type {
   CourseAcademicSummary,
   CourseAttendanceRow,
   CourseAttendanceStats,
+  CourseStudentAttendance,
   EnrollmentScore,
   HonorRollEntry,
   PedagogicalReport,
@@ -116,6 +117,31 @@ export default class GradebookServiceHelper {
     }
   }
 
+  /**
+   * RF 37 de una materia. `trimester` en null NO se manda: su ausencia es lo que el backend lee como
+   * alcance anual, igual que en el reporte del curso.
+   */
+  classGroupAttendanceByStudentAsync(
+    classGroupId: string,
+    trimester: number | null,
+    query: PageQuery
+  ): UseApiCall<CourseStudentAttendance> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.get<CourseStudentAttendance>(
+        GradebookUrl.ClassGroupAttendanceByStudent,
+        {
+          signal: controller.signal,
+          params: toPageParams(query, {
+            id_class_group: classGroupId,
+            ...(trimester === null ? {} : { trimester }),
+          }),
+        }
+      ),
+      controller,
+    }
+  }
+
   /** La tabla de Dirección: una fila por curso de la gestión. */
   courseSummaryAsync(
     academicYearId: number,
@@ -123,10 +149,13 @@ export default class GradebookServiceHelper {
   ): UseApiCall<CourseAcademicSummary[]> {
     const controller = loadAbort()
     return {
-      call: httpClient.get<CourseAcademicSummary[]>(GradebookUrl.CourseSummary, {
-        signal: controller.signal,
-        params: { id_academic_year: academicYearId, trimester },
-      }),
+      call: httpClient.get<CourseAcademicSummary[]>(
+        GradebookUrl.CourseSummary,
+        {
+          signal: controller.signal,
+          params: { id_academic_year: academicYearId, trimester },
+        }
+      ),
       controller,
     }
   }

@@ -100,6 +100,37 @@ export function useCourseAttendance(
   })
 }
 
+/**
+ * RF 37 de una sola materia: el porcentaje de asistencia de cada estudiante con las marcas de sesión
+ * de ese class group. Es el reporte del docente técnico, que no lee la asistencia diaria del curso.
+ *
+ * `trimester` en null es el alcance anual y viaja en la clave, igual que en el reporte del curso.
+ */
+export function useClassGroupAttendanceByStudent(
+  classGroupId: string | null | undefined,
+  trimester: number | null,
+  query: PageQuery
+) {
+  return useQuery({
+    queryKey: [
+      "gradebook",
+      "class-group-attendance-by-student",
+      classGroupId ?? "",
+      trimester ?? "annual",
+      query,
+    ],
+    placeholderData: keepPreviousData,
+    queryFn: classGroupId
+      ? () =>
+          GradebookService.classGroupAttendanceByStudent(
+            classGroupId,
+            trimester,
+            query
+          )
+      : skipToken,
+  })
+}
+
 export function useStudentSummary(
   courseEnrollmentId: string | null | undefined,
   trimester: number

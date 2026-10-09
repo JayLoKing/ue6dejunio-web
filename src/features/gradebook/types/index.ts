@@ -13,7 +13,11 @@ export interface StudentSummary {
   fullName: string
   trimester: number
   subjects: StudentSubjectTotal[]
-  generalAverage: number
+  /**
+   * Null en el centralizador de un docente técnico: el promedio general es de todas las materias,
+   * y la API le entrega sólo las suyas.
+   */
+  generalAverage: number | null
 }
 
 /**

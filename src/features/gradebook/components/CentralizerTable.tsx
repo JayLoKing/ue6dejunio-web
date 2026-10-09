@@ -16,11 +16,18 @@ export interface CentralizerTableProps {
   courseId: string
   /** Opcional: render del nombre del estudiante (p. ej. link a su detalle). */
   renderStudent?: (row: StudentSummary) => ReactNode
+  /**
+   * La hoja de un docente técnico: sólo sus materias. La API deja el promedio general en null —es de
+   * todas las materias—, así que no se muestran el promedio, la situación ni los contadores que
+   * salen de él: un 0.00 y un "Reprobado" armados sobre un null dirían algo que nadie calculó.
+   */
+  subjectOnly?: boolean
 }
 
 export function CentralizerTable({
   courseId,
   renderStudent,
+  subjectOnly = false,
 }: CentralizerTableProps) {
   const [trimester, setTrimester] = useState(1)
   const [page, setPage] = useState(1)
@@ -38,6 +45,8 @@ export function CentralizerTable({
 
   const rows = useMemo<StudentSummary[]>(() => data?.content ?? [], [data])
   const subjects = useMemo(() => subjectColumnsOf(rows), [rows])
+
+  const columnCount = subjects.length + (subjectOnly ? 1 : 3)
 
   const counters = useMemo(() => {
     let passed = 0
@@ -62,12 +71,14 @@ export function CentralizerTable({
             }}
           />
         </div>
-        <div className="flex items-center gap-2 text-sm">
-          <Badge variant="secondary">{counters.passed} aprobados</Badge>
-          <Badge variant="outline" className="text-destructive">
-            {counters.failed} reprobados
-          </Badge>
-        </div>
+        {subjectOnly ? null : (
+          <div className="flex items-center gap-2 text-sm">
+            <Badge variant="secondary">{counters.passed} aprobados</Badge>
+            <Badge variant="outline" className="text-destructive">
+              {counters.failed} reprobados
+            </Badge>
+          </div>
+        )}
       </div>
 
       <div className="min-w-0 overflow-hidden rounded-md border bg-card">
@@ -91,19 +102,23 @@ export function CentralizerTable({
                     </div>
                   </th>
                 ))}
-                <th className="min-w-24 border-r border-b bg-brand/10 px-3 py-2 text-center font-semibold text-brand">
-                  PROM.
-                </th>
-                <th className="min-w-32 border-b bg-muted/50 px-3 py-2 text-center font-medium">
-                  Situación
-                </th>
+                {subjectOnly ? null : (
+                  <>
+                    <th className="min-w-24 border-r border-b bg-brand/10 px-3 py-2 text-center font-semibold text-brand">
+                      PROM.
+                    </th>
+                    <th className="min-w-32 border-b bg-muted/50 px-3 py-2 text-center font-medium">
+                      Situación
+                    </th>
+                  </>
+                )}
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 <tr>
                   <td
-                    colSpan={subjects.length + 3}
+                    colSpan={columnCount}
                     className="px-3 py-6 text-center text-muted-foreground"
                   >
                     <Loader2Icon className="mx-auto size-4 animate-spin" />
@@ -112,7 +127,7 @@ export function CentralizerTable({
               ) : rows.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={subjects.length + 3}
+                    colSpan={columnCount}
                     className="px-3 py-6 text-center text-muted-foreground"
                   >
                     Sin datos.
@@ -151,15 +166,21 @@ export function CentralizerTable({
                           </td>
                         )
                       })}
-                      <td className="border-r bg-brand/5 px-3 py-2 text-center font-semibold text-brand">
-                        {avg.toFixed(2)}
-                      </td>
-                      <td className={cn("px-3 py-2 text-center", rowBg)}>
-                        <Badge className={cn("gap-1", statusClassName(status))}>
-                          {status === "APROBADO" ? "Aprobado" : "Reprobado"} ·{" "}
-                          {qualitative.code}
-                        </Badge>
-                      </td>
+                      {subjectOnly ? null : (
+                        <>
+                          <td className="border-r bg-brand/5 px-3 py-2 text-center font-semibold text-brand">
+                            {avg.toFixed(2)}
+                          </td>
+                          <td className={cn("px-3 py-2 text-center", rowBg)}>
+                            <Badge
+                              className={cn("gap-1", statusClassName(status))}
+                            >
+                              {status === "APROBADO" ? "Aprobado" : "Reprobado"}{" "}
+                              · {qualitative.code}
+                            </Badge>
+                          </td>
+                        </>
+                      )}
                     </tr>
                   )
                 })

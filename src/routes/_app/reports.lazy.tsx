@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react"
 import { createLazyFileRoute } from "@tanstack/react-router"
-import { Loader2Icon } from "lucide-react"
+import { InfoIcon, Loader2Icon } from "lucide-react"
 
 import {
   Select,
@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
 import { useAuthStore } from "@/features/auth/store/authStore"
 import { useActiveYearCourses } from "@/features/courses/hooks/useActiveYearCourses"
+import type { ClassGroupItem } from "@/features/courses/types/course"
 import { CentralizerTable } from "@/features/gradebook/components/CentralizerTable"
 import { AverageRanking } from "@/features/gradebook/components/AverageRanking"
 import { AnnualSheetsPanel } from "@/features/gradebook/components/AnnualSheetsPanel"
@@ -144,8 +145,8 @@ function SchoolWideReports({
 /**
  * Docente. Su curso de aula y nada más.
  *
- * El docente técnico no tiene curso de aula: se le dice por qué en vez de mostrarle un selector que
- * no puede usar.
+ * El docente técnico no tiene curso de aula: ve los reportes de las materias que dicta. Sin curso de
+ * aula ni materias, se le dice por qué en vez de mostrarle un selector que no puede usar.
  */
 function TeacherReports() {
   const ctx = useCurrentContext()
@@ -155,6 +156,9 @@ function TeacherReports() {
   const parallelName = useAuthStore((s) => s.parallelName)
 
   if (!ctx.homeroomCourseId) {
+    if (ctx.classGroups.length > 0) {
+      return <TechnicalReports classGroups={ctx.classGroups} />
+    }
     return (
       <div className="rounded-md border border-dashed p-12 text-center text-muted-foreground">
         El consolidado es del curso de aula. Como docente técnico no tienes un
@@ -172,6 +176,93 @@ function TeacherReports() {
       year={null}
       canReadPedagogicalReport
     />
+  )
+}
+
+/**
+ * Docente técnico: los reportes de una de sus materias, eligiéndola.
+ *
+ * Sólo los tres que son de la materia. Las notas salen de los mismos centralizadores del curso, que
+ * la API ya recorta a sus materias y sin los promedios de todas; la asistencia sale de las marcas de
+ * sesión de ese class group. Libretas, promedios e informe pedagógico son del curso entero y siguen
+ * siendo del docente de aula.
+ */
+function TechnicalReports({ classGroups }: { classGroups: ClassGroupItem[] }) {
+  const [chosenGroupId, setChosenGroupId] = useState<string | null>(null)
+  const [attendanceScope, setAttendanceScope] = useState<string>(ANNUAL)
+
+  // La primera materia mientras nadie eligió, derivada y no guardada en un efecto.
+  const chosen =
+    classGroups.find((group) => group.id === chosenGroupId) ?? classGroups[0]
+  const courseLabel = `${chosen.gradeName} ${chosen.parallelName}`
+  const attendanceTrimester =
+    attendanceScope === ANNUAL ? null : Number(attendanceScope)
+
+  return (
+    <div className="flex min-w-0 flex-col gap-4">
+      <div className="flex items-center gap-2">
+        <span
+          id="technical-reports-group"
+          className="text-sm text-muted-foreground"
+        >
+          Materia
+        </span>
+        <Select value={chosen.id} onValueChange={setChosenGroupId}>
+          <SelectTrigger
+            className="w-80"
+            aria-labelledby="technical-reports-group"
+          >
+            <SelectValue placeholder="Selecciona una materia" />
+          </SelectTrigger>
+          <SelectContent>
+            {classGroups.map((group) => (
+              <SelectItem key={group.id} value={group.id}>
+                {group.subjectName} — {group.gradeName} {group.parallelName}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <p className="flex items-start gap-2 text-sm text-muted-foreground">
+        <InfoIcon className="mt-0.5 size-4 shrink-0" />
+        Estos son los reportes de tu materia: sus notas y la asistencia de tus
+        clases. El promedio general y la situación final del curso los emite el
+        docente de aula.
+      </p>
+
+      <Tabs defaultValue="centralizador">
+        <TabsList>
+          <TabsTrigger value="centralizador">Centralizador</TabsTrigger>
+          <TabsTrigger value="anual">Consolidado anual</TabsTrigger>
+          <TabsTrigger value="asistencia">Asistencia</TabsTrigger>
+        </TabsList>
+        <TabsContent value="centralizador" className="pt-4">
+          <CentralizerTable courseId={chosen.courseId} subjectOnly />
+        </TabsContent>
+        <TabsContent value="anual" className="pt-4">
+          <AnnualSheetsPanel
+            courseId={chosen.courseId}
+            courseLabel={courseLabel}
+            year={null}
+            subjectOnly
+          />
+        </TabsContent>
+        <TabsContent value="asistencia" className="flex flex-col gap-4 pt-4">
+          <AttendanceScopeSelect
+            value={attendanceScope}
+            onChange={setAttendanceScope}
+          />
+          <AttendanceReportPanel
+            courseId={chosen.courseId}
+            classGroupId={chosen.id}
+            subjectName={chosen.subjectName}
+            trimester={attendanceTrimester}
+            courseLabel={courseLabel}
+          />
+        </TabsContent>
+      </Tabs>
+    </div>
   )
 }
 
@@ -218,20 +309,10 @@ function ReportTabs({
         <ReportCardPanel courseId={courseId} />
       </TabsContent>
       <TabsContent value="asistencia" className="flex flex-col gap-4 pt-4">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Alcance</span>
-          <Select value={attendanceScope} onValueChange={setAttendanceScope}>
-            <SelectTrigger className="w-44">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ANNUAL}>Todo el año</SelectItem>
-              <SelectItem value="1">Primer trimestre</SelectItem>
-              <SelectItem value="2">Segundo trimestre</SelectItem>
-              <SelectItem value="3">Tercer trimestre</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <AttendanceScopeSelect
+          value={attendanceScope}
+          onChange={setAttendanceScope}
+        />
         <AttendanceReportPanel
           courseId={courseId}
           trimester={attendanceTrimester}
@@ -247,5 +328,31 @@ function ReportTabs({
         </TabsContent>
       ) : null}
     </Tabs>
+  )
+}
+
+/** El alcance del reporte de asistencia: el año entero o un trimestre. */
+function AttendanceScopeSelect({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (scope: string) => void
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-sm text-muted-foreground">Alcance</span>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger className="w-44">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={ANNUAL}>Todo el año</SelectItem>
+          <SelectItem value="1">Primer trimestre</SelectItem>
+          <SelectItem value="2">Segundo trimestre</SelectItem>
+          <SelectItem value="3">Tercer trimestre</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
   )
 }

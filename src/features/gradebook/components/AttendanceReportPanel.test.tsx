@@ -1,9 +1,13 @@
 import { render, screen } from "@testing-library/react"
-import { describe, expect, it, vi } from "vitest"
+import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const useCourseAttendanceByStudent = vi.hoisted(() => vi.fn())
 vi.mock("@/features/courses/hooks/useCourses", () => ({
   useCourseAttendanceByStudent,
+}))
+const useClassGroupAttendanceByStudent = vi.hoisted(() => vi.fn())
+vi.mock("../hooks/useGradebook", () => ({
+  useClassGroupAttendanceByStudent,
 }))
 
 vi.mock("@/features/institution/hooks/useInstitution", () => ({
@@ -52,6 +56,11 @@ const report = (rows: StudentAttendanceRow[]) =>
   })
 
 describe("AttendanceReportPanel", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    useClassGroupAttendanceByStudent.mockReturnValue(query())
+  })
+
   it("muestra los cuatro totales y el porcentaje de cada estudiante", () => {
     useCourseAttendanceByStudent.mockReturnValue(report([row()]))
 
@@ -151,5 +160,52 @@ describe("AttendanceReportPanel", () => {
       null,
       expect.objectContaining({ limit: 200 })
     )
+  })
+
+  /**
+   * El reporte de una materia: las marcas de sesión de ese class group, no la asistencia diaria del
+   * curso, que el docente técnico no lee (la API le responde 403).
+   */
+  describe("de una materia", () => {
+    it("lee la asistencia del class group y no la del curso", () => {
+      useCourseAttendanceByStudent.mockReturnValue(query())
+      useClassGroupAttendanceByStudent.mockReturnValue(report([row()]))
+
+      render(
+        <AttendanceReportPanel
+          courseId="c-1"
+          classGroupId="cg-1"
+          subjectName="Computación"
+          trimester={2}
+        />
+      )
+
+      expect(screen.getByText("83.3%")).toBeInTheDocument()
+      expect(useClassGroupAttendanceByStudent).toHaveBeenCalledWith(
+        "cg-1",
+        2,
+        expect.objectContaining({ limit: 200 })
+      )
+      expect(useCourseAttendanceByStudent).toHaveBeenCalledWith(
+        null,
+        2,
+        expect.anything()
+      )
+    })
+
+    it("dice que la consulta falló en vez de mostrar una materia sin asistencia", () => {
+      useCourseAttendanceByStudent.mockReturnValue(query())
+      useClassGroupAttendanceByStudent.mockReturnValue(query({ isError: true }))
+
+      render(
+        <AttendanceReportPanel
+          courseId="c-1"
+          classGroupId="cg-1"
+          trimester={null}
+        />
+      )
+
+      expect(screen.getByText(/No se pudo cargar/)).toBeInTheDocument()
+    })
   })
 })

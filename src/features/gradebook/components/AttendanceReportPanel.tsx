@@ -14,6 +14,8 @@ import { useCourseAttendanceByStudent } from "@/features/courses/hooks/useCourse
 import { useInstitution } from "@/features/institution/hooks/useInstitution"
 import { attendanceReportRows } from "@/features/reports/utils/reportRows"
 
+import { useClassGroupAttendanceByStudent } from "../hooks/useGradebook"
+
 /** Una página que alcanza para un curso entero: el reporte es de todos, no de los primeros veinte. */
 const WHOLE_COURSE = { offset: 1, limit: 200, sort: "asc" as const }
 
@@ -34,6 +36,13 @@ export interface AttendanceReportPanelProps {
   trimester: number | null
   /** Cómo nombrar el curso en el documento. Sin esto no se ofrece exportar. */
   courseLabel?: string
+  /**
+   * El reporte de una sola materia: las marcas de sesión de este class group en vez de la asistencia
+   * diaria del curso. Es el del docente técnico, que no lee la diaria — la pasa el docente de aula.
+   */
+  classGroupId?: string | null
+  /** Cómo nombrar la materia en el documento, cuando el reporte es de una. */
+  subjectName?: string
 }
 
 /**
@@ -51,13 +60,28 @@ export function AttendanceReportPanel({
   courseId,
   trimester,
   courseLabel,
+  classGroupId,
+  subjectName,
 }: AttendanceReportPanelProps) {
-  const report = useCourseAttendanceByStudent(courseId, trimester, WHOLE_COURSE)
+  // Las dos consultas se declaran siempre —un hook no se llama a medias—, pero sólo una tiene id y
+  // la otra queda en espera. Mismo contrato de respuesta, así que el resto del panel no distingue.
+  const bySubject = classGroupId != null
+  const courseReport = useCourseAttendanceByStudent(
+    bySubject ? null : courseId,
+    trimester,
+    WHOLE_COURSE
+  )
+  const subjectReport = useClassGroupAttendanceByStudent(
+    classGroupId ?? null,
+    trimester,
+    WHOLE_COURSE
+  )
+  const report = bySubject ? subjectReport : courseReport
   const { data: school } = useInstitution()
 
   const rows = useMemo(() => report.data?.students.content ?? [], [report.data])
 
-  if (!courseId) {
+  if (!courseId && !classGroupId) {
     return (
       <p className="text-sm text-muted-foreground">
         Selecciona un curso para ver su reporte de asistencia.
@@ -91,6 +115,7 @@ export function AttendanceReportPanel({
     <div className="flex min-w-0 flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
+          {bySubject ? "Cuenta las marcas de las clases de tu materia. " : null}
           El porcentaje cuenta presentes sobre los días computables. La licencia
           no descuenta ni suma; el atraso cuenta como falta.
         </p>
@@ -98,11 +123,18 @@ export function AttendanceReportPanel({
           <ExportReportButton
             school={school}
             title="REPORTE DE PORCENTAJE DE ASISTENCIA"
-            subtitles={[`Curso: ${courseLabel}`, scopeLabel]}
+            subtitles={[
+              `Curso: ${courseLabel}`,
+              ...(subjectName ? [`Materia: ${subjectName}`] : []),
+              scopeLabel,
+            ]}
             columns={COLUMNS}
             rows={attendanceReportRows(rows)}
             emptyLabel="Sin estudiantes en el curso."
-            filename={`asistencia-${courseLabel.replace(/\s+/g, "-").toLowerCase()}-${
+            filename={`asistencia-${`${courseLabel} ${subjectName ?? ""}`
+              .trim()
+              .replace(/\s+/g, "-")
+              .toLowerCase()}-${
               trimester === null ? "anual" : `t${trimester}`
             }`}
           />

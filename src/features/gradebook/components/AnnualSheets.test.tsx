@@ -73,6 +73,23 @@ function rowOf(name: string) {
 }
 
 describe("AnnualCentralizerTable", () => {
+  /**
+   * The technical teacher reads only their own areas, and the API nulls the final average and
+   * situation: those span every subject. Empty columns would read as "not graded".
+   */
+  it("drops the final average and situation for one subject's sheet", () => {
+    render(
+      <AnnualCentralizerTable
+        rows={[{ ...nelsy, finalAverage: null }]}
+        subjectOnly
+      />
+    )
+
+    expect(screen.getAllByText("PR")).toHaveLength(2)
+    expect(screen.queryByText("PROMEDIO FINAL")).not.toBeInTheDocument()
+    expect(screen.queryByText("SITUACIÓN FINAL")).not.toBeInTheDocument()
+  })
+
   it("heads every area with its three trimesters and the PR column", () => {
     render(<AnnualCentralizerTable rows={[nelsy]} />)
 

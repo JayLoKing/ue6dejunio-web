@@ -271,6 +271,34 @@ describe("centralizerRows", () => {
   })
 })
 
+/**
+ * El consolidado de un docente técnico trae sólo sus áreas, y la API deja en null los promedios por
+ * trimestre, el final y el resultado: son de todas las materias, y él no las lee. El documento no
+ * puede imprimir esas columnas vacías, porque una raya bajo "Estado" diría "sin calificar".
+ */
+describe("centralizer of one subject", () => {
+  const scoped = summary({
+    subjects: [summary().subjects[0]],
+    trimesterAverages: [null, null, null],
+    finalAverage: null,
+    finalResult: null,
+  })
+
+  it("lleva sólo el estudiante y sus áreas", () => {
+    const headers = centralizerColumns([scoped], { subjectOnly: true }).map(
+      (c) => c.header
+    )
+
+    expect(headers).toEqual(["N°", "Estudiante", "Matematica"])
+  })
+
+  it("arma las filas con las mismas columnas", () => {
+    const rows = centralizerRows([scoped], { subjectOnly: true })
+
+    expect(rows[0]).toEqual(["1", "Ana Aguilar", "85.0"])
+  })
+})
+
 describe("centralizerRows of a closed year", () => {
   const approved = summary({ finalResult: "APPROVED", frozen: true })
   const failed = summary({

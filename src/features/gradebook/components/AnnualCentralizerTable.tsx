@@ -16,6 +16,11 @@ export interface AnnualCentralizerTableProps {
   isLoading?: boolean
   /** Opcional: render del nombre del estudiante (p. ej. link a su detalle). */
   renderStudent?: (row: StudentAnnualSummary) => ReactNode
+  /**
+   * La hoja de un docente técnico: sólo sus áreas, cada una entera. El promedio final y la situación
+   * son de todas las materias y la API los deja en null, así que esas dos columnas no se dibujan.
+   */
+  subjectOnly?: boolean
 }
 
 const TRIMESTER_HEADS = ["1", "2", "3", "PR"] as const
@@ -32,9 +37,11 @@ export function AnnualCentralizerTable({
   rows,
   isLoading = false,
   renderStudent,
+  subjectOnly = false,
 }: AnnualCentralizerTableProps) {
   const subjects = useMemo(() => subjectColumnsOf(rows), [rows])
-  const columnCount = subjects.length * TRIMESTER_HEADS.length + 3
+  const columnCount =
+    subjects.length * TRIMESTER_HEADS.length + (subjectOnly ? 1 : 3)
 
   return (
     <div className="min-w-0 overflow-hidden rounded-md border bg-card">
@@ -58,18 +65,22 @@ export function AnnualCentralizerTable({
                   <span className="block truncate">{s.subjectName}</span>
                 </th>
               ))}
-              <th
-                rowSpan={2}
-                className="min-w-28 border-r border-b bg-brand/10 px-3 py-2 text-center align-bottom font-semibold text-brand"
-              >
-                PROMEDIO FINAL
-              </th>
-              <th
-                rowSpan={2}
-                className="min-w-32 border-b bg-muted/50 px-3 py-2 text-center align-bottom font-medium"
-              >
-                SITUACIÓN FINAL
-              </th>
+              {subjectOnly ? null : (
+                <>
+                  <th
+                    rowSpan={2}
+                    className="min-w-28 border-r border-b bg-brand/10 px-3 py-2 text-center align-bottom font-semibold text-brand"
+                  >
+                    PROMEDIO FINAL
+                  </th>
+                  <th
+                    rowSpan={2}
+                    className="min-w-32 border-b bg-muted/50 px-3 py-2 text-center align-bottom font-medium"
+                  >
+                    SITUACIÓN FINAL
+                  </th>
+                </>
+              )}
             </tr>
             <tr>
               {subjects.flatMap((s) =>
@@ -149,20 +160,26 @@ export function AnnualCentralizerTable({
                         </td>,
                       ]
                     })}
-                    <td className="border-r bg-brand/10 px-3 py-2 text-center font-semibold text-brand">
-                      {formatMark(final)}
-                    </td>
-                    <td className={cn("px-3 py-2 text-center", rowBg)}>
-                      {status == null ? (
-                        <span className="text-muted-foreground">—</span>
-                      ) : (
-                        <Badge className={cn("gap-1", statusClassName(status))}>
-                          {status === "APROBADO" ? "Aprobado" : "Reprobado"}
-                          {final != null &&
-                            ` · ${qualitativeBandOf(Number(final)).code}`}
-                        </Badge>
-                      )}
-                    </td>
+                    {subjectOnly ? null : (
+                      <>
+                        <td className="border-r bg-brand/10 px-3 py-2 text-center font-semibold text-brand">
+                          {formatMark(final)}
+                        </td>
+                        <td className={cn("px-3 py-2 text-center", rowBg)}>
+                          {status == null ? (
+                            <span className="text-muted-foreground">—</span>
+                          ) : (
+                            <Badge
+                              className={cn("gap-1", statusClassName(status))}
+                            >
+                              {status === "APROBADO" ? "Aprobado" : "Reprobado"}
+                              {final != null &&
+                                ` · ${qualitativeBandOf(Number(final)).code}`}
+                            </Badge>
+                          )}
+                        </td>
+                      </>
+                    )}
                   </tr>
                 )
               })

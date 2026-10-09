@@ -97,6 +97,15 @@ export function attendanceReportRows(rows: StudentAttendanceRow[]): string[][] {
   ])
 }
 
+export interface CentralizerReportOptions {
+  /**
+   * El consolidado de un docente técnico: sólo sus áreas. La API deja en null los promedios por
+   * trimestre, el final y el resultado —son de todas las materias—, así que esas columnas no se
+   * imprimen: una raya bajo "Estado" se leería como "sin calificar", y no es eso.
+   */
+  subjectOnly?: boolean
+}
+
 /**
  * Las columnas del consolidado (RF 34), que no son fijas: una por área curricular del curso.
  *
@@ -105,10 +114,11 @@ export function attendanceReportRows(rows: StudentAttendanceRow[]): string[][] {
  * Un curso sin estudiantes no tiene de dónde sacarlas, y devuelve sólo las fijas.
  */
 export function centralizerColumns(
-  rows: StudentAnnualSummary[]
+  rows: StudentAnnualSummary[],
+  { subjectOnly = false }: CentralizerReportOptions = {}
 ): ReportColumn[] {
   const areas = rows[0]?.subjects.map((subject) => subject.subjectName) ?? []
-  return [
+  const student: ReportColumn[] = [
     { header: "N°", width: 500, align: "center" },
     { header: "Estudiante", width: 2600 },
     ...areas.map((name) => ({
@@ -116,6 +126,10 @@ export function centralizerColumns(
       width: 900,
       align: "center" as const,
     })),
+  ]
+  if (subjectOnly) return student
+  return [
+    ...student,
     { header: "1er trim.", width: 800, align: "center" as const },
     { header: "2do trim.", width: 800, align: "center" as const },
     { header: "3er trim.", width: 800, align: "center" as const },
@@ -135,21 +149,30 @@ export function centralizerColumns(
  * Las áreas se leen de la primera fila, igual que `centralizerColumns`, para que las celdas caigan
  * bajo su encabezado. Si una fila trae las áreas en otro orden, se busca por nombre.
  */
-export function centralizerRows(rows: StudentAnnualSummary[]): string[][] {
+export function centralizerRows(
+  rows: StudentAnnualSummary[],
+  { subjectOnly = false }: CentralizerReportOptions = {}
+): string[][] {
   const areas = rows[0]?.subjects.map((subject) => subject.subjectName) ?? []
-  return rows.map((row, index) => [
-    String(index + 1),
-    row.fullName,
-    ...areas.map((name) =>
-      formatMark(
-        row.subjects.find((subject) => subject.subjectName === name)?.average,
-        1
-      )
-    ),
-    formatMark(row.trimesterAverages[0], 1),
-    formatMark(row.trimesterAverages[1], 1),
-    formatMark(row.trimesterAverages[2], 1),
-    formatMark(row.finalAverage, 1),
-    annualSituationOf(row) ?? "Sin calificar",
-  ])
+  return rows.map((row, index) => {
+    const student = [
+      String(index + 1),
+      row.fullName,
+      ...areas.map((name) =>
+        formatMark(
+          row.subjects.find((subject) => subject.subjectName === name)?.average,
+          1
+        )
+      ),
+    ]
+    if (subjectOnly) return student
+    return [
+      ...student,
+      formatMark(row.trimesterAverages[0], 1),
+      formatMark(row.trimesterAverages[1], 1),
+      formatMark(row.trimesterAverages[2], 1),
+      formatMark(row.finalAverage, 1),
+      annualSituationOf(row) ?? "Sin calificar",
+    ]
+  })
 }

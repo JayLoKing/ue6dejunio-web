@@ -26,6 +26,13 @@ export interface AnnualSheetsPanelProps {
   courseLabel?: string
   /** La gestión, para que el consolidado declare de qué año habla. */
   year?: number | null
+  /**
+   * El consolidado de un docente técnico: sólo sus áreas, cada una con sus tres trimestres y su
+   * promedio. Los promedios por trimestre, el final y el resultado son de todas las materias y la
+   * API los deja en null, así que no se muestran ni se exportan, y con ellos se van las dos hojas
+   * que no son más que eso y los contadores de aprobados: no habría con qué contarlos.
+   */
+  subjectOnly?: boolean
 }
 
 /**
@@ -37,6 +44,7 @@ export function AnnualSheetsPanel({
   courseId,
   courseLabel,
   year,
+  subjectOnly = false,
 }: AnnualSheetsPanelProps) {
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(20)
@@ -79,16 +87,25 @@ export function AnnualSheetsPanel({
     <div className="flex min-w-0 flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          Cierre de gestión del curso. Los promedios de área son el promedio de
-          sus tres trimestres, sin ponderación.
+          {subjectOnly
+            ? "Cierre de gestión de tus áreas en este curso."
+            : "Cierre de gestión del curso."}{" "}
+          Los promedios de área son el promedio de sus tres trimestres, sin
+          ponderación.
         </p>
         <div className="flex items-center gap-2 text-sm">
-          <Badge variant="secondary">{counters.passed} aprobados</Badge>
-          <Badge variant="outline" className="text-destructive">
-            {counters.failed} reprobados
-          </Badge>
-          {counters.ungraded > 0 && (
-            <Badge variant="outline">{counters.ungraded} sin calificar</Badge>
+          {subjectOnly ? null : (
+            <>
+              <Badge variant="secondary">{counters.passed} aprobados</Badge>
+              <Badge variant="outline" className="text-destructive">
+                {counters.failed} reprobados
+              </Badge>
+              {counters.ungraded > 0 && (
+                <Badge variant="outline">
+                  {counters.ungraded} sin calificar
+                </Badge>
+              )}
+            </>
           )}
           {courseLabel ? (
             <ExportReportButton
@@ -97,10 +114,12 @@ export function AnnualSheetsPanel({
               subtitles={[
                 `Curso: ${courseLabel}`,
                 `Gestión ${year ?? ""}`.trim(),
-                "Alcance anual",
+                subjectOnly
+                  ? "Alcance anual · Solo las áreas del docente"
+                  : "Alcance anual",
               ]}
-              columns={centralizerColumns(exportRows)}
-              rows={centralizerRows(exportRows)}
+              columns={centralizerColumns(exportRows, { subjectOnly })}
+              rows={centralizerRows(exportRows, { subjectOnly })}
               emptyLabel="Sin estudiantes matriculados en este curso."
               filename={`consolidado-${courseLabel.replace(/\s+/g, "-").toLowerCase()}-${year ?? "gestion"}`}
             />
@@ -108,22 +127,28 @@ export function AnnualSheetsPanel({
         </div>
       </div>
 
-      <Tabs defaultValue="anual">
-        <TabsList>
-          <TabsTrigger value="anual">Centralizador anual</TabsTrigger>
-          <TabsTrigger value="trimestres">Promedios por trimestre</TabsTrigger>
-          <TabsTrigger value="cronologia">Promedio anual</TabsTrigger>
-        </TabsList>
-        <TabsContent value="anual" className="pt-4">
-          <AnnualCentralizerTable rows={rows} isLoading={isLoading} />
-        </TabsContent>
-        <TabsContent value="trimestres" className="pt-4">
-          <TrimesterAveragesTable rows={rows} isLoading={isLoading} />
-        </TabsContent>
-        <TabsContent value="cronologia" className="pt-4">
-          <AnnualRanking rows={rows} isLoading={isLoading} />
-        </TabsContent>
-      </Tabs>
+      {subjectOnly ? (
+        <AnnualCentralizerTable rows={rows} isLoading={isLoading} subjectOnly />
+      ) : (
+        <Tabs defaultValue="anual">
+          <TabsList>
+            <TabsTrigger value="anual">Centralizador anual</TabsTrigger>
+            <TabsTrigger value="trimestres">
+              Promedios por trimestre
+            </TabsTrigger>
+            <TabsTrigger value="cronologia">Promedio anual</TabsTrigger>
+          </TabsList>
+          <TabsContent value="anual" className="pt-4">
+            <AnnualCentralizerTable rows={rows} isLoading={isLoading} />
+          </TabsContent>
+          <TabsContent value="trimestres" className="pt-4">
+            <TrimesterAveragesTable rows={rows} isLoading={isLoading} />
+          </TabsContent>
+          <TabsContent value="cronologia" className="pt-4">
+            <AnnualRanking rows={rows} isLoading={isLoading} />
+          </TabsContent>
+        </Tabs>
+      )}
 
       <DataTablePagination
         page={data?.page != null ? data.page + 1 : page}

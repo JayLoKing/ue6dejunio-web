@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react"
 import { createFileRoute, redirect } from "@tanstack/react-router"
+import { InfoIcon } from "lucide-react"
 
 import {
   Select,
@@ -15,6 +16,7 @@ import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
 import { activeAcademicYear } from "@/features/catalog/utils/activeAcademicYear"
 import { useAcademicYears } from "@/features/catalog/hooks/useCatalog"
 import { useActiveYearCourses } from "@/features/courses/hooks/useActiveYearCourses"
+import type { ClassGroupItem } from "@/features/courses/types/course"
 import {
   CourseHonorRollPanel,
   InstitutionHonorRollPanel,
@@ -167,7 +169,9 @@ function SchoolWideHonorRoll() {
  * Docente. Su curso de aula y nada más: el podio de otro curso no es suyo, y el de la unidad
  * educativa lo cierra la API con un 403.
  *
- * El docente técnico no tiene curso de aula. No se le muestra un selector vacío, se le dice por qué.
+ * El docente técnico no tiene curso de aula, pero dicta su materia en varios: elige uno de esos.
+ * Sin curso de aula ni materias no hay podio que leer, y se le dice por qué en vez de mostrarle un
+ * selector vacío.
  */
 function TeacherHonorRoll() {
   const ctx = useCurrentContext()
@@ -178,6 +182,9 @@ function TeacherHonorRoll() {
   const [places, setPlaces] = useState(3)
 
   if (!ctx.homeroomCourseId) {
+    if (ctx.classGroups.length > 0) {
+      return <TechnicalHonorRoll classGroups={ctx.classGroups} />
+    }
     return (
       <div className="rounded-md border border-dashed p-12 text-center text-muted-foreground">
         El cuadro de honor es del curso de aula. Como docente técnico no tienes
@@ -201,6 +208,84 @@ function TeacherHonorRoll() {
         courseLabel={
           gradeName && parallelName ? `${gradeName} ${parallelName}` : undefined
         }
+      />
+    </div>
+  )
+}
+
+/**
+ * Docente técnico: el podio de cualquiera de los cursos donde dicta su materia.
+ *
+ * Los cursos salen de sus materias y no de la lista de cursos: son exactamente los que la API le
+ * deja leer, y un curso con dos de sus materias aparece una sola vez.
+ *
+ * El ranking es el del curso entero, con todas las materias — no el de la suya. Por eso el aviso:
+ * sin él, el docente leería el podio como el de su propia materia.
+ */
+function TechnicalHonorRoll({
+  classGroups,
+}: {
+  classGroups: ClassGroupItem[]
+}) {
+  const courses = useMemo(() => {
+    const seen = new Map<string, string>()
+    for (const group of classGroups) {
+      if (!seen.has(group.courseId)) {
+        seen.set(group.courseId, `${group.gradeName} ${group.parallelName}`)
+      }
+    }
+    return [...seen].map(([id, label]) => ({ id, label }))
+  }, [classGroups])
+  const [chosenCourseId, setChosenCourseId] = useState<string | null>(null)
+  const [places, setPlaces] = useState(3)
+
+  // El primer curso mientras nadie eligió, derivado y no sincronizado en un efecto.
+  const courseId = chosenCourseId ?? courses[0]?.id ?? null
+  const chosen = courses.find((course) => course.id === courseId)
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="flex items-center gap-2">
+          <span
+            id="technical-honor-course"
+            className="text-sm text-muted-foreground"
+          >
+            Curso
+          </span>
+          <Select value={courseId ?? ""} onValueChange={setChosenCourseId}>
+            <SelectTrigger
+              className="w-56"
+              aria-labelledby="technical-honor-course"
+            >
+              <SelectValue placeholder="Selecciona un curso" />
+            </SelectTrigger>
+            <SelectContent>
+              {courses.map((course) => (
+                <SelectItem key={course.id} value={course.id}>
+                  {course.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <PlacesSelect
+          value={places}
+          onChange={setPlaces}
+          options={COURSE_PLACE_OPTIONS}
+        />
+      </div>
+
+      <p className="flex items-start gap-2 text-sm text-muted-foreground">
+        <InfoIcon className="mt-0.5 size-4 shrink-0" />
+        Este cuadro de honor considera el promedio de todas las materias del
+        curso, no solo la tuya.
+      </p>
+
+      <CourseHonorRollPanel
+        courseId={courseId}
+        places={places}
+        courseLabel={chosen?.label}
       />
     </div>
   )

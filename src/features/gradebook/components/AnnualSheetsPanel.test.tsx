@@ -13,11 +13,22 @@ vi.mock("@/features/institution/hooks/useInstitution", () => ({
 vi.mock("@/components/shared/ExportReportButton", async () => {
   const { createElement } = await import("react")
   return {
-    ExportReportButton: ({ columns }: { columns: ReportColumn[] }) =>
+    ExportReportButton: ({
+      columns,
+      subtitles,
+    }: {
+      columns: ReportColumn[]
+      subtitles: string[]
+    }) =>
       createElement(
-        "p",
+        "div",
         null,
-        `export:${columns.map((c) => c.header).join("|")}`
+        createElement(
+          "p",
+          null,
+          `export:${columns.map((c) => c.header).join("|")}`
+        ),
+        createElement("p", null, `subtitles:${subtitles.join("|")}`)
       ),
   }
 })
@@ -90,6 +101,37 @@ describe("AnnualSheetsPanel", () => {
     expect(screen.queryByText(/reprobados/)).not.toBeInTheDocument()
     expect(
       screen.getByText("export:N°|Estudiante|Computación")
+    ).toBeInTheDocument()
+  })
+
+  it("names the year in the document when it is known", () => {
+    useAnnualCentralizer.mockReturnValue(page([scoped]))
+
+    render(
+      <AnnualSheetsPanel
+        courseId="c-1"
+        courseLabel="Primero A"
+        year={2026}
+        subjectOnly
+      />
+    )
+
+    expect(
+      screen.getByText(
+        "subtitles:Curso: Primero A|Gestión 2026|Alcance anual · Solo las áreas del docente"
+      )
+    ).toBeInTheDocument()
+  })
+
+  it("leaves the year line out instead of a bare 'Gestión' when it is unknown", () => {
+    useAnnualCentralizer.mockReturnValue(page([scoped]))
+
+    render(
+      <AnnualSheetsPanel courseId="c-1" courseLabel="Primero A" year={null} />
+    )
+
+    expect(
+      screen.getByText("subtitles:Curso: Primero A|Alcance anual")
     ).toBeInTheDocument()
   })
 })

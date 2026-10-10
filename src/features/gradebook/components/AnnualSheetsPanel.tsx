@@ -113,7 +113,7 @@ export function AnnualSheetsPanel({
               title="CONSOLIDADO DE CALIFICACIONES"
               subtitles={[
                 `Curso: ${courseLabel}`,
-                `Gestión ${year ?? ""}`.trim(),
+                ...(year != null ? [`Gestión ${year}`] : []),
                 subjectOnly
                   ? "Alcance anual · Solo las áreas del docente"
                   : "Alcance anual",

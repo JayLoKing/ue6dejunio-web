@@ -21,13 +21,13 @@ vi.mock("@/features/auth/hooks/useCurrentContext", () => ({
 }))
 
 // The panels are other tests' business; here each only says what it was handed.
-const panel = vi.hoisted(() => async (label: string) => {
+const panel = vi.hoisted(() => async (label: string, extra: string[] = []) => {
   const { createElement } = await import("react")
   return (props: Record<string, unknown>) =>
     createElement(
       "p",
       null,
-      `${label}:${["courseId", "classGroupId", "subjectOnly"]
+      `${label}:${["courseId", "classGroupId", "subjectOnly", ...extra]
         .map((key) => `${key}=${String(props[key] ?? "-")}`)
         .join(",")}`
     )
@@ -36,7 +36,7 @@ vi.mock("@/features/gradebook/components/CentralizerTable", async () => ({
   CentralizerTable: await panel("centralizer"),
 }))
 vi.mock("@/features/gradebook/components/AnnualSheetsPanel", async () => ({
-  AnnualSheetsPanel: await panel("annual"),
+  AnnualSheetsPanel: await panel("annual", ["year"]),
 }))
 vi.mock("@/features/gradebook/components/AttendanceReportPanel", async () => ({
   AttendanceReportPanel: await panel("attendance"),
@@ -49,6 +49,17 @@ vi.mock("@/features/gradebook/components/ReportCardPanel", async () => ({
 }))
 vi.mock("@/features/gradebook/components/PedagogicalReportPanel", () => ({
   PedagogicalReportPanel: () => null,
+}))
+
+// The year list: 2027 is the newest but 2026 is the one the Director declared active.
+vi.mock("@/features/catalog/hooks/useCatalog", async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  useAcademicYears: () => ({
+    data: [
+      { id: 7, year: 2027, active: false, closed: false },
+      { id: 6, year: 2026, active: true, closed: false },
+    ],
+  }),
 }))
 
 import { Route as ReportsRoute } from "@/routes/_app/reports.lazy"
@@ -126,7 +137,7 @@ describe("Reportes — technical teacher", () => {
     ).toBeInTheDocument()
   })
 
-  it("scopes the annual sheet to the subject", async () => {
+  it("scopes the annual sheet to the subject and dates it with the active year", async () => {
     renderPage()
 
     await userEvent.click(
@@ -134,7 +145,9 @@ describe("Reportes — technical teacher", () => {
     )
 
     expect(
-      screen.getByText("annual:courseId=c-1,classGroupId=-,subjectOnly=true")
+      screen.getByText(
+        "annual:courseId=c-1,classGroupId=-,subjectOnly=true,year=2026"
+      )
     ).toBeInTheDocument()
   })
 
@@ -184,6 +197,21 @@ describe("Reportes — other teachers", () => {
     ])
     expect(
       screen.getByText("centralizer:courseId=c-9,classGroupId=-,subjectOnly=-")
+    ).toBeInTheDocument()
+  })
+
+  it("dates the homeroom teacher's annual sheet with the active year", async () => {
+    context.current = teacher({ isTechnical: false, homeroomCourseId: "c-9" })
+
+    renderPage()
+    await userEvent.click(
+      screen.getByRole("tab", { name: "Consolidado anual" })
+    )
+
+    expect(
+      screen.getByText(
+        "annual:courseId=c-9,classGroupId=-,subjectOnly=-,year=2026"
+      )
     ).toBeInTheDocument()
   })
 })

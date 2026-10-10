@@ -12,6 +12,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
 import { useAuthStore } from "@/features/auth/store/authStore"
+import { useAcademicYears } from "@/features/catalog/hooks/useCatalog"
+import { activeAcademicYear } from "@/features/catalog/utils/activeAcademicYear"
 import { useActiveYearCourses } from "@/features/courses/hooks/useActiveYearCourses"
 import type { ClassGroupItem } from "@/features/courses/types/course"
 import { CentralizerTable } from "@/features/gradebook/components/CentralizerTable"
@@ -154,10 +156,15 @@ function TeacherReports() {
   // una consulta.
   const gradeName = useAuthStore((s) => s.gradeName)
   const parallelName = useAuthStore((s) => s.parallelName)
+  // La gestión activa, para que el consolidado diga de qué año habla. El token no la trae y el curso
+  // de aula tampoco; la lista de gestiones es del catálogo, que cualquier sesión lee. Mientras carga
+  // es null y el documento simplemente no la nombra.
+  const years = useAcademicYears()
+  const year = activeAcademicYear(years.data)?.year ?? null
 
   if (!ctx.homeroomCourseId) {
     if (ctx.classGroups.length > 0) {
-      return <TechnicalReports classGroups={ctx.classGroups} />
+      return <TechnicalReports classGroups={ctx.classGroups} year={year} />
     }
     return (
       <div className="rounded-md border border-dashed p-12 text-center text-muted-foreground">
@@ -173,7 +180,7 @@ function TeacherReports() {
       courseLabel={
         gradeName && parallelName ? `${gradeName} ${parallelName}` : undefined
       }
-      year={null}
+      year={year}
       canReadPedagogicalReport
     />
   )
@@ -187,7 +194,13 @@ function TeacherReports() {
  * sesión de ese class group. Libretas, promedios e informe pedagógico son del curso entero y siguen
  * siendo del docente de aula.
  */
-function TechnicalReports({ classGroups }: { classGroups: ClassGroupItem[] }) {
+function TechnicalReports({
+  classGroups,
+  year,
+}: {
+  classGroups: ClassGroupItem[]
+  year: number | null
+}) {
   const [chosenGroupId, setChosenGroupId] = useState<string | null>(null)
   const [attendanceScope, setAttendanceScope] = useState<string>(ANNUAL)
 
@@ -244,7 +257,7 @@ function TechnicalReports({ classGroups }: { classGroups: ClassGroupItem[] }) {
           <AnnualSheetsPanel
             courseId={chosen.courseId}
             courseLabel={courseLabel}
-            year={null}
+            year={year}
             subjectOnly
           />
         </TabsContent>

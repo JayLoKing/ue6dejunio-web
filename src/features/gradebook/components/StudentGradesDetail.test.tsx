@@ -68,6 +68,18 @@ describe("StudentGradesDetail para quien dicta una sola materia del curso", () =
     expect(screen.getByText(/Promedio general/)).toBeInTheDocument()
   })
 
+  it("sin promedio general muestra el guion, nunca un cero reprobado", async () => {
+    studentSummary.mockResolvedValue({ ...summary, generalAverage: null })
+    renderDetail(true)
+
+    await screen.findByText("Computación")
+    expect(screen.getByText(/Promedio general/)).toHaveTextContent(
+      "Promedio general: —"
+    )
+    expect(screen.queryByText("0.00")).not.toBeInTheDocument()
+    expect(screen.queryByText(/reprobado/i)).not.toBeInTheDocument()
+  })
+
   it("avisa que ve solo sus materias", async () => {
     renderDetail(true)
 

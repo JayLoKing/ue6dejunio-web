@@ -47,7 +47,9 @@ export function StudentGradesDetail({
     [scoresQuery.data, trimester]
   )
 
-  const general = summary.data ? Number(summary.data.generalAverage) : null
+  // Un promedio general ausente es "sin dato", no un cero: Number(null) daría 0.00 y "Reprobado".
+  const rawGeneral = summary.data?.generalAverage ?? null
+  const general = rawGeneral === null ? null : Number(rawGeneral)
   const status = general === null ? null : statusOf(general)
   const qualitative = general === null ? null : qualitativeBandOf(general)
 
@@ -65,6 +67,10 @@ export function StudentGradesDetail({
                 {status === "APROBADO" ? "Aprobado" : "Reprobado"} ·{" "}
                 {qualitative.code}
               </Badge>
+            </span>
+          ) : summary.data ? (
+            <span className="text-sm text-muted-foreground">
+              Promedio general: <strong>—</strong>
             </span>
           ) : null}
         </div>

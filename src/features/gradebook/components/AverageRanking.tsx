@@ -32,7 +32,11 @@ export function AverageRanking({ courseId }: AverageRankingProps) {
     () => ({ offset: 1, limit: 200, sort: "asc" as const }),
     []
   )
-  const { data, isLoading } = useCentralizer(courseId, trimester, query)
+  const { data, isLoading, isError } = useCentralizer(
+    courseId,
+    trimester,
+    query
+  )
 
   const ranked = useMemo(
     () =>
@@ -80,6 +84,14 @@ export function AverageRanking({ courseId }: AverageRankingProps) {
                   className="text-center text-muted-foreground"
                 >
                   <Loader2Icon className="mx-auto size-4 animate-spin" />
+                </TableCell>
+              </TableRow>
+            ) : isError ? (
+              // Una consulta fallida también deja la lista vacía; "Sin datos." se leería como un
+              // curso sin nadie que ordenar.
+              <TableRow>
+                <TableCell colSpan={5} className="text-center text-destructive">
+                  No se pudo cargar el ranking de promedios.
                 </TableCell>
               </TableRow>
             ) : ranked.length === 0 ? (

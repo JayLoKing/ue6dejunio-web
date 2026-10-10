@@ -37,9 +37,10 @@ const ANNUAL = "anual"
  * página para los tres porque los documentos son los mismos: separar la de Secretaría habría sido
  * mantener dos copias del consolidado y de la libreta.
  *
- * El informe pedagógico es la excepción y no aparece para Secretaría: lo redacta el docente y lo
- * consulta Dirección (RF 38). No es un documento que se derive de los datos, es uno que alguien
- * escribe.
+ * El informe pedagógico es la excepción: sólo lo ve el docente de aula, que es quien lo escribe.
+ * Lista a los estudiantes que reprueban el trimestre para que su docente decida qué hacer con cada
+ * uno; es su hoja de trabajo, no un reporte de la escuela, y la API se lo niega a Dirección y a
+ * Secretaría.
  */
 function ReportsPage() {
   const ctx = useCurrentContext()
@@ -57,13 +58,13 @@ function ReportsPage() {
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">Reportes</h1>
         <p className="text-sm text-muted-foreground">
-          Consolidado de calificaciones, libretas, asistencia e informe
-          pedagógico del curso.
+          Consolidado de calificaciones, libretas, asistencia y demás documentos
+          del curso.
         </p>
       </div>
 
       {ctx.isDirector || ctx.isSecretary ? (
-        <SchoolWideReports canReadPedagogicalReport={ctx.isDirector} />
+        <SchoolWideReports />
       ) : (
         <TeacherReports />
       )}
@@ -71,12 +72,8 @@ function ReportsPage() {
   )
 }
 
-/** Dirección y Secretaría: cualquier curso, eligiéndolo. */
-function SchoolWideReports({
-  canReadPedagogicalReport,
-}: {
-  canReadPedagogicalReport: boolean
-}) {
+/** Dirección y Secretaría: cualquier curso, eligiéndolo. Todo menos el informe pedagógico. */
+function SchoolWideReports() {
   const courses = useActiveYearCourses()
   const rows = useMemo(() => courses.data?.content ?? [], [courses.data])
   const [chosenCourseId, setChosenCourseId] = useState<string | null>(null)
@@ -137,7 +134,7 @@ function SchoolWideReports({
             chosen ? `${chosen.gradeName} ${chosen.parallelName}` : undefined
           }
           year={chosen?.year ?? null}
-          canReadPedagogicalReport={canReadPedagogicalReport}
+          canReadPedagogicalReport={false}
         />
       ) : null}
     </div>

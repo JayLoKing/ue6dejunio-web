@@ -27,8 +27,8 @@ export const GradebookUrl = {
    */
   ClassGroupAttendanceByStudent: `${baseModuleUrl}/attendance/session/by-student`,
   /**
-   * El informe pedagógico del curso en un trimestre. Lo lee quien lee el curso; lo escribe sólo el
-   * docente de aula, que es el único DOCENTE que el formulario de la escuela lleva.
+   * El informe pedagógico del curso en un trimestre. Lo escribe y lo lee sólo el docente de aula, que
+   * es el único DOCENTE que el formulario de la escuela lleva; Dirección y Secretaría reciben 403.
    */
   PedagogicalReport: `${baseModuleUrl}/pedagogical-report`,
 } as const

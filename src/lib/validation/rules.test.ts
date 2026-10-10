@@ -329,4 +329,13 @@ describe("isStrongPassword / passwordString", () => {
   it("rejects an empty password", () => {
     expect(isStrongPassword("")).toBe(false)
   })
+
+  it("caps the length at 100, the API's own limit", () => {
+    const atLimit = "Abcde1!" + "x".repeat(93)
+    expect(atLimit).toHaveLength(100)
+    expect(errorOf(passwordString(), atLimit)).toBeUndefined()
+    expect(errorOf(passwordString(), atLimit + "x")).toBe(
+      "Contraseña: máximo 100 caracteres"
+    )
+  })
 })

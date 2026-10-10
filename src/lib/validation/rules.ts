@@ -38,7 +38,7 @@ export const nameString = (field: string, max = 100) =>
         .regex(NAME_RE, `${field}: solo letras`)
     )
 
-/** Bolivian-style CI: 5-15 digits, optional 1-2 trailing complement letters. */
+/** Bolivian-style CI: 5-12 digits, optional 0-3 trailing complement letters (15 max). */
 export const ciString = () =>
   z
     .string()
@@ -108,7 +108,11 @@ export const PASSWORD_RULES: PasswordRule[] = [
 export const isStrongPassword = (v: string): boolean =>
   PASSWORD_RULES.every((r) => r.test(v))
 
+/** Capped at 100 to match the API's change and reset password requests. */
 export const passwordString = () =>
-  z.string().refine(isStrongPassword, {
-    message: "La contraseña no cumple los requisitos",
-  })
+  z
+    .string()
+    .max(100, "Contraseña: máximo 100 caracteres")
+    .refine(isStrongPassword, {
+      message: "La contraseña no cumple los requisitos",
+    })

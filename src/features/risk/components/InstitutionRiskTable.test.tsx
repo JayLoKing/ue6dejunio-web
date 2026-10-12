@@ -88,7 +88,9 @@ describe("InstitutionRiskTable", () => {
   it("says the list is empty rather than drawing an empty table", () => {
     render(<InstitutionRiskTable rows={[]} />)
 
-    expect(screen.getByText(/Sin predicciones/)).toBeInTheDocument()
+    expect(
+      screen.getByText(/No hay estudiantes en riesgo crítico/)
+    ).toBeInTheDocument()
   })
 
   /**

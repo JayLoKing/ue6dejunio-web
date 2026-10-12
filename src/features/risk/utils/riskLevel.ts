@@ -114,3 +114,17 @@ export function summarizeRisk(risks: StudentRisk[]): RiskSummary {
 
   return summary
 }
+
+/**
+ * The rows a risk listing shows: only the students who are really at risk.
+ *
+ * The school draws that line at `RiesgoCritico`, the same band the API alone announces. Filtered on
+ * the web and not in the request because the summary cards beside the listing count every band
+ * from these same rows, and the dashboard and the score sheet read the same endpoints for all four.
+ */
+export function criticalOnly(risks: StudentRisk[]): StudentRisk[] {
+  return risks.filter((risk) => risk.riskLevel === "RiesgoCritico")
+}
+
+/** What an empty critical listing says, kept apart from a trimester with no predictions at all. */
+export const NO_CRITICAL_STUDENTS = "No hay estudiantes en riesgo crítico."

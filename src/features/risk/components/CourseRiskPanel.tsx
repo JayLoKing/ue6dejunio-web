@@ -2,6 +2,7 @@ import { useMemo } from "react"
 import { Loader2Icon } from "lucide-react"
 
 import { useCourseRisk, useMarkRiskAttended } from "../hooks/useRisk"
+import { NO_CRITICAL_STUDENTS, criticalOnly } from "../utils/riskLevel"
 import { RiskSummaryCards } from "./RiskSummaryCards"
 import { RiskTable } from "./RiskTable"
 
@@ -41,6 +42,8 @@ export function CourseRiskPanel({
   // Stable across renders: `rows` feeds the useMemo in both the table and the cards, and a fresh
   // array every render would make them recompute every time, which is memoising nothing.
   const rows = useMemo(() => risks.data ?? [], [risks.data])
+  // The cards count every band; the listing holds only the students who are really at risk.
+  const critical = useMemo(() => criticalOnly(rows), [rows])
 
   if (!courseId) {
     return (
@@ -74,7 +77,8 @@ export function CourseRiskPanel({
     <div className="flex flex-col gap-4">
       <RiskSummaryCards rows={rows} />
       <RiskTable
-        rows={rows}
+        rows={critical}
+        emptyMessage={rows.length > 0 ? NO_CRITICAL_STUDENTS : undefined}
         isBusy={attend.isPending}
         canAttend={owned ? (risk) => owned.has(risk.classGroupId) : undefined}
         onToggleAttended={

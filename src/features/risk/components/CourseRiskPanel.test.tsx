@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, within } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
 
 import { ClassGroupRiskPanel } from "./ClassGroupRiskPanel"
@@ -39,6 +39,15 @@ const risk = {
   predictedAt: "2026-09-11T10:00:00",
 }
 
+const passing = {
+  ...risk,
+  id: "rp-2",
+  studentId: "st-2",
+  studentName: "Rojas Beto",
+  riskLevel: "EnRiesgo",
+  pFail: 0.4,
+}
+
 describe("CourseRiskPanel", () => {
   /**
    * "Sin predicciones para este trimestre" is an answer about the course — nobody the model is
@@ -72,6 +81,36 @@ describe("CourseRiskPanel", () => {
     render(<CourseRiskPanel courseId="c-1" trimester={1} />)
 
     expect(screen.getByText(/Sin predicciones/)).toBeInTheDocument()
+  })
+
+  /**
+   * The listing is of students who are really at risk, and the school draws that line at
+   * RiesgoCritico. The cards above it still count every band: "how bad is it" needs all four.
+   */
+  it("lists only the critical rows while the cards count every band", () => {
+    useCourseRisk.mockReturnValue(query({ data: [risk, passing] }))
+    useMarkRiskAttended.mockReturnValue(mutation)
+
+    render(<CourseRiskPanel courseId="c-1" trimester={1} />)
+
+    expect(screen.getByText("Quispe Ana")).toBeInTheDocument()
+    expect(screen.queryByText("Rojas Beto")).not.toBeInTheDocument()
+    expect(
+      within(screen.getByRole("group", { name: "En riesgo" })).getByText("1")
+    ).toBeInTheDocument()
+  })
+
+  /** Predictions that hold nobody critical are a different answer from no predictions at all. */
+  it("says nobody is in critical risk when every row is in a milder band", () => {
+    useCourseRisk.mockReturnValue(query({ data: [passing] }))
+    useMarkRiskAttended.mockReturnValue(mutation)
+
+    render(<CourseRiskPanel courseId="c-1" trimester={1} />)
+
+    expect(
+      screen.getByText(/No hay estudiantes en riesgo crítico/)
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/Sin predicciones/)).not.toBeInTheDocument()
   })
 })
 
@@ -108,6 +147,32 @@ describe("CourseRiskPanel attend control", () => {
 })
 
 describe("ClassGroupRiskPanel", () => {
+  it("lists only the critical rows while the cards count every band", () => {
+    useClassGroupRisk.mockReturnValue(query({ data: [risk, passing] }))
+    useMarkRiskAttended.mockReturnValue(mutation)
+    usePredictClassGroupRisk.mockReturnValue(mutation)
+
+    render(<ClassGroupRiskPanel classGroupId="cg-1" trimester={1} />)
+
+    expect(screen.getByText("Quispe Ana")).toBeInTheDocument()
+    expect(screen.queryByText("Rojas Beto")).not.toBeInTheDocument()
+    expect(
+      within(screen.getByRole("group", { name: "En riesgo" })).getByText("1")
+    ).toBeInTheDocument()
+  })
+
+  it("says nobody is in critical risk when every row is in a milder band", () => {
+    useClassGroupRisk.mockReturnValue(query({ data: [passing] }))
+    useMarkRiskAttended.mockReturnValue(mutation)
+    usePredictClassGroupRisk.mockReturnValue(mutation)
+
+    render(<ClassGroupRiskPanel classGroupId="cg-1" trimester={1} />)
+
+    expect(
+      screen.getByText(/No hay estudiantes en riesgo crítico/)
+    ).toBeInTheDocument()
+  })
+
   it("says the listing failed rather than drawing an empty one", () => {
     useClassGroupRisk.mockReturnValue(query({ isError: true }))
     useMarkRiskAttended.mockReturnValue(mutation)

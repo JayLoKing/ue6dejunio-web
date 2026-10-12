@@ -54,6 +54,11 @@ export interface RiskTableProps {
   canAttend?: (risk: StudentRisk) => boolean
   /** Disables the actions while a write is in flight, without emptying the table. */
   isBusy?: boolean
+  /**
+   * What the table says when it has no rows. A listing filtered to the critical band can be empty
+   * while the trimester holds predictions, and that is not the same answer as having none.
+   */
+  emptyMessage?: string
 }
 
 export function RiskTable({
@@ -62,6 +67,7 @@ export function RiskTable({
   onToggleAttended,
   canAttend,
   isBusy,
+  emptyMessage = "Sin predicciones para este trimestre.",
 }: RiskTableProps) {
   // The API already answers worst first. Sorted again here because the panel merges listings from
   // several subjects into one table, and two sorted lists concatenated are not a sorted list.
@@ -97,7 +103,7 @@ export function RiskTable({
                 colSpan={columnCount}
                 className="text-center text-muted-foreground"
               >
-                Sin predicciones para este trimestre.
+                {emptyMessage}
               </TableCell>
             </TableRow>
           ) : (

@@ -8,6 +8,7 @@ import {
   useMarkRiskAttended,
   usePredictClassGroupRisk,
 } from "../hooks/useRisk"
+import { NO_CRITICAL_STUDENTS, criticalOnly } from "../utils/riskLevel"
 import { RiskSummaryCards } from "./RiskSummaryCards"
 import { RiskTable } from "./RiskTable"
 
@@ -34,6 +35,8 @@ export function ClassGroupRiskPanel({
 
   // Stable across renders: see the equivalent comment in CourseRiskPanel.
   const rows = useMemo(() => risks.data ?? [], [risks.data])
+  // The cards count every band; the listing holds only the students who are really at risk.
+  const critical = useMemo(() => criticalOnly(rows), [rows])
 
   if (!classGroupId) {
     return (
@@ -82,7 +85,8 @@ export function ClassGroupRiskPanel({
         <>
           <RiskSummaryCards rows={rows} />
           <RiskTable
-            rows={rows}
+            rows={critical}
+            emptyMessage={rows.length > 0 ? NO_CRITICAL_STUDENTS : undefined}
             hideSubject
             isBusy={attend.isPending}
             onToggleAttended={(risk, attended) =>

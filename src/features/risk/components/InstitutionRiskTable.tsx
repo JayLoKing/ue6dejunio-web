@@ -11,6 +11,7 @@ import {
 
 import type { InstitutionRiskEntry } from "../types/risk"
 import {
+  NO_CRITICAL_STUDENTS,
   RISK_TEXT_CLASS,
   formatProbability,
   riskLevelLabel,
@@ -62,7 +63,7 @@ export function InstitutionRiskTable({ rows }: InstitutionRiskTableProps) {
                 colSpan={6}
                 className="text-center text-muted-foreground"
               >
-                Sin predicciones para este trimestre.
+                {NO_CRITICAL_STUDENTS}
               </TableCell>
             </TableRow>
           ) : (

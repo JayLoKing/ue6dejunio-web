@@ -6,6 +6,7 @@ import { useInstitution } from "@/features/institution/hooks/useInstitution"
 import { riskReportRows } from "@/features/reports/utils/reportRows"
 
 import { useInstitutionRisk } from "../hooks/useRisk"
+import { NO_CRITICAL_STUDENTS } from "../utils/riskLevel"
 import { InstitutionRiskTable } from "./InstitutionRiskTable"
 
 /** RF 36: the student's name, their classroom, the worst subject, the category and its probability. */
@@ -34,6 +35,10 @@ export interface InstitutionRiskPanelProps {
  * panel beside it: that one is read by somebody who teaches those nine subjects and wants each of
  * them, while a fixed number of places spent at subject grain can all go to one child and displace
  * the others Dirección opened the list to find. The subject shown is the student's worst.
+ *
+ * Only students in `RiesgoCritico` are listed, and the API makes that cut before it ranks, so the
+ * places are spent on critical students alone. The exported document is built from these same
+ * rows and carries the same cut.
  */
 export function InstitutionRiskPanel({
   academicYearId,
@@ -89,7 +94,7 @@ export function InstitutionRiskPanel({
           ]}
           columns={COLUMNS}
           rows={riskReportRows(rows)}
-          emptyLabel="Sin predicciones registradas para este trimestre."
+          emptyLabel={NO_CRITICAL_STUDENTS}
           filename={`riesgo-unidad-educativa-${year ?? "gestion"}-t${trimester}`}
         />
       </div>

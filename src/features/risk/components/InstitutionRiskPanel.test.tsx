@@ -34,7 +34,9 @@ describe("InstitutionRiskPanel", () => {
     )
 
     expect(screen.getByText(/No se pudo cargar/)).toBeInTheDocument()
-    expect(screen.queryByText(/Sin predicciones/)).not.toBeInTheDocument()
+    expect(
+      screen.queryByText(/No hay estudiantes en riesgo crítico/)
+    ).not.toBeInTheDocument()
   })
 
   it("draws the list when it arrives", () => {
@@ -74,7 +76,9 @@ describe("InstitutionRiskPanel", () => {
       <InstitutionRiskPanel academicYearId={7} trimester={1} places={10} />
     )
 
-    expect(screen.getByText(/Sin predicciones/)).toBeInTheDocument()
+    expect(
+      screen.getByText(/No hay estudiantes en riesgo crítico/)
+    ).toBeInTheDocument()
   })
 
   it("does not ask for a list when there is no gestión to ask about", () => {

@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog"
 import {
   Field,
+  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
@@ -59,6 +60,7 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
       phone: "",
       roleId: 3,
       active: true,
+      email: "",
     },
   })
 
@@ -72,12 +74,17 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
         phone: user.phone ?? "",
         roleId: roleIdFromName(user.role),
         active: user.active,
+        email: user.email,
       })
     }
   }, [user, reset])
 
   const onSubmit = handleSubmit(async (values) => {
     if (!user) return
+    // El esquema normaliza (minúsculas, sin espacios), así que se compara contra lo guardado
+    // normalizado igual. Mandarlo sin cambios haría que un correo guardado con mayúsculas contara
+    // como corregido, y a quien nunca entró le saldría una contraseña nueva.
+    const emailChanged = values.email !== user.email.trim().toLowerCase()
     try {
       await mutateAsync({
         id: user.id,
@@ -87,6 +94,7 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
           phone: values.phone ?? "",
           roleId: values.roleId,
           active: values.active,
+          ...(emailChanged ? { email: values.email } : {}),
         },
       })
       onClose()
@@ -100,9 +108,7 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Editar usuario</DialogTitle>
-          <DialogDescription>
-            {user ? `${user.ci} · ${user.email}` : ""}
-          </DialogDescription>
+          <DialogDescription>{user ? `CI ${user.ci}` : ""}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={onSubmit} noValidate>
@@ -132,6 +138,25 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
                 ) : null}
               </Field>
             </div>
+
+            <Field data-invalid={Boolean(errors.email) || undefined}>
+              <FieldLabel htmlFor="edit-email">Correo</FieldLabel>
+              <Input
+                id="edit-email"
+                type="email"
+                autoComplete="off"
+                aria-invalid={Boolean(errors.email) || undefined}
+                {...register("email")}
+              />
+              {errors.email ? (
+                <FieldError>{errors.email.message}</FieldError>
+              ) : user?.mustChangePassword ? (
+                <FieldDescription>
+                  Todavía no inició sesión: si corriges el correo, le llegan
+                  credenciales nuevas a la dirección corregida.
+                </FieldDescription>
+              ) : null}
+            </Field>
 
             <div className="grid grid-cols-2 gap-4">
               <Field data-invalid={Boolean(errors.phone) || undefined}>

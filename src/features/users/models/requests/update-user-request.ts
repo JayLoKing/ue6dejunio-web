@@ -6,6 +6,11 @@ export interface UpdateUserRequest {
   phone?: string
   roleId?: number
   active?: boolean
+  /**
+   * Sólo cuando cambió. Si la persona nunca entró, la API le manda una contraseña nueva a esta
+   * dirección y lo dice en `credentialsResent`.
+   */
+  email?: string
 }
 
 export interface ListUsersQuery {

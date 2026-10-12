@@ -9,6 +9,8 @@ export interface UserResponse {
   active: boolean
   mustChangePassword: boolean
   createdAt: string
+  /** Sólo en la respuesta a una edición: corregir el correo también reenvió las credenciales. */
+  credentialsResent?: boolean
 }
 
 export interface UsersListItem {

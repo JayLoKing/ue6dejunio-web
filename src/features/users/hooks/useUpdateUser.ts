@@ -19,7 +19,16 @@ export function useUpdateUser() {
   >({
     mutationFn: ({ id, payload }) => UserService.update(id, payload),
     onSuccess: (user) => {
-      toast.success(`Usuario ${user.names} ${user.lastNames} actualizado.`)
+      const updated = `Usuario ${user.names} ${user.lastNames} actualizado.`
+      // Corregir el correo de quien nunca entró le manda una contraseña nueva. Salió un correo en
+      // nombre del Director, así que eso es lo que se avisa primero.
+      if (user.credentialsResent) {
+        toast.success("Se reenviaron las credenciales al nuevo correo.", {
+          description: updated,
+        })
+      } else {
+        toast.success(updated)
+      }
       void qc.invalidateQueries({ queryKey: usersKeys.all })
       // El selector de docentes sale del catálogo, que se cachea aparte: sin esto un cambio de
       // rol o de "es técnico" no llega a los selectores hasta que la caché venza sola.

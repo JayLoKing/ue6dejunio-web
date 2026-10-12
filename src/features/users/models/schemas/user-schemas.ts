@@ -39,6 +39,8 @@ export const updateUserSchema = z.object({
     .int()
     .positive("Selecciona un rol"),
   active: z.boolean(),
+  // La misma regla que al crear: si se pudo registrar, se puede corregir a eso.
+  email: emailString(),
 })
 
 export type UpdateUserFormValues = z.infer<typeof updateUserSchema>

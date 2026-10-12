@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest"
 
-import { clampScore, draftText, mean, scoreFromText } from "./scoreDraft"
+import {
+  clampNotice,
+  clampScore,
+  draftText,
+  mean,
+  parseScore,
+  scoreFromText,
+} from "./scoreDraft"
 
 describe("draftText", () => {
   it("falls back to the saved score when the cell was never touched", () => {
@@ -84,5 +91,41 @@ describe("mean", () => {
 
   it("does not treat a single zero as an absent value", () => {
     expect(mean([0])).toBe(0)
+  })
+})
+
+describe("parseScore", () => {
+  it("reports a score inside the range as not clamped", () => {
+    expect(parseScore("7.5", 10)).toEqual({ score: 7.5, clamped: false })
+  })
+
+  it("keeps the boundaries as unclamped values", () => {
+    expect(parseScore("45", 45)).toEqual({ score: 45, clamped: false })
+    expect(parseScore("0", 45)).toEqual({ score: 0, clamped: false })
+  })
+
+  it("flags a score above the cap as clamped to the cap", () => {
+    expect(parseScore("999", 45)).toEqual({ score: 45, clamped: true })
+  })
+
+  it("flags a negative score as clamped to zero", () => {
+    expect(parseScore("-3", 45)).toEqual({ score: 0, clamped: true })
+  })
+
+  it("returns null for empty or non-numeric text", () => {
+    expect(parseScore("  ", 45)).toBeNull()
+    expect(parseScore("abc", 45)).toBeNull()
+  })
+})
+
+describe("clampNotice", () => {
+  it("names the typed value, the cap and what was recorded", () => {
+    expect(clampNotice("999", 45, 45)).toBe(
+      "999 excede el límite de 45; se registró 45."
+    )
+  })
+
+  it("explains a negative value raised to zero", () => {
+    expect(clampNotice("-3", 0, 45)).toBe("-3 es menor que 0; se registró 0.")
   })
 })

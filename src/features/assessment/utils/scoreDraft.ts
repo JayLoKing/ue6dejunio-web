@@ -31,12 +31,38 @@ export function clampScore(value: number, max: number): number {
  * el docente escribe, y sin esto un 999 sin confirmar inflaba el promedio y el total.
  */
 export function scoreFromText(raw: string, max: number): number | null {
+  return parseScore(raw, max)?.score ?? null
+}
+
+/** Nota ya acotada, y si el tope tuvo que cambiar lo que se tecleó. */
+export interface ParsedScore {
+  score: number
+  clamped: boolean
+}
+
+/**
+ * Como `scoreFromText`, pero dice además si se acotó. La señal sale de comparar números,
+ * no textos: "45.0" tecleado sobre un tope de 45 no se acotó aunque el texto cambie.
+ */
+export function parseScore(raw: string, max: number): ParsedScore | null {
   const trimmed = raw.trim()
   if (trimmed === "") return null
   const parsed = Number(trimmed)
   // Texto que no es un número no vale 0: vale nada.
   if (!Number.isFinite(parsed)) return null
-  return clampScore(parsed, max)
+  const score = clampScore(parsed, max)
+  return { score, clamped: score !== parsed }
+}
+
+/**
+ * Aviso para el docente cuando su nota se acotó. Solo hay dos topes: el de la dimensión
+ * por arriba y el 0 por abajo, así que la nota registrada dice cuál se aplicó.
+ */
+export function clampNotice(typed: string, score: number, max: number): string {
+  if (score === max) {
+    return `${typed} excede el límite de ${max}; se registró ${max}.`
+  }
+  return `${typed} es menor que 0; se registró 0.`
 }
 
 /** Media de las notas presentes. `null` si no hay ninguna. */

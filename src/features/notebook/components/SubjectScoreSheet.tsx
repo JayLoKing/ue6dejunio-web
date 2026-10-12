@@ -1,5 +1,6 @@
 import { Fragment, useMemo, useState } from "react"
 import { Link } from "@tanstack/react-router"
+import { toast } from "sonner"
 import { AlertTriangleIcon, Loader2Icon, BrainCircuitIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -37,8 +38,10 @@ import {
 } from "@/features/assessment/hooks/useAssessment"
 import { cellTitle, round1 } from "@/features/assessment/utils/scoreCell"
 import {
+  clampNotice,
   draftText,
   mean,
+  parseScore,
   scoreFromText,
 } from "@/features/assessment/utils/scoreDraft"
 import { CriteriaManager } from "@/features/assessment/components/CriteriaManager"
@@ -190,8 +193,9 @@ export function SubjectScoreSheet({
       return
     }
 
-    const val = scoreFromText(trimmed, dimensionMeta(col.dimKey).weight)
-    if (val === null) {
+    const max = dimensionMeta(col.dimKey).weight
+    const parsed = parseScore(trimmed, max)
+    if (parsed === null) {
       // Texto inválido: no persiste; deja que la casilla vuelva a la nota guardada.
       // Guardar un 0 por un tecleo mal escrito sería peor que descartarlo.
       setDraft((d) => {
@@ -201,6 +205,11 @@ export function SubjectScoreSheet({
       })
       return
     }
+
+    const val = parsed.score
+    // El tope se sigue aplicando, pero no en silencio: un 999 que aparece como 40 sin
+    // explicación se lee como un error del sistema.
+    if (parsed.clamped) toast.warning(clampNotice(trimmed, val, max))
 
     // El borrador queda con el valor YA acotado, que es el que el backend va a devolver:
     // sin esto la casilla seguiría mostrando el "999" que el docente tecleó.

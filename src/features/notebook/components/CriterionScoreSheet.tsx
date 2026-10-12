@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react"
 import { Link } from "@tanstack/react-router"
+import { toast } from "sonner"
 import { ArrowLeftIcon, Loader2Icon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -22,8 +23,10 @@ import {
 } from "@/features/assessment/hooks/useAssessment"
 import { cellTitle, round1 } from "@/features/assessment/utils/scoreCell"
 import {
+  clampNotice,
   draftText,
   mean,
+  parseScore,
   scoreFromText,
 } from "@/features/assessment/utils/scoreDraft"
 
@@ -134,8 +137,8 @@ export function CriterionScoreSheet({
       }
       return
     }
-    const val = scoreFromText(trimmed, cap)
-    if (val === null) {
+    const parsed = parseScore(trimmed, cap)
+    if (parsed === null) {
       // Texto inválido: no persiste; deja que la casilla vuelva a la nota guardada.
       setDraft((d) => {
         const next = { ...d }
@@ -144,6 +147,10 @@ export function CriterionScoreSheet({
       })
       return
     }
+    const val = parsed.score
+    // El tope se sigue aplicando, pero no en silencio: un 999 que aparece como el tope sin
+    // explicación se lee como un error del sistema.
+    if (parsed.clamped) toast.warning(clampNotice(trimmed, val, cap))
     // El borrador queda con el valor YA acotado, que es el que el backend va a devolver:
     // sin esto la casilla seguiría mostrando el "999" que el docente tecleó.
     setDraft((d) => ({ ...d, [key]: String(val) }))

@@ -1,5 +1,8 @@
-import { render, screen, within } from "@testing-library/react"
-import { describe, expect, it, vi } from "vitest"
+import { fireEvent, render, screen, within } from "@testing-library/react"
+import { beforeEach, describe, expect, it, vi } from "vitest"
+
+const toastWarning = vi.hoisted(() => vi.fn())
+vi.mock("sonner", () => ({ toast: { warning: toastWarning } }))
 
 /** El Link de TanStack necesita un router montado; acá sólo hace de "Volver". */
 vi.mock("@tanstack/react-router", () => ({
@@ -120,5 +123,48 @@ describe("CriterionScoreSheet, estudiante dado de baja", () => {
     expect(inputs).not.toHaveLength(0)
     for (const input of inputs) expect(input).toBeEnabled()
     expect(rowOf("Ana Quispe")).not.toHaveTextContent(/dado de baja/i)
+  })
+})
+
+/**
+ * Es la otra puerta a la misma nota: el tope se aplica igual, y el aviso también.
+ */
+describe("CriterionScoreSheet, nota fuera del rango", () => {
+  beforeEach(() => {
+    toastWarning.mockClear()
+    setScoreMutate.mockClear()
+  })
+
+  const typeAndLeave = (value: string) => {
+    const [input] = within(rowOf("Ana Quispe")).getAllByRole("spinbutton")
+    fireEvent.change(input, { target: { value } })
+    fireEvent.blur(input)
+    return input
+  }
+
+  it("avisa que la nota excede el límite y guarda el tope", () => {
+    render(
+      <CriterionScoreSheet classGroup={classGroup} criterion={criterion} />
+    )
+
+    const input = typeAndLeave("999")
+
+    expect(toastWarning).toHaveBeenCalledWith(
+      "999 excede el límite de 40; se registró 40."
+    )
+    expect(setScoreMutate).toHaveBeenCalledWith(
+      expect.objectContaining({ score: 40 })
+    )
+    expect(input).toHaveValue(40)
+  })
+
+  it("no avisa cuando la nota está dentro del rango", () => {
+    render(
+      <CriterionScoreSheet classGroup={classGroup} criterion={criterion} />
+    )
+
+    typeAndLeave("30")
+
+    expect(toastWarning).not.toHaveBeenCalled()
   })
 })

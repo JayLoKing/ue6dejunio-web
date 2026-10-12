@@ -1,5 +1,10 @@
-import { render, screen, within } from "@testing-library/react"
-import { describe, expect, it, vi } from "vitest"
+import { fireEvent, render, screen, within } from "@testing-library/react"
+import { beforeEach, describe, expect, it, vi } from "vitest"
+
+const toastWarning = vi.hoisted(() => vi.fn())
+vi.mock("sonner", () => ({ toast: { warning: toastWarning } }))
+
+const setScoreMutate = vi.hoisted(() => vi.fn())
 
 /** El Link de TanStack necesita un router montado; acá sólo lleva a la grilla del criterio. */
 vi.mock("@tanstack/react-router", () => ({
@@ -86,7 +91,7 @@ vi.mock("@/features/assessment/hooks/useAssessment", () => ({
   useCriteriaEvents: () => ({ byCriterion: {}, isLoading: false }),
   useCriteriaScores: () => ({ matrix: {}, isLoading: false }),
   useEventScores: () => ({ matrix: {}, isLoading: false }),
-  useSetScore: () => ({ mutate: vi.fn(), isPending: false }),
+  useSetScore: () => ({ mutate: setScoreMutate, isPending: false }),
   useDeleteScore: () => ({ mutate: vi.fn(), isPending: false }),
 }))
 
@@ -143,5 +148,58 @@ describe("SubjectScoreSheet, enlace al resumen del estudiante", () => {
     render(<SubjectScoreSheet classGroup={classGroup} />)
 
     expect(summaryLink("Ana Quispe")).toBeNull()
+  })
+})
+
+/**
+ * El tope de la dimensión se sigue aplicando, pero ya no en silencio: un 999 que se
+ * guarda como 40 sin avisar se lee como un error del sistema.
+ */
+describe("SubjectScoreSheet, nota fuera del rango", () => {
+  beforeEach(() => {
+    toastWarning.mockClear()
+    setScoreMutate.mockClear()
+  })
+
+  const typeAndLeave = (value: string) => {
+    const [input] = within(rowOf("Ana Quispe")).getAllByRole("spinbutton")
+    fireEvent.change(input, { target: { value } })
+    fireEvent.blur(input)
+    return input
+  }
+
+  it("avisa que la nota excede el límite y guarda el tope", () => {
+    render(<SubjectScoreSheet classGroup={classGroup} />)
+
+    const input = typeAndLeave("999")
+
+    expect(toastWarning).toHaveBeenCalledWith(
+      "999 excede el límite de 40; se registró 40."
+    )
+    expect(setScoreMutate).toHaveBeenCalledWith(
+      expect.objectContaining({ score: 40 })
+    )
+    expect(input).toHaveValue(40)
+  })
+
+  it("avisa que una nota negativa se registró como 0", () => {
+    render(<SubjectScoreSheet classGroup={classGroup} />)
+
+    typeAndLeave("-3")
+
+    expect(toastWarning).toHaveBeenCalledWith(
+      "-3 es menor que 0; se registró 0."
+    )
+  })
+
+  it("no avisa cuando la nota está dentro del rango", () => {
+    render(<SubjectScoreSheet classGroup={classGroup} />)
+
+    typeAndLeave("30")
+
+    expect(toastWarning).not.toHaveBeenCalled()
+    expect(setScoreMutate).toHaveBeenCalledWith(
+      expect.objectContaining({ score: 30 })
+    )
   })
 })

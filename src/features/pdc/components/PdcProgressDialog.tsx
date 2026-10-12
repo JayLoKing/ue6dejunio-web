@@ -21,10 +21,19 @@ import type { Pdc } from "../types"
 
 export interface PdcProgressDialogProps {
   pdc: Pdc | null
+  /**
+   * The history alone, with nothing to write with. The Director follows a plan's progress but does
+   * not report it: that is the teacher's, and the API would refuse the write anyway.
+   */
+  readOnly?: boolean
   onClose: () => void
 }
 
-export function PdcProgressDialog({ pdc, onClose }: PdcProgressDialogProps) {
+export function PdcProgressDialog({
+  pdc,
+  readOnly = false,
+  onClose,
+}: PdcProgressDialogProps) {
   const list = usePdcProgress(pdc?.id ?? null)
   const add = useAddProgress(pdc?.id ?? "")
 
@@ -62,69 +71,76 @@ export function PdcProgressDialog({ pdc, onClose }: PdcProgressDialogProps) {
         </DialogHeader>
 
         {/* form */}
-        <div className="flex flex-col gap-3">
-          <div className="grid grid-cols-2 gap-3">
+        {readOnly ? null : (
+          <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-2 gap-3">
+              <Field>
+                <FieldLabel htmlFor="pr-date">Fecha</FieldLabel>
+                <Input
+                  id="pr-date"
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="pr-pct">% Avance</FieldLabel>
+                <Input
+                  id="pr-pct"
+                  type="number"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={percentage}
+                  onChange={(e) => setPercentage(e.target.value)}
+                />
+              </Field>
+            </div>
             <Field>
-              <FieldLabel htmlFor="pr-date">Fecha</FieldLabel>
-              <Input
-                id="pr-date"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
+              <FieldLabel htmlFor="pr-content">Contenido avanzado</FieldLabel>
+              <Textarea
+                id="pr-content"
+                rows={2}
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="pr-pct">% Avance</FieldLabel>
-              <Input
-                id="pr-pct"
-                type="number"
-                min={0}
-                max={100}
-                step={1}
-                value={percentage}
-                onChange={(e) => setPercentage(e.target.value)}
+              <FieldLabel htmlFor="pr-obs">Observaciones</FieldLabel>
+              <Textarea
+                id="pr-obs"
+                rows={2}
+                value={observations}
+                onChange={(e) => setObservations(e.target.value)}
               />
             </Field>
+            <div className="flex justify-end">
+              <Button
+                className="bg-brand text-brand-foreground hover:bg-brand/90"
+                disabled={add.isPending || (!content && !percentage)}
+                onClick={submit}
+              >
+                {add.isPending ? "Guardando…" : "Registrar avance"}
+              </Button>
+            </div>
           </div>
-          <Field>
-            <FieldLabel htmlFor="pr-content">Contenido avanzado</FieldLabel>
-            <Textarea
-              id="pr-content"
-              rows={2}
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-            />
-          </Field>
-          <Field>
-            <FieldLabel htmlFor="pr-obs">Observaciones</FieldLabel>
-            <Textarea
-              id="pr-obs"
-              rows={2}
-              value={observations}
-              onChange={(e) => setObservations(e.target.value)}
-            />
-          </Field>
-          <div className="flex justify-end">
-            <Button
-              className="bg-brand text-brand-foreground hover:bg-brand/90"
-              disabled={add.isPending || (!content && !percentage)}
-              onClick={submit}
-            >
-              {add.isPending ? "Guardando…" : "Registrar avance"}
-            </Button>
-          </div>
-        </div>
+        )}
 
         {/* list */}
-        <div className="mt-2 border-t pt-3">
+        <div className={readOnly ? undefined : "mt-2 border-t pt-3"}>
           <p className="mb-2 text-sm font-medium">Historial</p>
           {list.isLoading ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2Icon className="size-4 animate-spin" /> Cargando…
             </div>
+          ) : list.isError ? (
+            // A failed fetch is not an empty history: reading it as one would say nothing was done.
+            <p className="text-sm text-destructive">
+              No se pudieron cargar los avances.
+            </p>
           ) : (list.data ?? []).length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Sin avances registrados.
+              Aún no hay avances registrados.
             </p>
           ) : (
             <ScrollArea className="max-h-56">

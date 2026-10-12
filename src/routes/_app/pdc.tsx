@@ -196,6 +196,19 @@ function PdcPage() {
                           <TrendingUpIcon className="size-4" />
                         </Button>
                       ) : null}
+                      {/* The Director follows how an approved plan is going; the teacher is the
+                          one who reports it, so this opens the history without the form. */}
+                      {isDirector && acceptsProgress(p.status) ? (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-8"
+                          title="Ver avances"
+                          onClick={() => setProgress(p)}
+                        >
+                          <TrendingUpIcon className="size-4" />
+                        </Button>
+                      ) : null}
                       {isTeacher && isEditable(p.status) ? (
                         <Button
                           size="icon"
@@ -294,7 +307,11 @@ function PdcPage() {
         </DialogContent>
       </Dialog>
 
-      <PdcProgressDialog pdc={progress} onClose={() => setProgress(null)} />
+      <PdcProgressDialog
+        pdc={progress}
+        readOnly={!isTeacher}
+        onClose={() => setProgress(null)}
+      />
 
       <ConfirmDialog
         open={Boolean(deleting)}

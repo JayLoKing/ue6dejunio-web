@@ -33,6 +33,9 @@ describe("DeactivateCourseDialog", () => {
   it("names the course and asks before doing anything", () => {
     render(<DeactivateCourseDialog course={course} onClose={vi.fn()} />)
     expect(screen.getByText(/Primero A/)).toBeInTheDocument()
+    expect(
+      screen.getByRole("heading", { name: "Eliminar o dar de baja el curso" })
+    ).toBeInTheDocument()
     expect(mutateAsync).not.toHaveBeenCalled()
   })
 
@@ -49,7 +52,7 @@ describe("DeactivateCourseDialog", () => {
     mutateAsync.mockResolvedValue({ outcome: "DELETED" })
     const onClose = vi.fn()
     render(<DeactivateCourseDialog course={course} onClose={onClose} />)
-    await userEvent.click(screen.getByRole("button", { name: "Dar de baja" }))
+    await userEvent.click(screen.getByRole("button", { name: "Continuar" }))
     expect(mutateAsync).toHaveBeenCalledWith("course-1")
     expect(onClose).toHaveBeenCalled()
   })
@@ -60,7 +63,7 @@ describe("DeactivateCourseDialog", () => {
     mutateAsync.mockRejectedValue(new Error("409"))
     const onClose = vi.fn()
     render(<DeactivateCourseDialog course={course} onClose={onClose} />)
-    await userEvent.click(screen.getByRole("button", { name: "Dar de baja" }))
+    await userEvent.click(screen.getByRole("button", { name: "Continuar" }))
     expect(mutateAsync).toHaveBeenCalled()
     expect(onClose).not.toHaveBeenCalled()
   })

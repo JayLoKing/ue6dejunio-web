@@ -31,13 +31,13 @@ export function DeactivateCourseDialog({
   return (
     <ConfirmDialog
       open={Boolean(course)}
-      title="Dar de baja el curso"
+      title="Eliminar o dar de baja el curso"
       description={
         course
           ? `${course.gradeName} ${course.parallelName} (${course.year}): si el curso no tiene estudiantes inscritos ni registros académicos, se eliminará definitivamente. Si los tiene, se dará de baja y se conservará toda su información; podrás reactivarlo después.`
           : undefined
       }
-      confirmLabel="Dar de baja"
+      confirmLabel="Continuar"
       destructive
       loading={deactivate.isPending}
       onConfirm={confirm}

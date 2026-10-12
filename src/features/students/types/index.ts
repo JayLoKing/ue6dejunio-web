@@ -15,6 +15,19 @@ export interface ParsedStudentRow extends StudentPayload {
   fullName: string
 }
 
+/** El curso que dice la cabecera de la nómina, con los nombres que usa el catálogo de cursos. */
+export interface RosterHeader {
+  grade: string
+  parallel: string
+  year: number
+}
+
+/** La nómina leída: el curso que dice su cabecera (null si no se pudo leer) y sus filas. */
+export interface ParsedRoster {
+  header: RosterHeader | null
+  rows: ParsedStudentRow[]
+}
+
 /** Un estudiante como lo muestra el padrón: lo justo para una fila de la tabla. */
 export interface StudentRow {
   courseEnrollmentId: string

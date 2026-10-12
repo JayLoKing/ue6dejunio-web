@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query"
 
 import { parseStudentsPdf } from "../services/studentPdfService"
-import type { ParsedStudentRow } from "../types"
+import type { ParsedRoster } from "../types"
 
 /**
  * Lee la nómina PDF que el docente eligió.
@@ -10,7 +10,7 @@ import type { ParsedStudentRow } from "../types"
  * el pendiente y el error los lleva react-query en lugar de tres useState puestos a mano.
  */
 export function useParseStudentsPdf() {
-  return useMutation<ParsedStudentRow[], Error, File>({
+  return useMutation<ParsedRoster, Error, File>({
     mutationFn: (file) => parseStudentsPdf(file),
   })
 }

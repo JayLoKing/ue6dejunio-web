@@ -13,10 +13,13 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
+import { useCourseOverview } from "@/features/courses/hooks/useCourses"
+
 import { useParseStudentsPdf } from "../hooks/useParseStudentsPdf"
 import { useEnrollBatch } from "../hooks/useEnroll"
 import type { EnrollResponse } from "../models/response/enroll-response"
-import type { ParsedStudentRow } from "../types"
+import type { ParsedRoster } from "../types"
+import { rosterHeaderMismatch } from "../utils/rosterHeader"
 import { EnrollResultSummary } from "./EnrollResultSummary"
 
 export interface AutomatedEnrollFormProps {
@@ -29,27 +32,36 @@ export function AutomatedEnrollForm({
   onSuccess,
 }: AutomatedEnrollFormProps) {
   const [file, setFile] = useState<File | null>(null)
-  const [rows, setRows] = useState<ParsedStudentRow[]>([])
+  const [roster, setRoster] = useState<ParsedRoster | null>(null)
   const [parseError, setParseError] = useState<string | null>(null)
   const [result, setResult] = useState<EnrollResponse | null>(null)
 
   const parse = useParseStudentsPdf()
   const parsing = parse.isPending
   const enroll = useEnrollBatch()
+  // El mismo overview que ya pide el menú lateral: comparte su caché y no agrega un endpoint.
+  const course = useCourseOverview(courseId, 1).data?.course
+
+  // La nómina sólo se importa en el curso que nombra su cabecera. Sin el curso cargado no hay con
+  // qué comparar, y el botón queda deshabilitado hasta tenerlo.
+  const headerError =
+    roster && course ? rosterHeaderMismatch(roster.header, course) : null
+  const rows = headerError ? [] : (roster?.rows ?? [])
+  const errorMessage = parseError ?? headerError
 
   const handleFile = async (selected: File | null) => {
     setFile(selected)
-    setRows([])
+    setRoster(null)
     setParseError(null)
     if (!selected) return
     try {
       const parsed = await parse.mutateAsync(selected)
-      if (parsed.length === 0) {
+      if (parsed.rows.length === 0) {
         setParseError(
           "No se detectaron filas válidas. Verifica el formato del PDF."
         )
       }
-      setRows(parsed)
+      setRoster(parsed)
     } catch (e) {
       setParseError(
         e instanceof Error ? e.message : "Error al procesar el PDF."
@@ -58,7 +70,7 @@ export function AutomatedEnrollForm({
   }
 
   const handleSubmit = async () => {
-    if (!courseId || rows.length === 0) return
+    if (!courseId || !course || headerError || rows.length === 0) return
     try {
       const response = await enroll.mutateAsync({
         id_course: courseId,
@@ -133,9 +145,9 @@ export function AutomatedEnrollForm({
         </div>
       ) : null}
 
-      {parseError ? (
+      {errorMessage ? (
         <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-          {parseError}
+          {errorMessage}
         </div>
       ) : null}
 
@@ -196,7 +208,11 @@ export function AutomatedEnrollForm({
           type="button"
           className="bg-brand text-brand-foreground hover:bg-brand/90"
           disabled={
-            enroll.isPending || parsing || rows.length === 0 || !courseId
+            enroll.isPending ||
+            parsing ||
+            rows.length === 0 ||
+            !courseId ||
+            !course
           }
           onClick={handleSubmit}
         >

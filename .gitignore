@@ -70,3 +70,6 @@ openspec/
 
 # TanStack Router temp
 .tanstack/
+
+# Local coverage report
+report_coverage.txt

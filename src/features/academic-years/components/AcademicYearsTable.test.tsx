@@ -65,6 +65,25 @@ describe("AcademicYearsTable", () => {
     expect((await rowOf(2025)).getByText("Cerrada")).toBeInTheDocument()
   })
 
+  it("marks only the active year's row as active", async () => {
+    renderTable()
+
+    const rowElement = async (year: number) =>
+      (await screen.findByRole("cell", { name: String(year) })).closest("tr")
+
+    expect(await rowElement(2026)).toHaveAttribute("data-active", "true")
+    expect(await rowElement(2027)).toHaveAttribute("data-active", "false")
+    expect(await rowElement(2025)).toHaveAttribute("data-active", "false")
+  })
+
+  it("labels every year that is not active as inactive", async () => {
+    renderTable()
+
+    expect((await rowOf(2026)).queryByText("Inactiva")).not.toBeInTheDocument()
+    expect((await rowOf(2027)).getByText("Inactiva")).toBeInTheDocument()
+    expect((await rowOf(2025)).getByText("Inactiva")).toBeInTheDocument()
+  })
+
   it("enables only the actions that make sense for each state", async () => {
     renderTable()
 

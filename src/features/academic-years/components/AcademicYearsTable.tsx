@@ -1,7 +1,14 @@
 import { useState } from "react"
 import { useIsMutating } from "@tanstack/react-query"
-import { CopyIcon, LockIcon, LockOpenIcon, PowerIcon } from "lucide-react"
+import {
+  CircleCheckIcon,
+  CopyIcon,
+  LockIcon,
+  LockOpenIcon,
+  PowerIcon,
+} from "lucide-react"
 
+import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -37,6 +44,15 @@ interface Pending {
 }
 
 const COLUMNS = 3
+
+/**
+ * Only one year is active and every screen reads from it, so its row has to be found at a
+ * glance: a primary tint (stronger in dark mode, where 10% over black disappears) and a
+ * left rule. The others only mute their year: dimming the whole row would also dim the
+ * actions, and those stay as legible as on the active row.
+ */
+const ROW_ACTIVE =
+  "bg-primary/10 shadow-[inset_3px_0_0_var(--primary)] hover:bg-primary/15 dark:bg-primary/15 dark:hover:bg-primary/20"
 
 export function AcademicYearsTable() {
   const { canManageYears, canDuplicateStructure } = coursePermissions(
@@ -79,11 +95,34 @@ export function AcademicYearsTable() {
             <MessageRow>Sin gestiones registradas.</MessageRow>
           ) : (
             years.map((year) => (
-              <TableRow key={year.id}>
-                <TableCell className="font-medium">{year.year}</TableCell>
+              <TableRow
+                key={year.id}
+                data-active={year.active}
+                className={year.active ? ROW_ACTIVE : undefined}
+              >
+                <TableCell
+                  className={cn(
+                    "font-medium",
+                    year.active ? "font-semibold" : "text-muted-foreground"
+                  )}
+                >
+                  {year.year}
+                </TableCell>
                 <TableCell>
                   <div className="flex gap-1">
-                    {year.active ? <Badge>Activa</Badge> : null}
+                    {year.active ? (
+                      <Badge>
+                        <CircleCheckIcon data-icon="inline-start" />
+                        Activa
+                      </Badge>
+                    ) : (
+                      <Badge
+                        variant="outline"
+                        className="text-muted-foreground"
+                      >
+                        Inactiva
+                      </Badge>
+                    )}
                     <Badge variant={year.closed ? "outline" : "secondary"}>
                       {year.closed ? "Cerrada" : "Abierta"}
                     </Badge>

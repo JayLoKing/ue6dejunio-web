@@ -1,5 +1,6 @@
 import type { UseApiCall } from "@/lib/useApicall"
 import type {
+  ChangeEmailRequest,
   ChangePasswordRequest,
   CredentialsRequest,
   ForgotPasswordRequest,
@@ -66,6 +67,18 @@ export default class AuthServiceHelper {
     const controller = loadAbort()
     return {
       call: httpClient.put<void>(AuthUrl.Profile, payload, {
+        signal: controller.signal,
+      }),
+      controller,
+    }
+  }
+
+  changeEmailAsync(
+    payload: ChangeEmailRequest
+  ): UseApiCall<CredentialResponse> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.post<CredentialResponse>(AuthUrl.ChangeEmail, payload, {
         signal: controller.signal,
       }),
       controller,

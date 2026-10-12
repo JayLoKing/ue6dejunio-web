@@ -6,12 +6,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 const getProfile = vi.hoisted(() => vi.fn())
 const me = vi.hoisted(() => vi.fn())
 const mutateAsync = vi.hoisted(() => vi.fn())
+const changeEmailAsync = vi.hoisted(() => vi.fn())
 
 vi.mock("../services/authService", () => ({
   AuthService: { getProfile, me },
 }))
 vi.mock("../hooks/useUpdateProfile", () => ({
   useUpdateProfile: () => ({ mutateAsync, isPending: false }),
+}))
+vi.mock("../hooks/useChangeEmail", () => ({
+  useChangeEmail: () => ({ mutateAsync: changeEmailAsync, isPending: false }),
 }))
 
 import { ProfileDialog } from "./ProfileDialog"
@@ -40,6 +44,7 @@ beforeEach(() => {
   getProfile.mockResolvedValue(profile)
   me.mockResolvedValue({ role: "Teacher", email: profile.email })
   mutateAsync.mockResolvedValue(undefined)
+  changeEmailAsync.mockResolvedValue(undefined)
 })
 
 describe("ProfileDialog", () => {
@@ -101,5 +106,102 @@ describe("ProfileDialog", () => {
     await userEvent.click(screen.getByRole("button", { name: /guardar/i }))
 
     await waitFor(() => expect(onOpenChange).toHaveBeenCalledWith(false))
+  })
+
+  describe("cambiar correo", () => {
+    const openEmailForm = async () => {
+      renderDialog()
+      await screen.findByLabelText("Nombres")
+      await userEvent.click(
+        screen.getByRole("button", { name: /cambiar correo/i })
+      )
+    }
+
+    it("pide el correo nuevo y la contraseña actual", async () => {
+      await openEmailForm()
+
+      expect(screen.getByLabelText("Correo nuevo")).toHaveValue("")
+      expect(screen.getByLabelText("Contraseña actual")).toHaveAttribute(
+        "type",
+        "password"
+      )
+    })
+
+    it("manda el correo nuevo ya limpio junto con la contraseña", async () => {
+      await openEmailForm()
+
+      await userEvent.type(
+        screen.getByLabelText("Correo nuevo"),
+        "  Nora.Nueva@UE6.bo "
+      )
+      await userEvent.type(
+        screen.getByLabelText("Contraseña actual"),
+        "secreta1"
+      )
+      await userEvent.click(
+        screen.getByRole("button", { name: /guardar correo/i })
+      )
+
+      await waitFor(() =>
+        expect(changeEmailAsync).toHaveBeenCalledWith({
+          newEmail: "nora.nueva@ue6.bo",
+          currentPassword: "secreta1",
+        })
+      )
+    })
+
+    it("no manda nada con un correo inválido o sin contraseña", async () => {
+      await openEmailForm()
+
+      await userEvent.type(
+        screen.getByLabelText("Correo nuevo"),
+        "no-es-correo"
+      )
+      await userEvent.click(
+        screen.getByRole("button", { name: /guardar correo/i })
+      )
+
+      expect(await screen.findByText("Correo inválido")).toBeInTheDocument()
+      expect(
+        screen.getByText(/contraseña actual requerida/i)
+      ).toBeInTheDocument()
+      expect(changeEmailAsync).not.toHaveBeenCalled()
+    })
+
+    it("vuelve al perfil después de cambiarlo", async () => {
+      await openEmailForm()
+
+      await userEvent.type(
+        screen.getByLabelText("Correo nuevo"),
+        "nora.nueva@ue6.bo"
+      )
+      await userEvent.type(
+        screen.getByLabelText("Contraseña actual"),
+        "secreta1"
+      )
+      await userEvent.click(
+        screen.getByRole("button", { name: /guardar correo/i })
+      )
+
+      expect(await screen.findByLabelText("Nombres")).toBeInTheDocument()
+      expect(screen.queryByLabelText("Correo nuevo")).not.toBeInTheDocument()
+    })
+
+    it("se queda en el formulario si la API lo rechaza", async () => {
+      changeEmailAsync.mockRejectedValue(new Error("400"))
+      await openEmailForm()
+
+      await userEvent.type(
+        screen.getByLabelText("Correo nuevo"),
+        "nora.nueva@ue6.bo"
+      )
+      await userEvent.type(screen.getByLabelText("Contraseña actual"), "mala")
+      await userEvent.click(
+        screen.getByRole("button", { name: /guardar correo/i })
+      )
+
+      await waitFor(() => expect(changeEmailAsync).toHaveBeenCalled())
+      expect(screen.getByLabelText("Correo nuevo")).toBeInTheDocument()
+    })
   })
 })

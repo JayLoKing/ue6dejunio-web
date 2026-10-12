@@ -1,5 +1,6 @@
 import AuthServiceHelper from "../helpers/authServiceHelper"
 import type {
+  ChangeEmailRequest,
   ChangePasswordRequest,
   CredentialsRequest,
   ForgotPasswordRequest,
@@ -41,6 +42,14 @@ export class AuthService {
   static async updateProfile(payload: UpdateProfileRequest): Promise<void> {
     const { call } = helper.updateProfileAsync(payload)
     await call
+  }
+
+  /** Devuelve la sesión nueva: la vieja sigue nombrando el correo anterior. */
+  static async changeEmail(
+    payload: ChangeEmailRequest
+  ): Promise<CredentialResponse> {
+    const { call } = helper.changeEmailAsync(payload)
+    return (await call).data
   }
 
   static async changePassword(payload: ChangePasswordRequest): Promise<void> {

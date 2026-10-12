@@ -54,3 +54,12 @@ export const profileSchema = z.object({
 })
 
 export type ProfileFormValues = z.infer<typeof profileSchema>
+
+export const changeEmailSchema = z.object({
+  // La misma regla que al registrar a alguien: si no se puede crear con esa dirección, tampoco
+  // se puede pasar a ella.
+  newEmail: emailString(),
+  currentPassword: z.string().min(1, "Contraseña actual requerida"),
+})
+
+export type ChangeEmailFormValues = z.infer<typeof changeEmailSchema>

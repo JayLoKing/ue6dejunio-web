@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Loader2Icon } from "lucide-react"
@@ -23,10 +24,13 @@ import {
 import { Input } from "@/components/ui/input"
 import { roleLabel } from "@/lib/labels"
 
+import { useChangeEmail } from "../hooks/useChangeEmail"
 import { useProfile } from "../hooks/useProfile"
 import { useUpdateProfile } from "../hooks/useUpdateProfile"
 import {
+  changeEmailSchema,
   profileSchema,
+  type ChangeEmailFormValues,
   type ProfileFormValues,
 } from "../models/schemas/credentials-schema"
 import type { ProfileResponse } from "../models/response/credential-response"
@@ -45,9 +49,11 @@ export interface ProfileDialogProps {
 function ProfileForm({
   profile,
   onDone,
+  onChangeEmail,
 }: {
   profile: ProfileResponse
   onDone: () => void
+  onChangeEmail: () => void
 }) {
   const {
     register,
@@ -99,9 +105,20 @@ function ProfileForm({
             />
           </Field>
         </div>
-        <FieldDescription>
-          El CI y el correo los administra la dirección de la escuela.
-        </FieldDescription>
+        <div className="flex items-center justify-between gap-4">
+          <FieldDescription>
+            El CI lo administra la dirección de la escuela.
+          </FieldDescription>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onChangeEmail}
+            disabled={isPending}
+          >
+            Cambiar correo
+          </Button>
+        </div>
 
         <div className="grid grid-cols-2 gap-4">
           <Field data-invalid={Boolean(errors.names) || undefined}>
@@ -162,8 +179,91 @@ function ProfileForm({
   )
 }
 
+/**
+ * El correo es con lo que se entra y se recupera la contraseña, así que cambiarlo pide la
+ * contraseña actual. Vive aparte del formulario del perfil porque se guarda por otro pedido.
+ */
+function ChangeEmailForm({ onDone }: { onDone: () => void }) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ChangeEmailFormValues>({
+    resolver: zodResolver(changeEmailSchema),
+    defaultValues: { newEmail: "", currentPassword: "" },
+  })
+  const { mutateAsync, isPending } = useChangeEmail()
+
+  const onSubmit = handleSubmit(async (values) => {
+    try {
+      await mutateAsync(values)
+      onDone()
+    } catch {
+      /* toast via interceptor */
+    }
+  })
+
+  return (
+    <form onSubmit={onSubmit} noValidate>
+      <FieldGroup>
+        <FieldDescription>
+          Desde ahora entrarás con el correo nuevo, y ahí te llegará la
+          recuperación de contraseña.
+        </FieldDescription>
+        <Field data-invalid={Boolean(errors.newEmail) || undefined}>
+          <FieldLabel htmlFor="profile-new-email">Correo nuevo</FieldLabel>
+          <Input
+            id="profile-new-email"
+            type="email"
+            autoComplete="email"
+            aria-invalid={Boolean(errors.newEmail) || undefined}
+            {...register("newEmail")}
+          />
+          {errors.newEmail ? (
+            <FieldError>{errors.newEmail.message}</FieldError>
+          ) : null}
+        </Field>
+        <Field data-invalid={Boolean(errors.currentPassword) || undefined}>
+          <FieldLabel htmlFor="profile-current-password">
+            Contraseña actual
+          </FieldLabel>
+          <Input
+            id="profile-current-password"
+            type="password"
+            autoComplete="current-password"
+            aria-invalid={Boolean(errors.currentPassword) || undefined}
+            {...register("currentPassword")}
+          />
+          {errors.currentPassword ? (
+            <FieldError>{errors.currentPassword.message}</FieldError>
+          ) : null}
+        </Field>
+      </FieldGroup>
+
+      <DialogFooter className="mt-6">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onDone}
+          disabled={isPending}
+        >
+          Volver
+        </Button>
+        <Button
+          type="submit"
+          className="bg-brand text-brand-foreground hover:bg-brand/90"
+          disabled={isPending}
+        >
+          {isPending ? "Guardando…" : "Guardar correo"}
+        </Button>
+      </DialogFooter>
+    </form>
+  )
+}
+
 export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
   const { data: profile, isLoading, isError } = useProfile(open)
+  const [changingEmail, setChangingEmail] = useState(false)
   const fullName = useAuthStore((s) => s.fullName)
   const role = useAuthStore((s) => s.role)
   const gradeName = useAuthStore((s) => s.gradeName)
@@ -172,12 +272,21 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
   const displayName = fullName?.trim() || "Usuario"
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        // Cerrar a mitad del cambio de correo no deja ese formulario esperando la próxima vez.
+        if (!next) setChangingEmail(false)
+        onOpenChange(next)
+      }}
+    >
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Mi perfil</DialogTitle>
           <DialogDescription>
-            Corrige tus nombres, apellidos y teléfono.
+            {changingEmail
+              ? "Confirma el cambio con tu contraseña actual."
+              : "Corrige tus nombres, apellidos y teléfono."}
           </DialogDescription>
         </DialogHeader>
 
@@ -211,8 +320,14 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
           <div className="rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
             No se pudo cargar el perfil.
           </div>
+        ) : changingEmail ? (
+          <ChangeEmailForm onDone={() => setChangingEmail(false)} />
         ) : (
-          <ProfileForm profile={profile} onDone={() => onOpenChange(false)} />
+          <ProfileForm
+            profile={profile}
+            onDone={() => onOpenChange(false)}
+            onChangeEmail={() => setChangingEmail(true)}
+          />
         )}
       </DialogContent>
     </Dialog>

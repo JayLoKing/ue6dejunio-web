@@ -21,6 +21,16 @@ export interface Course {
   homeroomTeacherActive: boolean
 }
 
+/**
+ * Lo que hizo la API al quitar un curso: `DELETED` si no tenía estudiantes inscritos ni registros
+ * académicos y se eliminó; `DEACTIVATED` si los tenía y sólo se dio de baja, conservando todo.
+ */
+export type CourseRemovalOutcome = "DELETED" | "DEACTIVATED"
+
+export interface CourseRemovalResult {
+  outcome: CourseRemovalOutcome
+}
+
 export interface CourseStudent {
   courseEnrollmentId: string
   studentId: string

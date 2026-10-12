@@ -187,13 +187,18 @@ export function useSetHomeroom() {
   })
 }
 
-/** Da de baja un curso. Sin toast de error: el interceptor ya muestra el mensaje de la API. */
+/**
+ * Quita un curso: la API lo elimina o lo da de baja según lo que tenga, y el toast dice cuál de
+ * las dos pasó. Sin toast de error: el interceptor ya muestra el mensaje de la API.
+ */
 export function useDeactivateCourse() {
   const invalidate = useInvalidateCourses()
   return useMutation({
     mutationFn: (id: string) => CourseService.remove(id),
-    onSuccess: () => {
-      toast.success("Curso dado de baja.")
+    onSuccess: ({ outcome }) => {
+      toast.success(
+        outcome === "DELETED" ? "Curso eliminado." : "Curso dado de baja."
+      )
       invalidate()
     },
   })

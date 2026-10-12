@@ -8,7 +8,10 @@ export interface DeactivateCourseDialogProps {
   onClose: () => void
 }
 
-/** Confirma la baja de un curso. La API rechaza con 409 el que tiene estudiantes o registros. */
+/**
+ * Confirma que se quite un curso. La API decide: sin estudiantes ni registros académicos lo elimina;
+ * con alguno lo da de baja y conserva todo. El toast del hook dice cuál de las dos pasó.
+ */
 export function DeactivateCourseDialog({
   course,
   onClose,
@@ -31,7 +34,7 @@ export function DeactivateCourseDialog({
       title="Dar de baja el curso"
       description={
         course
-          ? `${course.gradeName} ${course.parallelName} (${course.year}) dejará de estar activo. Sólo se puede dar de baja un curso sin estudiantes inscritos ni registros académicos; después puedes reactivarlo.`
+          ? `${course.gradeName} ${course.parallelName} (${course.year}): si el curso no tiene estudiantes inscritos ni registros académicos, se eliminará definitivamente. Si los tiene, se dará de baja y se conservará toda su información; podrás reactivarlo después.`
           : undefined
       }
       confirmLabel="Dar de baja"

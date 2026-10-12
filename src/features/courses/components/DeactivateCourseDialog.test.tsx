@@ -36,8 +36,17 @@ describe("DeactivateCourseDialog", () => {
     expect(mutateAsync).not.toHaveBeenCalled()
   })
 
-  it("deactivates the course on confirm and closes", async () => {
-    mutateAsync.mockResolvedValue(undefined)
+  it("explains both outcomes: erased when empty, deactivated and kept otherwise", () => {
+    render(<DeactivateCourseDialog course={course} onClose={vi.fn()} />)
+    expect(screen.getByText(/se eliminará definitivamente/)).toBeInTheDocument()
+    expect(
+      screen.getByText(/se conservará toda su información/)
+    ).toBeInTheDocument()
+    expect(screen.getByText(/podrás reactivarlo después/)).toBeInTheDocument()
+  })
+
+  it("removes the course on confirm and closes", async () => {
+    mutateAsync.mockResolvedValue({ outcome: "DELETED" })
     const onClose = vi.fn()
     render(<DeactivateCourseDialog course={course} onClose={onClose} />)
     await userEvent.click(screen.getByRole("button", { name: "Dar de baja" }))
@@ -45,7 +54,7 @@ describe("DeactivateCourseDialog", () => {
     expect(onClose).toHaveBeenCalled()
   })
 
-  // The API refuses a course with students or records (409); the interceptor already toasted
+  // The API can still refuse (a closed gestión answers 409); the interceptor already toasted
   // its message, so the dialog neither closes nor adds a second notice.
   it("stays open when the API refuses", async () => {
     mutateAsync.mockRejectedValue(new Error("409"))

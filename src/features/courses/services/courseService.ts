@@ -6,6 +6,7 @@ import type {
   ClassGroupItem,
   Course,
   CourseOverview,
+  CourseRemovalResult,
   CourseStudent,
   CourseWithSubjects,
   CreateCoursePayload,
@@ -67,9 +68,12 @@ export class CourseService {
   ): Promise<Course> {
     return (await helper.swapHomeroomAsync(courseAId, courseBId).call).data
   }
-  /** Da de baja el curso. La API responde 409 si tiene estudiantes inscritos o registros académicos. */
-  static async remove(id: string): Promise<void> {
-    await helper.deleteAsync(id).call
+  /**
+   * Quita el curso: la API lo elimina si no tiene estudiantes inscritos ni registros académicos, y
+   * si los tiene lo da de baja conservando todo. La respuesta dice cuál de las dos hizo.
+   */
+  static async remove(id: string): Promise<CourseRemovalResult> {
+    return (await helper.deleteAsync(id).call).data
   }
   /** Reactiva un curso dado de baja. La API responde 409 si su docente de aula ya lo es de otro. */
   static async reactivate(id: string): Promise<Course> {

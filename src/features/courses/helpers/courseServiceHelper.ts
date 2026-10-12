@@ -16,6 +16,7 @@ import type {
   ClassGroupItem,
   Course,
   CourseOverview,
+  CourseRemovalResult,
   CourseStudent,
   CourseWithSubjects,
   CreateCoursePayload,
@@ -140,10 +141,10 @@ export default class CourseServiceHelper {
     }
   }
 
-  deleteAsync(id: string): UseApiCall<void> {
+  deleteAsync(id: string): UseApiCall<CourseRemovalResult> {
     const controller = loadAbort()
     return {
-      call: httpClient.delete<void>(CourseUrl.ById(id), {
+      call: httpClient.delete<CourseRemovalResult>(CourseUrl.ById(id), {
         signal: controller.signal,
       }),
       controller,

@@ -68,7 +68,8 @@ export function CourseRiskPanel({
   if (risks.isError) {
     return (
       <p className="text-sm text-destructive">
-        No se pudo cargar las predicciones del curso. Reintenta en un momento.
+        No se pudieron cargar las predicciones del curso. Reintenta en un
+        momento.
       </p>
     )
   }

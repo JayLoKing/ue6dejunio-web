@@ -60,7 +60,9 @@ describe("CourseRiskPanel", () => {
 
     render(<CourseRiskPanel courseId="c-1" trimester={1} />)
 
-    expect(screen.getByText(/No se pudo cargar/)).toBeInTheDocument()
+    expect(
+      screen.getByText(/No se pudieron cargar las predicciones/)
+    ).toBeInTheDocument()
     expect(screen.queryByText(/Sin predicciones/)).not.toBeInTheDocument()
   })
 
@@ -180,7 +182,9 @@ describe("ClassGroupRiskPanel", () => {
 
     render(<ClassGroupRiskPanel classGroupId="cg-1" trimester={1} />)
 
-    expect(screen.getByText(/No se pudo cargar/)).toBeInTheDocument()
+    expect(
+      screen.getByText(/No se pudieron cargar las predicciones/)
+    ).toBeInTheDocument()
     expect(screen.queryByText(/Sin predicciones/)).not.toBeInTheDocument()
   })
 

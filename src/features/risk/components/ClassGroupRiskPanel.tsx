@@ -78,7 +78,7 @@ export function ClassGroupRiskPanel({
         </div>
       ) : risks.isError ? (
         <p className="text-sm text-destructive">
-          No se pudo cargar las predicciones de la materia. Reintenta en un
+          No se pudieron cargar las predicciones de la materia. Reintenta en un
           momento.
         </p>
       ) : (

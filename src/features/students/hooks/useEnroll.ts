@@ -42,6 +42,15 @@ export function useEnrollSingle() {
         )
         return
       }
+      // Ya inscrito en otro curso o con datos en conflicto no llega aquí: la API responde 409 y el
+      // interceptor muestra su mensaje. Un retiro de otra gestión sí: se deshizo al inscribirlo.
+      const reinstated = r.reinstated[0]
+      if (reinstated) {
+        toast.success(
+          `${reinstated.fullName} se reincorporó de una gestión anterior y quedó inscrito.`
+        )
+        return
+      }
       toast.success(
         `Estudiante inscrito. ${r.enrollmentsCreated} inscripción(es) generadas.`
       )

@@ -25,7 +25,10 @@ const result = (over: Partial<EnrollResponse> = {}): EnrollResponse => ({
   studentsReentering: 0,
   enrollmentsCreated: 1,
   enrollmentsSkipped: 0,
+  reinstated: [],
   skippedWithdrawn: [],
+  skippedOtherCourse: [],
+  conflicts: [],
   ...over,
 })
 
@@ -65,6 +68,20 @@ describe("useEnrollSingle", () => {
     expect(toast.success).not.toHaveBeenCalled()
     expect(toast.warning).toHaveBeenCalledWith(
       expect.stringMatching(/Ana Quispe.*retirado.*no se inscribió/s)
+    )
+  })
+
+  /** Un retiro de otra gestión se deshace al inscribirlo: hay que decirlo, no callarlo. */
+  it("says the student was reinstated from an earlier gestión", async () => {
+    enrollSingle.mockResolvedValueOnce(
+      result({ reinstated: [{ studentId: "s-1", fullName: "Ana Quispe" }] })
+    )
+
+    await run()
+
+    expect(toast.warning).not.toHaveBeenCalled()
+    expect(toast.success).toHaveBeenCalledWith(
+      expect.stringMatching(/Ana Quispe.*reincorpor.*gestión anterior/s)
     )
   })
 })

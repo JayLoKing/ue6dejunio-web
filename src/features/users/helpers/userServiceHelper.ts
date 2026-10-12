@@ -78,4 +78,14 @@ export default class UserServiceHelper {
       controller,
     }
   }
+
+  activateAsync(id: string): UseApiCall<UserResponse> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.post<UserResponse>(UserUrl.Activate(id), undefined, {
+        signal: controller.signal,
+      }),
+      controller,
+    }
+  }
 }

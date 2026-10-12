@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import type { UsersListItem } from "../models/response/user-response"
 
 const resend = vi.hoisted(() => vi.fn())
+const activate = vi.hoisted(() => vi.fn())
 const rows = vi.hoisted(() => ({ current: [] as UsersListItem[] }))
 
 vi.mock("../hooks/useUsers", () => ({
@@ -23,6 +24,9 @@ vi.mock("../hooks/useUsers", () => ({
 }))
 vi.mock("../hooks/useDeactivateUser", () => ({
   useDeactivateUser: () => ({ mutate: vi.fn(), isPending: false }),
+}))
+vi.mock("../hooks/useActivateUser", () => ({
+  useActivateUser: () => ({ mutate: activate, isPending: false }),
 }))
 vi.mock("../hooks/useResendCredentials", () => ({
   useResendCredentials: () => ({ mutate: resend, isPending: false }),
@@ -95,6 +99,45 @@ describe("UsersTable: Reenviar credenciales", () => {
 
     await waitFor(() =>
       expect(resend).toHaveBeenCalledWith("u-1", expect.anything())
+    )
+  })
+})
+
+describe("UsersTable: Habilitar y Dar de baja", () => {
+  it("ofrece Dar de baja, y no Habilitar, a una cuenta activa", () => {
+    render(<UsersTable />)
+
+    expect(screen.getByRole("button", { name: /dar de baja/i })).toBeEnabled()
+    expect(
+      screen.queryByRole("button", { name: /habilitar/i })
+    ).not.toBeInTheDocument()
+  })
+
+  it("ofrece Habilitar, y no Dar de baja, a una cuenta dada de baja", () => {
+    rows.current = [user({ active: false })]
+    render(<UsersTable />)
+
+    expect(screen.getByRole("button", { name: /habilitar/i })).toBeEnabled()
+    expect(
+      screen.queryByRole("button", { name: /dar de baja/i })
+    ).not.toBeInTheDocument()
+  })
+
+  it("pide confirmación antes de habilitar, y habilita al confirmar", async () => {
+    rows.current = [user({ active: false })]
+    render(<UsersTable />)
+
+    await userEvent.click(screen.getByRole("button", { name: /habilitar/i }))
+    expect(activate).not.toHaveBeenCalled()
+
+    const dialog = await screen.findByRole("alertdialog")
+    expect(dialog).toHaveTextContent("Ana Quispe")
+    await userEvent.click(
+      within(dialog).getByRole("button", { name: /habilitar/i })
+    )
+
+    await waitFor(() =>
+      expect(activate).toHaveBeenCalledWith("u-1", expect.anything())
     )
   })
 })

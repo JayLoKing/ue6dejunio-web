@@ -5,4 +5,5 @@ export const UserUrl = {
   ById: (id: string) => `${baseModuleUrl}/${id}`,
   ResendCredentials: (id: string) =>
     `${baseModuleUrl}/${id}/resend-credentials`,
+  Activate: (id: string) => `${baseModuleUrl}/${id}/activate`,
 } as const

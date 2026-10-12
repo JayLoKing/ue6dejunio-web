@@ -51,4 +51,10 @@ export class UserService {
     const { call } = helper.deactivateAsync(id)
     await call
   }
+
+  static async activate(id: string): Promise<UserResponse> {
+    const { call } = helper.activateAsync(id)
+    const response = await call
+    return response.data
+  }
 }

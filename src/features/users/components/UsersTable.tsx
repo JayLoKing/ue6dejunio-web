@@ -1,5 +1,11 @@
 import { useMemo, useState } from "react"
-import { MailIcon, PencilIcon, SearchIcon, UserMinusIcon } from "lucide-react"
+import {
+  MailIcon,
+  PencilIcon,
+  SearchIcon,
+  UserCheckIcon,
+  UserMinusIcon,
+} from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -18,6 +24,7 @@ import type { SortDir } from "@/lib/types/pagination"
 import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue"
 
 import { useUsers } from "../hooks/useUsers"
+import { useActivateUser } from "../hooks/useActivateUser"
 import { useDeactivateUser } from "../hooks/useDeactivateUser"
 import { useResendCredentials } from "../hooks/useResendCredentials"
 import { EditUserDialog } from "./EditUserDialog"
@@ -31,6 +38,7 @@ export function UsersTable() {
   const [sort] = useState<SortDir>("asc")
   const [editing, setEditing] = useState<UsersListItem | null>(null)
   const [deleting, setDeleting] = useState<UsersListItem | null>(null)
+  const [enabling, setEnabling] = useState<UsersListItem | null>(null)
   const [resending, setResending] = useState<UsersListItem | null>(null)
 
   const debouncedSearch = useDebouncedValue(search, 350)
@@ -47,12 +55,20 @@ export function UsersTable() {
 
   const { data, isLoading, isFetching, refetch } = useUsers(query)
   const deactivate = useDeactivateUser()
+  const activate = useActivateUser()
   const resend = useResendCredentials()
 
   const confirmDelete = () => {
     if (!deleting) return
     deactivate.mutate(deleting.id, {
       onSuccess: () => setDeleting(null),
+    })
+  }
+
+  const confirmEnable = () => {
+    if (!enabling) return
+    activate.mutate(enabling.id, {
+      onSuccess: () => setEnabling(null),
     })
   }
 
@@ -159,16 +175,28 @@ export function UsersTable() {
                       >
                         <MailIcon className="size-4" />
                       </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="size-8 text-destructive"
-                        title="Dar de baja"
-                        disabled={!u.active}
-                        onClick={() => setDeleting(u)}
-                      >
-                        <UserMinusIcon className="size-4" />
-                      </Button>
+                      {/* Una sola de las dos: la baja y el alta son caras de la misma cuenta. */}
+                      {u.active ? (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-8 text-destructive"
+                          title="Dar de baja"
+                          onClick={() => setDeleting(u)}
+                        >
+                          <UserMinusIcon className="size-4" />
+                        </Button>
+                      ) : (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-8 text-primary"
+                          title="Habilitar"
+                          onClick={() => setEnabling(u)}
+                        >
+                          <UserCheckIcon className="size-4" />
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -221,6 +249,20 @@ export function UsersTable() {
         loading={deactivate.isPending}
         onConfirm={confirmDelete}
         onOpenChange={(o) => !o && setDeleting(null)}
+      />
+
+      <ConfirmDialog
+        open={Boolean(enabling)}
+        title="Habilitar usuario"
+        description={
+          enabling
+            ? `${enabling.names} ${enabling.lastNames} volverá a tener acceso al sistema.`
+            : undefined
+        }
+        confirmLabel="Habilitar"
+        loading={activate.isPending}
+        onConfirm={confirmEnable}
+        onOpenChange={(o) => !o && setEnabling(null)}
       />
     </div>
   )

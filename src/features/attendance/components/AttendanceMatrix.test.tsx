@@ -257,13 +257,13 @@ describe("AttendanceMatrix", () => {
     expect(screen.getByText(/clic en una celda/i)).toBeInTheDocument()
   })
 
-  // ---------------------------------------------------------------- ventana de la semana
+  // ---------------------------------------------------------------- solo el día de hoy
 
   const cellOn = (iso: string) =>
     screen.getByRole("button", { name: new RegExp(`^Ana Quispe, ${iso}:`) })
 
-  /** La API acepta cualquier día hábil de la semana en curso hasta hoy; la pantalla no puede ser más estricta. */
-  it("deja corregir un día anterior de esta semana", async () => {
+  /** La API solo acepta la asistencia del día de hoy; la pantalla no puede ser más permisiva. */
+  it("mantiene cerrados los días anteriores de esta semana", async () => {
     const user = userEvent.setup()
     const onMark = vi.fn()
     render(
@@ -276,9 +276,10 @@ describe("AttendanceMatrix", () => {
       />
     )
 
-    await user.click(cellOn("2026-08-25"))
-
-    expect(onMark).toHaveBeenCalledWith("ce-1", "2026-08-25", "Present")
+    expect(cellOn("2026-08-24")).toBeDisabled()
+    expect(cellOn("2026-08-26")).toBeDisabled()
+    await user.click(cellOn("2026-08-26"))
+    expect(onMark).not.toHaveBeenCalled()
   })
 
   it("mantiene cerrados la semana anterior y los días que aún no llegan", async () => {
@@ -300,7 +301,7 @@ describe("AttendanceMatrix", () => {
     expect(onMark).not.toHaveBeenCalled()
   })
 
-  it("marca a todo el curso en el día elegido dentro de la ventana", async () => {
+  it("marca a todo el curso el día de hoy, sin elegir otro día", async () => {
     const user = userEvent.setup()
     const onMarkAll = vi.fn().mockResolvedValue({ total: 1, saved: 1 })
     render(
@@ -314,25 +315,34 @@ describe("AttendanceMatrix", () => {
       />
     )
 
-    // Por defecto actúa sobre hoy y lo dice en la etiqueta.
     expect(
       screen.getByText("Marcar todo el curso el 27/08/2026:")
     ).toBeInTheDocument()
-
-    await user.selectOptions(
-      screen.getByLabelText(/día a marcar/i),
-      "2026-08-25"
-    )
-    expect(
-      screen.getByText("Marcar todo el curso el 25/08/2026:")
-    ).toBeInTheDocument()
+    expect(screen.queryByLabelText(/día a marcar/i)).not.toBeInTheDocument()
     await user.click(screen.getByRole("button", { name: /presente/i }))
 
-    expect(onMarkAll).toHaveBeenCalledExactlyOnceWith("2026-08-25", "Present")
-    expect(cellOn("2026-08-25")).toHaveTextContent("P")
+    expect(onMarkAll).toHaveBeenCalledExactlyOnceWith(TODAY_ISO, "Present")
+    expect(cellOn(TODAY_ISO)).toHaveTextContent("P")
   })
 
-  it("dice que se puede editar la semana en curso hasta hoy", () => {
+  it("deja el marcado masivo deshabilitado en fin de semana", () => {
+    vi.setSystemTime(new Date(2026, 7, 29))
+    render(
+      <AttendanceMatrix
+        students={students}
+        year={2026}
+        month={8}
+        initialData={noData()}
+        onMark={vi.fn()}
+        onMarkAll={vi.fn()}
+      />
+    )
+
+    expect(screen.getByRole("button", { name: /presente/i })).toBeDisabled()
+    expect(cellOn("2026-08-28")).toBeDisabled()
+  })
+
+  it("dice que solo se puede editar el día de hoy", () => {
     render(
       <AttendanceMatrix
         students={students}
@@ -344,7 +354,7 @@ describe("AttendanceMatrix", () => {
     )
 
     expect(
-      screen.getByText(/días de esta semana hasta hoy/i)
+      screen.getByText(/puedes registrar o corregir solo el día de hoy/i)
     ).toBeInTheDocument()
   })
 })

@@ -30,7 +30,7 @@ export interface AttendanceMatrixProps {
     status: AttendanceApiStatus
   ) => void | Promise<unknown>
   /**
-   * Marca de una vez a todos los estudiantes de un día editable de la semana.
+   * Marca de una vez a todos los estudiantes el día de hoy, el único que se puede editar.
    *
    * Opcional: sin ella los botones de marcado masivo no aparecen, en vez de aparecer y resolverse
    * con treinta llamadas sueltas. Quien la provee manda un lote, que es una transacción sola.
@@ -66,7 +66,6 @@ const LEGEND = (["P", "A", "L"] as const).map((cell) => ({
 }))
 
 const WEEKDAY_LETTER = ["D", "L", "M", "M", "J", "V", "S"]
-const WEEKDAY_SHORT = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"]
 /** 2026-08-27 → 27/08/2026, cortando el texto y sin pasar por Date (un ISO sin hora corre un día). */
 const displayDate = (iso: string) => iso.split("-").reverse().join("/")
 const pad = (n: number) => String(n).padStart(2, "0")
@@ -109,20 +108,11 @@ export function AttendanceMatrix({
   >({})
   const cols = useMemo(() => weekdaysOfMonth(year, month), [year, month])
   const today = todayIso()
-  // Sólo los días de la ventana que además caen en el mes a la vista: la matriz muestra un mes y no
-  // se puede marcar una columna que no está dibujada.
-  const bulkDays = useMemo(
-    () => cols.filter((c) => isEditableAttendanceDay(c.iso, today)),
-    [cols, today]
-  )
-  const [chosenDay, setChosenDay] = useState<string | null>(null)
-  // Hoy salvo que el docente elija otro; si hoy no es columna (fin de semana, otro mes) el último
-  // día abierto es el más cercano a lo que quería corregir.
+  // Solo se marca hoy, y solo si hoy es una columna del mes a la vista: en fin de semana o mirando
+  // otro mes no hay día que marcar y los botones quedan deshabilitados.
   const bulkDay =
-    bulkDays.find((c) => c.iso === chosenDay)?.iso ??
-    bulkDays.find((c) => c.iso === today)?.iso ??
-    bulkDays.at(-1)?.iso ??
-    null
+    cols.find((c) => c.iso === today && isEditableAttendanceDay(c.iso, today))
+      ?.iso ?? null
 
   const cellOf = (ceId: string, iso: string): AttendanceCellStatus =>
     marked[ceId]?.[iso] ?? initialData?.[ceId]?.[iso] ?? null
@@ -197,13 +187,13 @@ export function AttendanceMatrix({
     <div className="flex min-w-0 flex-col gap-3">
       {/*
         La leyenda dice qué significa cada letra y cómo se cambia. Antes decía "Clic cíclico P → A →
-        L", que sólo se entiende si ya sabés qué es cada una: nombraba el mecanismo y no el
+        L", que solo se entiende si ya sabes qué es cada una: nombraba el mecanismo y no el
         significado, y P, A y L no son evidentes para alguien que abre esto por primera vez.
       */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border bg-muted/40 px-3 py-2.5 text-sm">
         <span className="inline-flex items-center gap-1.5 text-muted-foreground">
           <CalendarDaysIcon className="size-4" />
-          Lun a Vie. Puedes editar los días de esta semana hasta hoy.
+          Lun a Vie. Puedes registrar o corregir solo el día de hoy.
         </span>
         <span className="inline-flex flex-wrap items-center gap-x-3 gap-y-1">
           {LEGEND.map((item) => (
@@ -228,24 +218,9 @@ export function AttendanceMatrix({
       {onMarkAll ? (
         <div className="flex flex-wrap items-center gap-2 text-sm">
           {bulkDay ? (
-            <>
-              <select
-                aria-label="Día a marcar"
-                className="h-8 rounded-md border bg-background px-2 text-sm"
-                value={bulkDay}
-                onChange={(e) => setChosenDay(e.target.value)}
-              >
-                {bulkDays.map((c) => (
-                  <option key={c.iso} value={c.iso}>
-                    {WEEKDAY_SHORT[new Date(year, month - 1, c.day).getDay()]}{" "}
-                    {displayDate(c.iso)}
-                  </option>
-                ))}
-              </select>
-              <span className="text-muted-foreground">
-                Marcar todo el curso el {displayDate(bulkDay)}:
-              </span>
-            </>
+            <span className="text-muted-foreground">
+              Marcar todo el curso el {displayDate(bulkDay)}:
+            </span>
           ) : null}
           {LEGEND.map((item) => (
             <Button

@@ -10,6 +10,8 @@ export interface UpdateUserRequest {
    * dirección y lo dice en `credentialsResent`.
    */
   email?: string
+  /** Sólo cuando cambió. Uno que ya tiene otra persona vuelve como 409. */
+  ci?: string
 }
 
 export interface ListUsersQuery {

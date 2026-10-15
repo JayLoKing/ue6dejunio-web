@@ -55,6 +55,7 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
   } = useForm<UpdateUserFormValues>({
     resolver: zodResolver(updateUserSchema),
     defaultValues: {
+      ci: "",
       names: "",
       lastNames: "",
       phone: "",
@@ -68,6 +69,7 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
   useEffect(() => {
     if (user) {
       reset({
+        ci: user.ci,
         names: user.names,
         lastNames: user.lastNames,
         phone: user.phone ?? "",
@@ -83,6 +85,8 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
     // normalizado igual. Mandarlo sin cambios haría que un correo guardado con mayúsculas contara
     // como corregido, y a quien nunca entró le saldría una contraseña nueva.
     const emailChanged = values.email !== user.email.trim().toLowerCase()
+    // Lo mismo con el CI: el esquema lo recorta, así que se compara contra lo guardado recortado.
+    const ciChanged = values.ci !== user.ci.trim()
     try {
       await mutateAsync({
         id: user.id,
@@ -92,6 +96,7 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
           phone: values.phone ?? "",
           roleId: values.roleId,
           ...(emailChanged ? { email: values.email } : {}),
+          ...(ciChanged ? { ci: values.ci } : {}),
         },
       })
       onClose()
@@ -105,7 +110,9 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Editar usuario</DialogTitle>
-          <DialogDescription>{user ? `CI ${user.ci}` : ""}</DialogDescription>
+          <DialogDescription>
+            {user ? `${user.names} ${user.lastNames}` : ""}
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={onSubmit} noValidate>
@@ -156,6 +163,18 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
             </Field>
 
             <div className="grid grid-cols-2 gap-4">
+              <Field data-invalid={Boolean(errors.ci) || undefined}>
+                <FieldLabel htmlFor="edit-ci">CI</FieldLabel>
+                <Input
+                  id="edit-ci"
+                  aria-invalid={Boolean(errors.ci) || undefined}
+                  {...register("ci")}
+                />
+                {errors.ci ? (
+                  <FieldError>{errors.ci.message}</FieldError>
+                ) : null}
+              </Field>
+
               <Field data-invalid={Boolean(errors.phone) || undefined}>
                 <FieldLabel htmlFor="edit-phone">Teléfono</FieldLabel>
                 <Input
@@ -167,7 +186,9 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
                   <FieldError>{errors.phone.message}</FieldError>
                 ) : null}
               </Field>
+            </div>
 
+            <div className="grid grid-cols-2 gap-4">
               <Field data-invalid={Boolean(errors.roleId) || undefined}>
                 <FieldLabel htmlFor="edit-roleId">Rol</FieldLabel>
                 <Controller

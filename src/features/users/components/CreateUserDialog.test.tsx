@@ -103,4 +103,23 @@ describe("CreateUserDialog", () => {
       expect.objectContaining({ roleId: 2, technical: false })
     )
   })
+
+  /**
+   * A CI, email or phone someone else already has comes back as a 409, and the interceptor shows
+   * the API's sentence naming it. The form has to stay open with what was typed, so the Director
+   * fixes that one field instead of filling the whole form again.
+   */
+  it("stays open with what was typed when the API refuses a duplicate", async () => {
+    mutateAsync.mockRejectedValueOnce(new Error("409"))
+    await openDialog()
+    await chooseRole("Docente")
+    await fillIdentity()
+    await userEvent.click(
+      screen.getByRole("button", { name: /crear usuario/i })
+    )
+
+    expect(mutateAsync).toHaveBeenCalled()
+    expect(screen.getByLabelText("CI")).toHaveValue("1234567")
+    expect(screen.getByLabelText("Correo")).toHaveValue("ana@ue6.bo")
+  })
 })

@@ -92,3 +92,64 @@ describe("EditUserDialog", () => {
     expect(mutateAsync).not.toHaveBeenCalled()
   })
 })
+
+describe("EditUserDialog — CI", () => {
+  beforeEach(() => mutateAsync.mockClear())
+
+  it("muestra el CI actual en un campo editable", () => {
+    render(<EditUserDialog user={user} onClose={() => {}} />)
+
+    expect(screen.getByLabelText("CI")).toHaveValue("1234567")
+  })
+
+  it("manda el CI corregido", async () => {
+    render(<EditUserDialog user={user} onClose={() => {}} />)
+
+    await userEvent.clear(screen.getByLabelText("CI"))
+    await userEvent.type(screen.getByLabelText("CI"), "7654321")
+    await save()
+
+    expect(sentPayload()).toEqual(expect.objectContaining({ ci: "7654321" }))
+  })
+
+  /** Igual que el correo: lo que no cambió no viaja, y la API no tiene nada que comprobar. */
+  it("no manda el CI cuando no cambió", async () => {
+    render(<EditUserDialog user={user} onClose={() => {}} />)
+
+    await save()
+
+    expect(sentPayload()).not.toHaveProperty("ci")
+  })
+
+  it("rechaza un CI demasiado corto sin llamar a la API", async () => {
+    render(<EditUserDialog user={user} onClose={() => {}} />)
+
+    await userEvent.clear(screen.getByLabelText("CI"))
+    await userEvent.type(screen.getByLabelText("CI"), "123")
+    await save()
+
+    expect(
+      await screen.findByText("CI: mínimo 5 caracteres")
+    ).toBeInTheDocument()
+    expect(mutateAsync).not.toHaveBeenCalled()
+  })
+
+  /**
+   * Un CI, correo o teléfono que ya tiene otra persona vuelve como 409, y el interceptor muestra
+   * el mensaje de la API. El diálogo tiene que quedar abierto con lo escrito, para corregir ese
+   * dato y no volver a cargar todo.
+   */
+  it("queda abierto cuando la API rechaza un dato duplicado", async () => {
+    const onClose = vi.fn()
+    mutateAsync.mockRejectedValueOnce(new Error("409"))
+    render(<EditUserDialog user={user} onClose={onClose} />)
+
+    await userEvent.clear(screen.getByLabelText("CI"))
+    await userEvent.type(screen.getByLabelText("CI"), "7654321")
+    await save()
+
+    expect(mutateAsync).toHaveBeenCalled()
+    expect(onClose).not.toHaveBeenCalled()
+    expect(screen.getByLabelText("CI")).toHaveValue("7654321")
+  })
+})

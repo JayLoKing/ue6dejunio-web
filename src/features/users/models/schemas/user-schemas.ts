@@ -28,6 +28,8 @@ export const createUserSchema = z.object({
 export type CreateUserFormValues = z.infer<typeof createUserSchema>
 
 export const updateUserSchema = z.object({
+  // Corregible, con la misma regla que al crear; la API rechaza uno que ya tiene otra persona.
+  ci: ciString(),
   names: nameString("Nombres"),
   lastNames: nameString("Apellidos"),
   phone: phoneString(),

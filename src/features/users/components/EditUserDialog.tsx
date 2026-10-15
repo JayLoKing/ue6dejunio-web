@@ -59,7 +59,6 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
       lastNames: "",
       phone: "",
       roleId: 3,
-      active: true,
       email: "",
     },
   })
@@ -73,7 +72,6 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
         lastNames: user.lastNames,
         phone: user.phone ?? "",
         roleId: roleIdFromName(user.role),
-        active: user.active,
         email: user.email,
       })
     }
@@ -93,7 +91,6 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
           lastNames: values.lastNames,
           phone: values.phone ?? "",
           roleId: values.roleId,
-          active: values.active,
           ...(emailChanged ? { email: values.email } : {}),
         },
       })
@@ -199,28 +196,6 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
                 ) : null}
               </Field>
             </div>
-
-            <Controller
-              control={control}
-              name="active"
-              render={({ field }) => (
-                <Field>
-                  <FieldLabel htmlFor="edit-active">Estado</FieldLabel>
-                  <Select
-                    value={field.value ? "true" : "false"}
-                    onValueChange={(v) => field.onChange(v === "true")}
-                  >
-                    <SelectTrigger id="edit-active">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="true">Activo</SelectItem>
-                      <SelectItem value="false">Inactivo</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </Field>
-              )}
-            />
           </FieldGroup>
 
           <DialogFooter className="mt-6">

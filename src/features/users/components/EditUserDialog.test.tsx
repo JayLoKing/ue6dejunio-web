@@ -67,6 +67,20 @@ describe("EditUserDialog", () => {
     expect(sentPayload()).not.toHaveProperty("email")
   })
 
+  /**
+   * Dar de baja y reactivar tienen su propia acción en la tabla. Un campo Estado aquí era un
+   * segundo camino que la API ya no acepta.
+   */
+  it("no ofrece cambiar el estado ni lo manda", async () => {
+    render(<EditUserDialog user={user} onClose={() => {}} />)
+
+    expect(screen.queryByLabelText("Estado")).not.toBeInTheDocument()
+
+    await save()
+
+    expect(sentPayload()).not.toHaveProperty("active")
+  })
+
   it("rechaza un correo inválido sin llamar a la API", async () => {
     render(<EditUserDialog user={user} onClose={() => {}} />)
 

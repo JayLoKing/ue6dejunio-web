@@ -38,7 +38,6 @@ export const updateUserSchema = z.object({
     .number({ message: "Selecciona un rol" })
     .int()
     .positive("Selecciona un rol"),
-  active: z.boolean(),
   // La misma regla que al crear: si se pudo registrar, se puede corregir a eso.
   email: emailString(),
 })

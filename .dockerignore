@@ -1,0 +1,17 @@
+*
+!package.json
+!bun.lock
+!index.html
+!tsconfig*.json
+!vite.config.ts
+!src/
+!src/**
+!public/
+!public/**
+!nginx.conf
+**/*.test.*
+**/*.spec.*
+**/.env*
+**/*.pem
+**/*.key
+**/routeTree.gen.ts

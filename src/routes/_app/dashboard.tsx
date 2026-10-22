@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 
+import { NoHomeroomCourseNotice } from "@/components/shared/NoHomeroomCourseNotice"
 import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
 import { activeAcademicYear } from "@/features/catalog/utils/activeAcademicYear"
 import { useAcademicYears } from "@/features/catalog/hooks/useCatalog"
@@ -30,7 +31,7 @@ function PageNotice({ children }: PageNoticeProps) {
 }
 
 function DashboardPage() {
-  const { isTeacher, isDirector, isSecretary, homeroomCourseId } =
+  const { isTeacher, isTechnical, isDirector, isSecretary, homeroomCourseId } =
     useCurrentContext()
 
   // La gestión actual es la activa (`activeAcademicYear`), no la más reciente.
@@ -49,13 +50,15 @@ function DashboardPage() {
       </div>
 
       {isTeacher &&
-        (homeroomCourseId ? (
-          <DashboardCharts courseId={homeroomCourseId} />
-        ) : (
+        (isTechnical ? (
           <PageNotice>
             Docente técnico: sin curso de aula. Indicadores por materia en
             desarrollo.
           </PageNotice>
+        ) : homeroomCourseId ? (
+          <DashboardCharts courseId={homeroomCourseId} />
+        ) : (
+          <NoHomeroomCourseNotice whatYouWillSee="los indicadores del curso" />
         ))}
 
       {(isDirector || isSecretary) &&

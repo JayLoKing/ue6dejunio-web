@@ -4,6 +4,7 @@ import { Loader2Icon } from "lucide-react"
 
 import { useAuthStore } from "@/features/auth/store/authStore"
 import { isRole } from "@/features/auth/types"
+import { NoHomeroomCourseNotice } from "@/components/shared/NoHomeroomCourseNotice"
 import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
 import { useCourseStudents } from "@/features/courses/hooks/useCourses"
 import { EnrollStudentDialog } from "@/features/students/components/EnrollStudentDialog"
@@ -30,7 +31,7 @@ export const Route = createFileRoute("/_app/students")({
 const WHOLE_COURSE = { offset: 1, limit: 200, sort: "asc" as const }
 
 function StudentsPage() {
-  const { homeroomCourseId, isLoading } = useCurrentContext()
+  const { homeroomCourseId, isTechnical, isLoading } = useCurrentContext()
   const studentsQuery = useCourseStudents(homeroomCourseId, WHOLE_COURSE)
 
   const rows = useMemo<StudentRow[]>(
@@ -66,11 +67,13 @@ function StudentsPage() {
           <Loader2Icon className="size-4 animate-spin" />
           Cargando estudiantes...
         </div>
-      ) : !homeroomCourseId ? (
+      ) : isTechnical ? (
         <div className="rounded-md border border-dashed p-12 text-center text-muted-foreground">
           Como docente técnico no tienes un curso de aula. El padrón es del
           docente de aula.
         </div>
+      ) : !homeroomCourseId ? (
+        <NoHomeroomCourseNotice whatYouWillSee="el padrón del curso" />
       ) : (
         <StudentsTable
           data={rows}

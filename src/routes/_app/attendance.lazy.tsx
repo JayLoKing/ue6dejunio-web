@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { NoHomeroomCourseNotice } from "@/components/shared/NoHomeroomCourseNotice"
 import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
 import { useCourseStudents } from "@/features/courses/hooks/useCourses"
 import { useCourseAttendance } from "@/features/gradebook/hooks/useGradebook"
@@ -58,19 +59,41 @@ function AttendancePage() {
     )
   }
 
+  // Qué asistencia lleva este docente. El técnico, la de sus materias; el de aula, la diaria de su
+  // curso. Un docente de aula sin curso todavía no tiene diaria que marcar: si ya dicta alguna
+  // materia, marca la de sesión (es de quien tiene el class group), y si no, se le avisa.
+  const mode: "session" | "daily" | "none" = ctx.isTechnical
+    ? "session"
+    : ctx.homeroomCourseId
+      ? "daily"
+      : ctx.classGroups.length > 0
+        ? "session"
+        : "none"
+
+  if (mode === "none") {
+    return (
+      <div className="flex min-w-0 flex-col gap-6">
+        <h1 className="text-2xl font-semibold">Asistencia</h1>
+        <NoHomeroomCourseNotice whatYouWillSee="la asistencia diaria del curso" />
+      </div>
+    )
+  }
+
   return (
     <div className="flex min-w-0 flex-col gap-6">
       <div className="flex items-end justify-between gap-4">
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl font-semibold">
-            {ctx.homeroomCourseId
+            {mode === "daily"
               ? "Asistencia diaria del curso"
               : "Asistencia de mi materia"}
           </h1>
           <p className="text-sm text-muted-foreground">
-            {ctx.homeroomCourseId
+            {mode === "daily"
               ? "Regularidad oficial (curso de aula)."
-              : "Asistencia por sesión de materia (docente técnico)."}
+              : ctx.isTechnical
+                ? "Asistencia por sesión de materia (docente técnico)."
+                : "Asistencia por sesión de materia."}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -107,7 +130,7 @@ function AttendancePage() {
         </div>
       </div>
 
-      {ctx.homeroomCourseId ? (
+      {mode === "daily" && ctx.homeroomCourseId ? (
         <DailyCourseAttendance
           courseId={ctx.homeroomCourseId}
           year={year}

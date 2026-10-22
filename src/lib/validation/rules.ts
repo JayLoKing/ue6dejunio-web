@@ -72,19 +72,6 @@ export const phoneString = () =>
     .optional()
     .or(z.literal(""))
 
-/** RUDE code: alphanumeric, up to 20. */
-export const rudeString = () =>
-  z
-    .string()
-    .transform((s) => s.trim())
-    .pipe(
-      z
-        .string()
-        .min(1, "RUDE requerido")
-        .max(20, "RUDE: máximo 20 caracteres")
-        .regex(/^[0-9A-Za-z]+$/, "RUDE inválido")
-    )
-
 // ---- Password strength ----
 
 export interface PasswordRule {

@@ -13,6 +13,27 @@ vi.mock("@/features/institution/hooks/useInstitution", () => ({
   useInstitution: () => ({ data: undefined, isLoading: false }),
 }))
 
+// The real button stays; beside it, the subtitles it was handed, which is the scope the document
+// declares.
+vi.mock("@/components/shared/ExportReportButton", async (importActual) => {
+  const actual =
+    await importActual<
+      typeof import("@/components/shared/ExportReportButton")
+    >()
+  const { createElement, Fragment } = await import("react")
+  return {
+    ExportReportButton: (
+      props: Parameters<typeof actual.ExportReportButton>[0]
+    ) =>
+      createElement(
+        Fragment,
+        null,
+        createElement(actual.ExportReportButton, props),
+        createElement("p", null, `subtitles:${props.subtitles.join("|")}`)
+      ),
+  }
+})
+
 const query = (over: Record<string, unknown> = {}) => ({
   data: undefined,
   isLoading: false,
@@ -89,5 +110,45 @@ describe("InstitutionRiskPanel", () => {
     )
 
     expect(screen.getByText(/Sin gestión activa/)).toBeInTheDocument()
+  })
+})
+
+describe("InstitutionRiskPanel, export", () => {
+  const atRisk = query({ data: [] })
+
+  it("names the year in the document when it is known", () => {
+    useInstitutionRisk.mockReturnValue(atRisk)
+
+    render(
+      <InstitutionRiskPanel
+        academicYearId={7}
+        trimester={2}
+        places={10}
+        year={2026}
+      />
+    )
+
+    expect(
+      screen.getByText(
+        "subtitles:Alcance: unidad educativa|Gestión 2026|Trimestre 2"
+      )
+    ).toBeInTheDocument()
+  })
+
+  it("leaves the year line out instead of a bare 'Gestión' when it is unknown", () => {
+    useInstitutionRisk.mockReturnValue(atRisk)
+
+    render(
+      <InstitutionRiskPanel
+        academicYearId={7}
+        trimester={2}
+        places={10}
+        year={null}
+      />
+    )
+
+    expect(
+      screen.getByText("subtitles:Alcance: unidad educativa|Trimestre 2")
+    ).toBeInTheDocument()
   })
 })

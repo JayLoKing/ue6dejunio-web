@@ -133,7 +133,7 @@ export function InstitutionHonorRollPanel({
           title="CUADRO DE HONOR"
           subtitles={[
             "Alcance: unidad educativa",
-            `Gestión ${year ?? ""}`.trim(),
+            ...(year != null ? [`Gestión ${year}`] : []),
             `Los ${places} mejores promedios finales`,
           ]}
           columns={COLUMNS_WITH_COURSE}

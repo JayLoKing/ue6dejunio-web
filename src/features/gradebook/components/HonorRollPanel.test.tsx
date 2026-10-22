@@ -20,6 +20,27 @@ vi.mock("@/features/institution/hooks/useInstitution", () => ({
   useInstitution: () => ({ data: undefined, isLoading: false }),
 }))
 
+// El botón real se queda (las pruebas de exportación lo buscan); al lado se escriben los subtítulos
+// que recibió, que es lo que el documento declara como alcance.
+vi.mock("@/components/shared/ExportReportButton", async (importActual) => {
+  const actual =
+    await importActual<
+      typeof import("@/components/shared/ExportReportButton")
+    >()
+  const { createElement, Fragment } = await import("react")
+  return {
+    ExportReportButton: (
+      props: Parameters<typeof actual.ExportReportButton>[0]
+    ) =>
+      createElement(
+        Fragment,
+        null,
+        createElement(actual.ExportReportButton, props),
+        createElement("p", null, `subtitles:${props.subtitles.join("|")}`)
+      ),
+  }
+})
+
 const query = (over: Record<string, unknown> = {}) => ({
   data: undefined,
   isLoading: false,
@@ -110,6 +131,34 @@ describe("HonorRollPanel, exportación", () => {
 
     expect(
       screen.getByRole("button", { name: /exportar docx/i })
+    ).toBeInTheDocument()
+  })
+
+  it("nombra la gestión en el documento cuando la conoce", () => {
+    useInstitutionHonorRoll.mockReturnValue(query({ data: [entry] }))
+
+    render(
+      <InstitutionHonorRollPanel academicYearId={7} places={10} year={2026} />
+    )
+
+    expect(
+      screen.getByText(
+        "subtitles:Alcance: unidad educativa|Gestión 2026|Los 10 mejores promedios finales"
+      )
+    ).toBeInTheDocument()
+  })
+
+  it("omite la línea de la gestión en vez de un 'Gestión' suelto cuando no la conoce", () => {
+    useInstitutionHonorRoll.mockReturnValue(query({ data: [entry] }))
+
+    render(
+      <InstitutionHonorRollPanel academicYearId={7} places={10} year={null} />
+    )
+
+    expect(
+      screen.getByText(
+        "subtitles:Alcance: unidad educativa|Los 10 mejores promedios finales"
+      )
     ).toBeInTheDocument()
   })
 

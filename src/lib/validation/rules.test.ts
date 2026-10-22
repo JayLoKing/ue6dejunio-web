@@ -10,7 +10,6 @@ import {
   PASSWORD_RULES,
   passwordString,
   phoneString,
-  rudeString,
   trimmedString,
 } from "./rules"
 
@@ -228,35 +227,6 @@ describe("phoneString", () => {
     expect(errorOf(schema, "1".repeat(20))).toBeUndefined()
     expect(errorOf(schema, ` ${"1".repeat(20)} `)).toBeUndefined()
     expect(errorOf(schema, "1".repeat(21))).toBe("Teléfono muy largo")
-  })
-})
-
-// Not wired into any form yet; pinned so a future student form inherits a known rule.
-describe("rudeString", () => {
-  const schema = rudeString()
-
-  it("accepts letters and digits up to 20", () => {
-    expect(errorOf(schema, "8090012345A")).toBeUndefined()
-    expect(errorOf(schema, "A".repeat(20))).toBeUndefined()
-  })
-
-  it("trims surrounding spaces", () => {
-    expect(parsed(schema, " 80900123 ")).toBe("80900123")
-  })
-
-  it("requires a value", () => {
-    expect(errorOf(schema, "")).toBe("RUDE requerido")
-    expect(errorOf(schema, "   ")).toBe("RUDE requerido")
-  })
-
-  it("rejects more than 20 characters", () => {
-    expect(errorOf(schema, "1".repeat(21))).toBe("RUDE: máximo 20 caracteres")
-  })
-
-  it("rejects separators, inner spaces and ñ", () => {
-    expect(errorOf(schema, "8090-0123")).toBe("RUDE inválido")
-    expect(errorOf(schema, "8090 0123")).toBe("RUDE inválido")
-    expect(errorOf(schema, "8090Ñ")).toBe("RUDE inválido")
   })
 })
 

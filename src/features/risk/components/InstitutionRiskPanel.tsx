@@ -89,7 +89,7 @@ export function InstitutionRiskPanel({
           title="REPORTE DE ESTUDIANTES EN RIESGO"
           subtitles={[
             "Alcance: unidad educativa",
-            `Gestión ${year ?? ""}`.trim(),
+            ...(year != null ? [`Gestión ${year}`] : []),
             `Trimestre ${trimester}`,
           ]}
           columns={COLUMNS}

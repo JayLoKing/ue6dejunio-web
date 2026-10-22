@@ -22,6 +22,14 @@ vi.mock("@visx/responsive", () => ({
   }) => children({ width: 300, height: 150 }),
 }))
 
+// Las barras reales sólo dibujan rectángulos sin nombre. Este doble deja en el DOM qué serie pidió
+// el tablero y con qué color; se llama `Bar` porque el gráfico reconoce sus series por ese nombre.
+vi.mock("@/components/charts/bar", () => ({
+  Bar: function Bar({ dataKey, fill }: { dataKey: string; fill?: string }) {
+    return <g data-fill={fill} data-series={dataKey} />
+  },
+}))
+
 import { DashboardCharts } from "./DashboardCharts"
 
 const row = (average: string) => ({
@@ -104,6 +112,43 @@ describe("DashboardCharts", () => {
     )
     expect(screen.getByText(/Aprobados y reprobados/)).toHaveTextContent(
       "3er trimestre"
+    )
+  })
+
+  /**
+   * Los atrasos iban sumados a las licencias, así que el docente no podía ver cuántos hubo. Ahora
+   * que se registran por separado, el gráfico los muestra en su propia serie.
+   */
+  it("muestra los atrasos por mes como una serie propia", () => {
+    const month = {
+      year: 2026,
+      month: 3,
+      present: 20,
+      absent: 2,
+      late: 3,
+      excused: 1,
+      computableSessions: 25,
+      percentage: 80,
+    }
+    useCourseAttendanceStats.mockReturnValue({
+      data: {
+        courseId: "c-1",
+        scope: "course",
+        trimester: null,
+        overall: month,
+        byMonth: [month],
+        byTrimester: [],
+      },
+    })
+
+    const { container } = render(<DashboardCharts courseId="c-1" />)
+
+    const series = (key: string) =>
+      container.querySelector(`[data-series="${key}"]`)
+    expect(series("Atrasos")).not.toBeNull()
+    expect(series("Licencias")).not.toBeNull()
+    expect(series("Atrasos")?.getAttribute("data-fill")).not.toBe(
+      series("Licencias")?.getAttribute("data-fill")
     )
   })
 })

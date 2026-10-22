@@ -29,7 +29,7 @@ const MONTHS = [
   "Dic",
 ]
 
-// Estado crudo del backend (4 estados, no la versión colapsada P/A/L).
+// Estado crudo del backend, los cuatro con la misma etiqueta que la matriz de registro.
 const STATUS_META: Record<
   string,
   { short: string; label: string; cls: string }
@@ -46,7 +46,7 @@ const STATUS_META: Record<
   },
   Late: {
     short: "R",
-    label: "Retraso",
+    label: "Atraso",
     cls: "bg-warning/12 text-warning",
   },
   Excused: {

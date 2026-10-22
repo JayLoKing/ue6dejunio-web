@@ -143,7 +143,7 @@ export function DashboardCharts({ courseId }: DashboardChartsProps) {
     [t1.data, t2.data, t3.data]
   )
 
-  // Asistencia mes a mes, apilada. Las tres categorías son excluyentes y suman el total de
+  // Asistencia mes a mes, apilada. Las cuatro categorías son excluyentes y suman el total de
   // jornadas, así que apiladas se leen como "de qué está hecho el mes" — que es la pregunta.
   const attendanceByMonth = useMemo(
     () =>
@@ -151,9 +151,10 @@ export function DashboardCharts({ courseId }: DashboardChartsProps) {
         name: MONTHS_SHORT[m.month - 1] ?? String(m.month),
         Presentes: m.present,
         Ausentes: m.absent,
-        // Retraso y licencia juntos: ninguno es una falta, y separarlos daría cuatro series
-        // apiladas donde las dos de arriba son franjas de dos píxeles que nadie puede comparar.
-        Licencias: m.excused + m.late,
+        // Atraso aparte de la licencia: ahora que el docente lo registra, sumarlo a las licencias
+        // escondería justo el dato que vino a anotar.
+        Atrasos: m.late,
+        Licencias: m.excused,
       })),
     [attendance.data]
   )
@@ -287,7 +288,8 @@ export function DashboardCharts({ courseId }: DashboardChartsProps) {
                 <Grid horizontal />
                 <Bar dataKey="Presentes" fill="var(--chart-1)" />
                 <Bar dataKey="Ausentes" fill="var(--chart-3)" />
-                <Bar dataKey="Licencias" fill="var(--chart-2)" />
+                <Bar dataKey="Atrasos" fill="var(--chart-2)" />
+                <Bar dataKey="Licencias" fill="var(--chart-4)" />
                 <BarXAxis />
                 <ChartTooltip />
               </BarChart>

@@ -42,7 +42,11 @@ import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
 import { useCourseOverview } from "@/features/courses/hooks/useCourses"
 import { coursePermissions } from "@/features/courses/utils/coursePermissions"
 import { isTechnicalSubject } from "@/features/courses/utils/subject"
-import { useParallels } from "@/features/catalog/hooks/useCatalog"
+import {
+  useParallels,
+  useTrimesters,
+} from "@/features/catalog/hooks/useCatalog"
+import { currentTrimester } from "@/features/catalog/utils/currentTrimester"
 
 export function AppSidebar() {
   const role = useAuthStore((s) => s.role)
@@ -57,10 +61,15 @@ export function AppSidebar() {
   const ctx = useCurrentContext()
   const isTechnical = ctx.isTechnical
   const classGroups = ctx.classGroups
-  // Docente de aula: ve las 9 materias del curso (incl. técnicas) vía overview.
+  // Docente de aula: ve las 9 materias del curso (incl. técnicas) vía overview, del trimestre en
+  // curso según el calendario de la gestión — no siempre del 1. Espera al calendario para no pedir
+  // el 1 y enseguida el que corresponde; si el calendario falla, queda el 1.
+  const trimestersQuery = useTrimesters()
   const homeroomOverview = useCourseOverview(
-    teacher && !isTechnical ? ctx.homeroomCourseId : null,
-    1
+    teacher && !isTechnical && !trimestersQuery.isLoading
+      ? ctx.homeroomCourseId
+      : null,
+    currentTrimester(trimestersQuery.data)
   )
   const subjects = useMemo(
     () =>
@@ -68,7 +77,8 @@ export function AppSidebar() {
     [isTechnical, classGroups, homeroomOverview.data]
   )
   const subjectsLoading =
-    ctx.isLoading || (!isTechnical && homeroomOverview.isLoading)
+    ctx.isLoading ||
+    (!isTechnical && (trimestersQuery.isLoading || homeroomOverview.isLoading))
   const parallelsQuery = useParallels()
   const parallels = useMemo(
     () => parallelsQuery.data ?? [],

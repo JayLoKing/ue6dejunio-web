@@ -1,6 +1,6 @@
 export type AttendanceApiStatus = "Present" | "Absent" | "Excused" | "Late"
 
-export type AttendanceCellStatus = "P" | "A" | "L" | null
+export type AttendanceCellStatus = "P" | "A" | "R" | "L" | null
 
 export interface DailyAttendancePayload {
   id_course_enrollment: string

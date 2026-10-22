@@ -7,15 +7,16 @@ export const CELL_TO_API: Record<
 > = {
   P: "Present",
   A: "Absent",
+  R: "Late",
   L: "Excused",
 }
 
-/** What the API stores, translated to what a cell shows. A late arrival reads as absent. */
+/** What the API stores, translated to what a cell shows. Every status has its own letter. */
 export const API_TO_CELL: Record<AttendanceApiStatus, AttendanceCellStatus> = {
   Present: "P",
   Absent: "A",
   Excused: "L",
-  Late: "A",
+  Late: "R",
 }
 
 /**
@@ -40,6 +41,8 @@ export const nextStatus = (
     case "P":
       return "A"
     case "A":
+      return "R"
+    case "R":
       return "L"
     case "L":
       return "P"

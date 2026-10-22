@@ -253,8 +253,60 @@ describe("AttendanceMatrix", () => {
 
     expect(screen.getByText("Presente")).toBeInTheDocument()
     expect(screen.getByText("Ausente")).toBeInTheDocument()
+    expect(screen.getByText("Atraso")).toBeInTheDocument()
     expect(screen.getByText("Licencia")).toBeInTheDocument()
     expect(screen.getByText(/clic en una celda/i)).toBeInTheDocument()
+  })
+
+  // ---------------------------------------------------------------- atraso
+
+  it("pasa por el atraso entre la falta y la licencia", async () => {
+    const user = userEvent.setup()
+    const onMark = vi.fn()
+    render(
+      <AttendanceMatrix
+        students={students}
+        year={2026}
+        month={8}
+        initialData={{ "ce-1": { [TODAY_ISO]: "A" } }}
+        onMark={onMark}
+      />
+    )
+
+    await user.click(editableCell())
+
+    expect(editableCell()).toHaveTextContent("R")
+    expect(editableCell()).toHaveAccessibleName(
+      `Ana Quispe, ${TODAY_ISO}: Atraso`
+    )
+    expect(onMark).toHaveBeenCalledWith("ce-1", TODAY_ISO, "Late")
+
+    await user.click(editableCell())
+
+    expect(editableCell()).toHaveTextContent("L")
+  })
+
+  /** Que todo el curso llegue tarde no es un caso real; el atraso se marca de a uno. */
+  it("no ofrece marcar a todo el curso con atraso", () => {
+    render(
+      <AttendanceMatrix
+        students={students}
+        year={2026}
+        month={8}
+        initialData={noData()}
+        onMark={vi.fn()}
+        onMarkAll={vi.fn()}
+      />
+    )
+
+    expect(
+      screen.getByRole("button", { name: /presente/i })
+    ).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /ausente/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: /licencia/i })
+    ).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: /atraso/i })).toBeNull()
   })
 
   // ---------------------------------------------------------------- solo el día de hoy

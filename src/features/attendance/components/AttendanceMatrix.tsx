@@ -41,29 +41,34 @@ export interface AttendanceMatrixProps {
   ) => void | Promise<unknown>
 }
 
-const STATUS_STYLE: Record<
-  Exclude<AttendanceCellStatus, null>,
-  { label: string; cls: string }
-> = {
+type MarkedStatus = Exclude<AttendanceCellStatus, null>
+
+const STATUS_STYLE: Record<MarkedStatus, { label: string; cls: string }> = {
   P: {
     label: "Presente",
     cls: "bg-success/12 text-success",
   },
   A: { label: "Ausente", cls: "bg-destructive/15 text-destructive" },
+  R: { label: "Atraso", cls: "bg-warning/12 text-warning" },
   L: { label: "Licencia", cls: "bg-brand/15 text-brand" },
 }
 
 /**
- * Las tres letras, en el orden en que el clic las recorre.
- *
- * Derivado de `STATUS_STYLE` y no escrito otra vez: la leyenda, los botones de marcado masivo y las
- * celdas tienen que decir lo mismo, y tres listas paralelas divergen la primera vez que alguien
- * cambie una etiqueta en una sola de ellas.
+ * Las letras con su etiqueta, sacada de `STATUS_STYLE` y no escrita otra vez: la leyenda, los botones
+ * de marcado masivo y las celdas tienen que decir lo mismo, y listas paralelas divergen la primera
+ * vez que alguien cambie una etiqueta en una sola de ellas.
  */
-const LEGEND = (["P", "A", "L"] as const).map((cell) => ({
-  cell,
-  label: STATUS_STYLE[cell].label,
-}))
+const labelled = (cells: readonly MarkedStatus[]) =>
+  cells.map((cell) => ({ cell, label: STATUS_STYLE[cell].label }))
+
+/** Las cuatro letras, en el orden en que el clic las recorre. */
+const LEGEND = labelled(["P", "A", "R", "L"])
+
+/**
+ * Lo que se puede marcar a todo el curso de una vez. El atraso queda fuera a propósito: que llegue
+ * tarde el curso entero no es un caso real, y el botón solo serviría para equivocarse.
+ */
+const BULK_MARKS = labelled(["P", "A", "L"])
 
 const WEEKDAY_LETTER = ["D", "L", "M", "M", "J", "V", "S"]
 /** 2026-08-27 → 27/08/2026, cortando el texto y sin pasar por Date (un ISO sin hora corre un día). */
@@ -149,7 +154,7 @@ export function AttendanceMatrix({
    * todo lo que este clic había puesto — no se limpia la columna entera, porque puede haber marcas
    * anteriores que no eran de este lote.
    */
-  const markAll = (status: Exclude<AttendanceCellStatus, null>) => {
+  const markAll = (status: MarkedStatus) => {
     if (!onMarkAll || !bulkDay) return
     const day = bulkDay
     const previous = Object.fromEntries(
@@ -211,7 +216,7 @@ export function AttendanceMatrix({
           ))}
         </span>
         <span className="text-muted-foreground">
-          Haz clic en una celda para ir cambiando entre las tres.
+          Haz clic en una celda para ir cambiando entre las cuatro.
         </span>
       </div>
 
@@ -222,7 +227,7 @@ export function AttendanceMatrix({
               Marcar todo el curso el {displayDate(bulkDay)}:
             </span>
           ) : null}
-          {LEGEND.map((item) => (
+          {BULK_MARKS.map((item) => (
             <Button
               key={item.cell}
               disabled={!bulkDay}

@@ -1,13 +1,20 @@
 import { describe, expect, it } from "vitest"
 
-import { cellFromApi, nextStatus } from "./attendanceStatus"
+import { CELL_TO_API, cellFromApi, nextStatus } from "./attendanceStatus"
 
 describe("nextStatus", () => {
   it("cycles through every status and back", () => {
     expect(nextStatus(null)).toBe("P")
     expect(nextStatus("P")).toBe("A")
-    expect(nextStatus("A")).toBe("L")
+    expect(nextStatus("A")).toBe("R")
+    expect(nextStatus("R")).toBe("L")
     expect(nextStatus("L")).toBe("P")
+  })
+})
+
+describe("CELL_TO_API", () => {
+  it("sends a late arrival as Late, not as an absence", () => {
+    expect(CELL_TO_API.R).toBe("Late")
   })
 })
 
@@ -18,8 +25,9 @@ describe("cellFromApi", () => {
     expect(cellFromApi("Excused")).toBe("L")
   })
 
-  it("reads a late arrival as absent, the way the matrix shows it", () => {
-    expect(cellFromApi("Late")).toBe("A")
+  // It used to read as absent, so re-saving the day silently turned every late into an absence.
+  it("reads a late arrival as late", () => {
+    expect(cellFromApi("Late")).toBe("R")
   })
 
   // The wire type is a plain string, so a status added on the server before the front end knows

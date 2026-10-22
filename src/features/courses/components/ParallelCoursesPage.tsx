@@ -132,7 +132,19 @@ export function ParallelCoursesPage({ parallelId }: ParallelCoursesPageProps) {
 
               <div className="flex items-center gap-2 text-sm">
                 <UserCogIcon className="size-4 text-muted-foreground" />
-                {c.homeroomTeacherName ? (
+                {c.homeroomTeacherName && !c.homeroomTeacherActive ? (
+                  // Dado de baja sigue figurando como encargado, pero nadie lleva el curso: con el
+                  // nombre a secas parecía en orden. El nombre queda, apagado, por si la salida es
+                  // reactivarlo.
+                  <span className="flex min-w-0 flex-col">
+                    <span className="text-warning">
+                      Docente dado de baja: reasigna un docente activo.
+                    </span>
+                    <span className="truncate text-xs text-muted-foreground">
+                      {c.homeroomTeacherName}
+                    </span>
+                  </span>
+                ) : c.homeroomTeacherName ? (
                   <span className="truncate">{c.homeroomTeacherName}</span>
                 ) : (
                   <Badge variant="outline" className="text-muted-foreground">

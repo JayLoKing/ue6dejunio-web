@@ -72,15 +72,19 @@ vi.mock("../hooks/useCourses", () => ({
   },
 }))
 
+const allTeachers = [
+  { id: "t-1", fullName: "Nora Arnez" },
+  { id: "t-2", fullName: "Ana Perez" },
+  { id: "t-3", fullName: "Carla Rojas" },
+]
+let teachers: {
+  data: typeof allTeachers | undefined
+  isLoading: boolean
+  isError: boolean
+} = { data: allTeachers, isLoading: false, isError: false }
+
 vi.mock("@/features/catalog/hooks/useCatalog", () => ({
-  useTeachers: () => ({
-    data: [
-      { id: "t-1", fullName: "Nora Arnez" },
-      { id: "t-2", fullName: "Ana Perez" },
-      { id: "t-3", fullName: "Carla Rojas" },
-    ],
-    isLoading: false,
-  }),
+  useTeachers: () => teachers,
 }))
 
 describe("SetHomeroomDialog", () => {
@@ -88,6 +92,7 @@ describe("SetHomeroomDialog", () => {
     useAuthStore.setState({ role: "DIRECTOR" })
     coursesLoading = false
     yearsAsked.length = 0
+    teachers = { data: allTeachers, isLoading: false, isError: false }
     vi.clearAllMocks()
   })
 
@@ -277,5 +282,60 @@ describe("SetHomeroomDialog, secretaría", () => {
       id: "course-1",
       teacherId: "t-3",
     })
+  })
+})
+
+/**
+ * Un curso cuyo docente de aula fue dado de baja, en una gestión sin nadie a quien dárselo: ni
+ * libres ni para intercambiar. El diálogo tiene que decir qué hacer, no ofrecer un select vacío
+ * con "Asignar" encendido para el mismo docente dado de baja.
+ */
+describe("SetHomeroomDialog, sin candidatos", () => {
+  const orphaned: Course = {
+    ...baseCourse,
+    homeroomTeacherActive: false,
+  }
+
+  beforeEach(() => {
+    useAuthStore.setState({ role: "DIRECTOR" })
+    coursesLoading = false
+    vi.clearAllMocks()
+  })
+
+  it("explica que no hay docentes de aula activos y deshabilita Asignar", () => {
+    teachers = { data: [], isLoading: false, isError: false }
+
+    render(<SetHomeroomDialog course={orphaned} onClose={vi.fn()} />)
+
+    expect(
+      screen.getByText(
+        "No hay docentes de aula activos disponibles: ni libres (sin curso asignado) ni para intercambiar. Registra un docente nuevo o reactiva uno en Usuarios."
+      )
+    ).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /Asignar/i })).toBeDisabled()
+  })
+
+  it("no lo dice mientras los docentes cargan", () => {
+    teachers = { data: undefined, isLoading: true, isError: false }
+
+    render(<SetHomeroomDialog course={orphaned} onClose={vi.fn()} />)
+
+    expect(
+      screen.queryByText(/No hay docentes de aula activos/)
+    ).not.toBeInTheDocument()
+  })
+
+  it("dice que la lista falló en vez de que no hay docentes", () => {
+    teachers = { data: undefined, isLoading: false, isError: true }
+
+    render(<SetHomeroomDialog course={orphaned} onClose={vi.fn()} />)
+
+    expect(
+      screen.getByText(/No se pudieron cargar los docentes/)
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText(/No hay docentes de aula activos/)
+    ).not.toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /Asignar/i })).toBeDisabled()
   })
 })

@@ -123,6 +123,15 @@ function SetHomeroomForm({ course, onClose }: SetHomeroomFormProps) {
 
   const isPending = setHomeroom.isPending || swapHomeroom.isPending
 
+  // Sin candidatos no hay nada que asignar: ni libres ni para intercambiar, porque la lista ya son
+  // todos los docentes de aula activos. Sólo cuando la lista llegó vacía; mientras carga no se sabe,
+  // y si falló, decir "no hay" sería mentir sobre la gestión.
+  const noCandidates =
+    !aulaTeachers.isLoading &&
+    !aulaTeachers.isError &&
+    (aulaTeachers.data ?? []).length === 0
+  const teachersFailed = aulaTeachers.isError
+
   return (
     <>
       <DialogHeader>
@@ -164,6 +173,17 @@ function SetHomeroomForm({ course, onClose }: SetHomeroomFormProps) {
           . Este curso no tiene a quién darle a cambio, así que no se puede
           intercambiar: elige un docente sin curso, o asigna primero un docente
           de aula a este curso.
+        </p>
+      ) : teachersFailed ? (
+        <p className="text-sm text-destructive">
+          No se pudieron cargar los docentes. Cierra el diálogo e inténtalo de
+          nuevo.
+        </p>
+      ) : noCandidates ? (
+        <p className="text-sm text-muted-foreground">
+          No hay docentes de aula activos disponibles: ni libres (sin curso
+          asignado) ni para intercambiar. Registra un docente nuevo o reactiva
+          uno en Usuarios.
         </p>
       ) : blockedByActiveTeacher ? (
         <p className="text-sm text-muted-foreground">
@@ -208,6 +228,8 @@ function SetHomeroomForm({ course, onClose }: SetHomeroomFormProps) {
           disabled={
             !teacherId ||
             isPending ||
+            noCandidates ||
+            teachersFailed ||
             blockedByActiveTeacher ||
             blockedByTeacherWithAnotherCourse ||
             blockedBySwapOnlyDirector

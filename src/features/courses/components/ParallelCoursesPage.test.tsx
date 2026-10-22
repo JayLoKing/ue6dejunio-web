@@ -219,4 +219,56 @@ describe("ParallelCoursesPage, actions by role", () => {
     await userEvent.click(screen.getByRole("button", { name: /Reactivar/ }))
     expect(reactivate).toHaveBeenCalledWith("c-off")
   })
+
+  it("names an active homeroom teacher plainly", () => {
+    coursesState = () => ({
+      data: {
+        content: [
+          course({
+            id: "c-on",
+            homeroomTeacherId: "t-1",
+            homeroomTeacherName: "Nora Arnez",
+            homeroomTeacherActive: true,
+          }),
+        ],
+      },
+      isLoading: false,
+      isError: false,
+    })
+    render(<ParallelCoursesPage parallelId="1" />)
+    expect(screen.getByText("Nora Arnez")).toBeInTheDocument()
+    expect(screen.queryByText(/Docente dado de baja/)).not.toBeInTheDocument()
+    expect(screen.queryByText("Sin docente de aula")).not.toBeInTheDocument()
+  })
+
+  // A deactivated teacher still holds the course on paper, but nobody is teaching it: printing the
+  // name as if all were well is how the course went unnoticed.
+  it("warns that the homeroom teacher was deactivated and asks for an active one", () => {
+    coursesState = () => ({
+      data: {
+        content: [
+          course({
+            id: "c-orphan",
+            homeroomTeacherId: "t-1",
+            homeroomTeacherName: "Nora Arnez",
+            homeroomTeacherActive: false,
+          }),
+        ],
+      },
+      isLoading: false,
+      isError: false,
+    })
+    render(<ParallelCoursesPage parallelId="1" />)
+    expect(
+      screen.getByText("Docente dado de baja: reasigna un docente activo.")
+    ).toBeInTheDocument()
+    // Still named, so the Director knows whom to reactivate if that is the answer.
+    expect(screen.getByText("Nora Arnez")).toBeInTheDocument()
+  })
+
+  it("says a course has no homeroom teacher when it has none", () => {
+    render(<ParallelCoursesPage parallelId="1" />)
+    expect(screen.getByText("Sin docente de aula")).toBeInTheDocument()
+    expect(screen.queryByText(/Docente dado de baja/)).not.toBeInTheDocument()
+  })
 })

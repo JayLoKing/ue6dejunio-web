@@ -40,6 +40,7 @@ vi.mock("@/features/gradebook/hooks/useGradebook", async (importOriginal) => ({
   useCourseAttendance: idleQuery,
 }))
 vi.mock("@/features/attendance/hooks/useAttendance", () => ({
+  useClassGroupSessionAttendance: idleQuery,
   useDailyAttendance: idleMutation,
   useDailyAttendanceBatch: idleMutation,
   useSessionAttendance: idleMutation,

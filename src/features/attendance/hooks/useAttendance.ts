@@ -1,4 +1,12 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import {
+  keepPreviousData,
+  skipToken,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
+
+import type { PageQuery } from "@/lib/types/pagination"
 
 import { AttendanceService } from "../services/attendanceService"
 import type {
@@ -15,6 +23,25 @@ export function useDailyAttendance() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["gradebook", "attendance"] })
     },
+  })
+}
+
+/**
+ * Las marcas de sesión ya guardadas de una materia, por estudiante del curso.
+ *
+ * La clave cuelga de ["gradebook", "attendance"] a propósito: es el prefijo que invalidan los
+ * guardados de sesión, así que la grilla se refresca sola después de marcar.
+ */
+export function useClassGroupSessionAttendance(
+  classGroupId: string | null | undefined,
+  query: PageQuery
+) {
+  return useQuery({
+    queryKey: ["gradebook", "attendance", "session", classGroupId ?? "", query],
+    queryFn: classGroupId
+      ? () => AttendanceService.classGroupSessions(classGroupId, query)
+      : skipToken,
+    placeholderData: keepPreviousData,
   })
 }
 

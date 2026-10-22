@@ -1,6 +1,12 @@
 import type { UseApiCall } from "@/lib/useApicall"
 import { loadAbort } from "@/lib/loadAbort"
 import { httpClient } from "@/lib/axios"
+import {
+  toPageParams,
+  type PageQuery,
+  type PagedResponse,
+} from "@/lib/types/pagination"
+import type { CourseAttendanceRow } from "@/features/gradebook/types"
 
 import { AttendanceUrl } from "./attendanceServicePath"
 import type {
@@ -79,6 +85,22 @@ export default class AttendanceServiceHelper {
         signal: controller.signal,
         params: { id_course_enrollment: courseEnrollmentId },
       }),
+      controller,
+    }
+  }
+  classGroupSessionsAsync(
+    classGroupId: string,
+    query: PageQuery
+  ): UseApiCall<PagedResponse<CourseAttendanceRow>> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.get<PagedResponse<CourseAttendanceRow>>(
+        AttendanceUrl.ClassGroupSessions,
+        {
+          signal: controller.signal,
+          params: toPageParams(query, { id_class_group: classGroupId }),
+        }
+      ),
       controller,
     }
   }

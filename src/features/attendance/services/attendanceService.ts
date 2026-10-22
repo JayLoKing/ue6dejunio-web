@@ -1,3 +1,6 @@
+import type { PageQuery, PagedResponse } from "@/lib/types/pagination"
+import type { CourseAttendanceRow } from "@/features/gradebook/types"
+
 import AttendanceServiceHelper from "../helpers/attendanceServiceHelper"
 import type {
   AttendanceBatchResult,
@@ -35,5 +38,11 @@ export class AttendanceService {
     courseEnrollmentId: string
   ): Promise<AttendanceResponse[]> {
     return (await helper.byCourseEnrollmentAsync(courseEnrollmentId).call).data
+  }
+  static async classGroupSessions(
+    classGroupId: string,
+    query: PageQuery
+  ): Promise<PagedResponse<CourseAttendanceRow>> {
+    return (await helper.classGroupSessionsAsync(classGroupId, query).call).data
   }
 }

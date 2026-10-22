@@ -13,11 +13,13 @@ import { NoHomeroomCourseNotice } from "@/components/shared/NoHomeroomCourseNoti
 import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
 import { useCourseStudents } from "@/features/courses/hooks/useCourses"
 import { useCourseAttendance } from "@/features/gradebook/hooks/useGradebook"
+import type { CourseAttendanceRow } from "@/features/gradebook/types"
 import {
   AttendanceMatrix,
   type AttendanceStudentRow,
 } from "@/features/attendance/components/AttendanceMatrix"
 import {
+  useClassGroupSessionAttendance,
   useDailyAttendance,
   useDailyAttendanceBatch,
   useSessionAttendance,
@@ -147,6 +149,24 @@ function AttendancePage() {
 // arriba para que la referencia no cambie en cada render y arrastre a los hooks que la reciben.
 const WHOLE_COURSE_PAGE = { offset: 1, limit: 200, sort: "asc" } as const
 
+/** Las marcas guardadas del mes a la vista, por inscripción y fecha, como las lee la matriz. */
+function marksOfMonth(
+  rows: CourseAttendanceRow[] | undefined,
+  year: number,
+  month: number
+): Record<string, Record<string, AttendanceCellStatus>> {
+  const prefix = `${year}-${String(month).padStart(2, "0")}-`
+  const out: Record<string, Record<string, AttendanceCellStatus>> = {}
+  for (const row of rows ?? []) {
+    const byDate: Record<string, AttendanceCellStatus> = {}
+    for (const a of row.attendances) {
+      if (a.date.startsWith(prefix)) byDate[a.date] = cellFromApi(a.status)
+    }
+    out[row.courseEnrollmentId] = byDate
+  }
+  return out
+}
+
 // ---- Aula: asistencia diaria del curso ----
 interface DailyCourseAttendanceProps {
   courseId: string
@@ -173,18 +193,10 @@ function DailyCourseAttendance({
     [studentsQuery.data]
   )
 
-  const initialData = useMemo(() => {
-    const prefix = `${year}-${String(month).padStart(2, "0")}-`
-    const out: Record<string, Record<string, AttendanceCellStatus>> = {}
-    for (const row of attQuery.data?.content ?? []) {
-      const byDate: Record<string, AttendanceCellStatus> = {}
-      for (const a of row.attendances) {
-        if (a.date.startsWith(prefix)) byDate[a.date] = cellFromApi(a.status)
-      }
-      out[row.courseEnrollmentId] = byDate
-    }
-    return out
-  }, [attQuery.data, year, month])
+  const initialData = useMemo(
+    () => marksOfMonth(attQuery.data?.content, year, month),
+    [attQuery.data, year, month]
+  )
 
   if (studentsQuery.isLoading) {
     return (
@@ -229,6 +241,7 @@ function SessionAttendance({ year, month }: SessionAttendanceProps) {
   const cg = ctx.classGroups.find((c) => c.id === effective)
 
   const studentsQuery = useCourseStudents(cg?.courseId, WHOLE_COURSE_PAGE)
+  const attQuery = useClassGroupSessionAttendance(cg?.id, WHOLE_COURSE_PAGE)
   const session = useSessionAttendance()
   const sessionBatch = useSessionAttendanceBatch()
 
@@ -239,6 +252,16 @@ function SessionAttendance({ year, month }: SessionAttendanceProps) {
         fullName: s.fullName,
       })),
     [studentsQuery.data]
+  )
+
+  // keepPreviousData le pasaría a la materia recién elegida las marcas de la anterior mientras
+  // llega la respuesta; a la grilla solo entran las filas de la materia seleccionada.
+  const sessionRows = attQuery.isPlaceholderData
+    ? undefined
+    : attQuery.data?.content
+  const initialData = useMemo(
+    () => marksOfMonth(sessionRows, year, month),
+    [sessionRows, year, month]
   )
 
   return (
@@ -264,13 +287,14 @@ function SessionAttendance({ year, month }: SessionAttendanceProps) {
         <p className="text-sm text-muted-foreground">Selecciona una materia.</p>
       ) : (
         // Una materia por matriz. Sin la key la instancia se reusa al cambiar de materia y se
-        // queda con las marcas de la anterior: como esta vista no recibe datos del servidor, esas
-        // marcas locales son lo único que se ve, y aparecen bajo la materia equivocada.
+        // queda con las marcas locales de la anterior, que tapan lo que el servidor trae de la
+        // nueva y aparecen bajo la materia equivocada.
         <AttendanceMatrix
           key={cg.id}
           students={students}
           year={year}
           month={month}
+          initialData={initialData}
           onMark={(ce, date, status) =>
             session.mutateAsync({
               id_course_enrollment: ce,

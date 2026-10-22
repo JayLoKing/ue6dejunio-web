@@ -83,7 +83,7 @@ export function riskReportRows(entries: InstitutionRiskEntry[]): string[][] {
  * atraso.
  *
  * El orden de las columnas sigue al del RF, que nombra la licencia antes del atraso — no el del
- * objeto, que agrupa `late` con los que descuentan.
+ * objeto, que pone `late` antes de `excused`.
  */
 export function attendanceReportRows(rows: StudentAttendanceRow[]): string[][] {
   return rows.map((row, index) => [

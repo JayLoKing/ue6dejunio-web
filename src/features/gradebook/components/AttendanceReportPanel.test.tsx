@@ -70,6 +70,17 @@ describe("AttendanceReportPanel", () => {
     expect(screen.getByText("83.3%")).toBeInTheDocument()
   })
 
+  /** Regla de la escuela (2026-10-22): el atraso asistió; la ausencia y la licencia son falta. */
+  it("explica que el atraso cuenta como asistencia y la licencia como falta", () => {
+    useCourseAttendanceByStudent.mockReturnValue(report([row()]))
+
+    render(<AttendanceReportPanel courseId="c-1" trimester={1} />)
+
+    expect(
+      screen.getByText(/el atraso cuenta como asistencia/i)
+    ).toHaveTextContent(/la ausencia y la licencia cuentan como falta/i)
+  })
+
   /**
    * Nadie lo marcó, así que no hay porcentaje. Un 0% afirmaría que faltó a todo, que es exactamente
    * lo que no se sabe.

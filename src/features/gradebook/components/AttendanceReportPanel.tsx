@@ -49,8 +49,9 @@ export interface AttendanceReportPanelProps {
  * El reporte de porcentaje de asistencia del curso (RF 37).
  *
  * El porcentaje lo calcula el backend y no esta pantalla, a propósito: es la misma cuenta que publica
- * el panel de asistencia del curso —presentes sobre presentes más ausentes más atrasos, la licencia
- * afuera— y recalcularla acá daría una cuarta definición de asistencia en un sistema que ya tiene
+ * el panel de asistencia del curso —presentes más atrasos sobre presentes más ausentes más atrasos
+ * más licencias, porque la escuela cuenta el atraso como asistencia y la licencia como falta— y
+ * recalcularla acá daría una cuarta definición de asistencia en un sistema que ya tiene
  * tres.
  *
  * Un porcentaje en null no es un cero: nadie marcó a ese estudiante, y un 0% afirmaría que faltó a
@@ -116,8 +117,9 @@ export function AttendanceReportPanel({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
           {bySubject ? "Cuenta las marcas de las clases de tu materia. " : null}
-          El porcentaje cuenta presentes sobre los días computables. La licencia
-          no descuenta ni suma; el atraso cuenta como falta.
+          El porcentaje cuenta presentes y atrasos sobre los días computables.
+          El atraso cuenta como asistencia; la ausencia y la licencia cuentan
+          como falta.
         </p>
         {courseLabel ? (
           <ExportReportButton

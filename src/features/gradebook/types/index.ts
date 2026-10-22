@@ -161,7 +161,10 @@ export interface EnrollmentScore {
   updatedAt: string | null
 }
 
-/** Conteos de asistencia. percentage = present/(present+absent+late); null si no computable. */
+/**
+ * Conteos de asistencia. percentage = (present+late)/(present+absent+late+excused): el atraso asistió,
+ * la licencia es falta. null si no computable.
+ */
 export interface AttendanceCounts {
   present: number
   absent: number
@@ -311,7 +314,7 @@ export interface StudentAttendanceRow {
   absent: number
   late: number
   excused: number
-  /** Presentes + ausentes + atrasos: el denominador. La licencia no entra ni arriba ni abajo. */
+  /** Presentes + ausentes + atrasos + licencias: el denominador. Arriba van presentes y atrasos. */
   computableSessions: number
   percentage: number | null
 }

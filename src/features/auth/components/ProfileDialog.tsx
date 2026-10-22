@@ -60,6 +60,7 @@ function ProfileForm({
     handleSubmit,
     formState: { errors },
   } = useForm<ProfileFormValues>({
+    mode: "onTouched",
     resolver: zodResolver(profileSchema),
     defaultValues: {
       names: profile.names,
@@ -189,6 +190,7 @@ function ChangeEmailForm({ onDone }: { onDone: () => void }) {
     handleSubmit,
     formState: { errors },
   } = useForm<ChangeEmailFormValues>({
+    mode: "onTouched",
     resolver: zodResolver(changeEmailSchema),
     defaultValues: { newEmail: "", currentPassword: "" },
   })

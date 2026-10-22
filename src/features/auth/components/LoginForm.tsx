@@ -25,6 +25,7 @@ export function LoginForm() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<CredentialsFormValues>({
+    mode: "onTouched",
     resolver: zodResolver(credentialsSchema),
     defaultValues: { email: "", password: "" },
   })

@@ -54,6 +54,7 @@ function ResetForm({ token }: { token: string }) {
     watch,
     formState: { errors, isSubmitting },
   } = useForm<ResetPasswordFormValues>({
+    mode: "onTouched",
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: { newPassword: "", confirmPassword: "" },
   })

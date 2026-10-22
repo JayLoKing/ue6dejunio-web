@@ -50,6 +50,18 @@ export default defineConfig({
       ],
     },
   },
+  // Chrome 109 is the last release for Windows 7, and the school still runs it. The theme is
+  // written in oklch(), which that browser cannot parse: every color variable came out invalid and
+  // backgrounds turned transparent. Minifying with Lightning CSS for that target writes each color
+  // as hex first and keeps lab() behind @supports, so modern browsers render exactly as before.
+  css: {
+    lightningcss: {
+      targets: { chrome: 109 << 16 },
+    },
+  },
+  build: {
+    cssMinify: "lightningcss",
+  },
   server: {
     port: 5300,
     strictPort: true,

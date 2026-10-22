@@ -12,6 +12,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAuthStore } from "@/features/auth/store/authStore"
 import { isRole } from "@/features/auth/types"
+import { NoHomeroomCourseNotice } from "@/components/shared/NoHomeroomCourseNotice"
 import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
 import { activeAcademicYear } from "@/features/catalog/utils/activeAcademicYear"
 import { useAcademicYears } from "@/features/catalog/hooks/useCatalog"
@@ -181,7 +182,7 @@ function TeacherHonorRoll() {
   const parallelName = useAuthStore((s) => s.parallelName)
   const [places, setPlaces] = useState(3)
 
-  if (!ctx.homeroomCourseId) {
+  if (ctx.isTechnical) {
     if (ctx.classGroups.length > 0) {
       return <TechnicalHonorRoll classGroups={ctx.classGroups} />
     }
@@ -190,6 +191,12 @@ function TeacherHonorRoll() {
         El cuadro de honor es del curso de aula. Como docente técnico no tienes
         un curso de aula asignado.
       </div>
+    )
+  }
+
+  if (!ctx.homeroomCourseId) {
+    return (
+      <NoHomeroomCourseNotice whatYouWillSee="el cuadro de honor del curso" />
     )
   }
 

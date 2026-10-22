@@ -178,6 +178,18 @@ describe("Reportes — other teachers", () => {
     expect(screen.queryByRole("tab")).not.toBeInTheDocument()
   })
 
+  it("tells a homeroom teacher with no course yet that it is coming, without calling them technical", () => {
+    context.current = teacher({ isTechnical: false })
+
+    renderPage()
+
+    expect(
+      screen.getByText(/aún no tienes un curso de aula asignado/i)
+    ).toHaveTextContent(/aquí verás los reportes del curso/i)
+    expect(screen.queryByText(/técnico/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole("tab")).not.toBeInTheDocument()
+  })
+
   it("gives the homeroom teacher the whole course and every tab", () => {
     context.current = teacher({
       isTechnical: false,

@@ -141,6 +141,18 @@ describe("Cuadro de honor — other teachers", () => {
     expect(screen.queryByText(/^honor:/)).not.toBeInTheDocument()
   })
 
+  it("tells a homeroom teacher with no course yet that it is coming, without calling them technical", () => {
+    context.current = teacher({ isTechnical: false })
+
+    renderPage()
+
+    expect(
+      screen.getByText(/aún no tienes un curso de aula asignado/i)
+    ).toHaveTextContent(/aquí verás el cuadro de honor del curso/i)
+    expect(screen.queryByText(/técnico/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/^honor:/)).not.toBeInTheDocument()
+  })
+
   it("shows the homeroom teacher their own course with no picker and no notice", () => {
     context.current = teacher({
       homeroomCourseId: "c-9",

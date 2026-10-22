@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { NoHomeroomCourseNotice } from "@/components/shared/NoHomeroomCourseNotice"
 import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
 import { useAuthStore } from "@/features/auth/store/authStore"
 import { useAcademicYears } from "@/features/catalog/hooks/useCatalog"
@@ -159,7 +160,7 @@ function TeacherReports() {
   const years = useAcademicYears()
   const year = activeAcademicYear(years.data)?.year ?? null
 
-  if (!ctx.homeroomCourseId) {
+  if (ctx.isTechnical) {
     if (ctx.classGroups.length > 0) {
       return <TechnicalReports classGroups={ctx.classGroups} year={year} />
     }
@@ -169,6 +170,10 @@ function TeacherReports() {
         curso de aula asignado.
       </div>
     )
+  }
+
+  if (!ctx.homeroomCourseId) {
+    return <NoHomeroomCourseNotice whatYouWillSee="los reportes del curso" />
   }
 
   return (

@@ -87,6 +87,7 @@ function EmailStep({
     handleSubmit,
     formState: { errors },
   } = useForm<HandoverEmailFormValues>({
+    mode: "onTouched",
     resolver: zodResolver(handoverEmailSchema),
     defaultValues: { email: "" },
   })
@@ -192,6 +193,7 @@ function DetailsStep({
     handleSubmit,
     formState: { errors },
   } = useForm<NewDirectorFormValues>({
+    mode: "onTouched",
     resolver: zodResolver(newDirectorSchema),
     defaultValues: { ci: "", names: "", lastNames: "", phone: "" },
   })

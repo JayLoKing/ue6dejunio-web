@@ -123,3 +123,16 @@ describe("CreateUserDialog", () => {
     expect(screen.getByLabelText("Correo")).toHaveValue("ana@ue6.bo")
   })
 })
+
+describe("CreateUserDialog validation timing", () => {
+  it("reports an invalid email as soon as the field is left", async () => {
+    await openDialog()
+
+    await userEvent.type(screen.getByLabelText("Correo"), "ana@")
+    expect(screen.queryByText("Correo inválido")).not.toBeInTheDocument()
+
+    await userEvent.tab()
+
+    expect(await screen.findByText("Correo inválido")).toBeInTheDocument()
+  })
+})

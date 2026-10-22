@@ -39,6 +39,7 @@ export function ManualEnrollForm({
     control,
     formState: { errors },
   } = useForm<StudentPayload>({
+    mode: "onTouched",
     resolver: zodResolver(studentPayloadSchema),
     defaultValues: {
       rudeCode: "",

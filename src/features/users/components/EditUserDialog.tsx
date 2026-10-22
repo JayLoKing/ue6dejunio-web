@@ -53,6 +53,7 @@ export function EditUserDialog({ user, onClose }: EditUserDialogProps) {
     reset,
     formState: { errors },
   } = useForm<UpdateUserFormValues>({
+    mode: "onTouched",
     resolver: zodResolver(updateUserSchema),
     defaultValues: {
       ci: "",

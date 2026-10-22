@@ -46,6 +46,7 @@ export function CreateUserDialog() {
     setValue,
     formState: { errors },
   } = useForm<CreateUserFormValues>({
+    mode: "onTouched",
     resolver: zodResolver(createUserSchema),
     defaultValues: {
       ci: "",

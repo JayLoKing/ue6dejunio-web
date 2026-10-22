@@ -20,6 +20,7 @@ import { useCourseRisk } from "@/features/risk/hooks/useRisk"
 import { riskLevelLabel } from "@/features/risk/utils/riskLevel"
 
 import { useCentralizer, useCourseAttendanceStats } from "../hooks/useGradebook"
+import { BANDS, ORDINAL } from "../utils/dashboardShared"
 
 const SHORT = (name: string) =>
   name
@@ -35,23 +36,6 @@ export interface DashboardChartsProps {
 
 /** El curso entero: un tablero muestra a todos los estudiantes o no muestra nada útil. */
 const WHOLE_COURSE = { offset: 1, limit: 200, sort: "asc" as const }
-
-/** Como el tablero nombra cada trimestre en los títulos de las tarjetas. */
-const ORDINAL: Record<number, string> = { 1: "1er", 2: "2do", 3: "3er" }
-
-/**
- * Los tramos del histograma de notas.
- *
- * Los cortes no son decorativos: 51 es el umbral de aprobación de la escuela, así que el primer
- * tramo es exactamente "reprobados". Los otros dos parten lo aprobado en el que pasó raspando y el
- * que está cómodo, que es la distinción que un docente necesita para saber a quién sostener.
- */
-const BANDS = [
-  { name: "0–50", from: 0, to: 50 },
-  { name: "51–68", from: 51, to: 68 },
-  { name: "69–84", from: 69, to: 84 },
-  { name: "85–100", from: 85, to: 100 },
-]
 
 const MONTHS_SHORT = [
   "Ene",

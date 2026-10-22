@@ -6,6 +6,7 @@ import { activeAcademicYear } from "@/features/catalog/utils/activeAcademicYear"
 import { useAcademicYears } from "@/features/catalog/hooks/useCatalog"
 import { DashboardCharts } from "@/features/gradebook/components/DashboardCharts"
 import { DirectorDashboardCharts } from "@/features/gradebook/components/DirectorDashboardCharts"
+import { TechnicalDashboardCharts } from "@/features/gradebook/components/TechnicalDashboardCharts"
 import { SecretaryDashboardCharts } from "@/features/students/components/SecretaryDashboardCharts"
 
 export const Route = createFileRoute("/_app/dashboard")({
@@ -31,8 +32,15 @@ function PageNotice({ children }: PageNoticeProps) {
 }
 
 function DashboardPage() {
-  const { isTeacher, isTechnical, isDirector, isSecretary, homeroomCourseId } =
-    useCurrentContext()
+  const {
+    isTeacher,
+    isTechnical,
+    isDirector,
+    isSecretary,
+    homeroomCourseId,
+    classGroups,
+    isLoading,
+  } = useCurrentContext()
 
   // La gestión actual es la activa (`activeAcademicYear`), no la más reciente.
   // Va el `id`, la clave SERIAL de la fila, y no el `year` calendario — los dos son números y
@@ -51,10 +59,10 @@ function DashboardPage() {
 
       {isTeacher &&
         (isTechnical ? (
-          <PageNotice>
-            Docente técnico: sin curso de aula. Indicadores por materia en
-            desarrollo.
-          </PageNotice>
+          <TechnicalDashboardCharts
+            classGroups={classGroups}
+            isLoading={isLoading}
+          />
         ) : homeroomCourseId ? (
           <DashboardCharts courseId={homeroomCourseId} />
         ) : (

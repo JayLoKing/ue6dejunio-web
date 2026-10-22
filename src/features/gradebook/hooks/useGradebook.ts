@@ -2,8 +2,10 @@ import {
   keepPreviousData,
   skipToken,
   useMutation,
+  useQueries,
   useQuery,
   useQueryClient,
+  type UseQueryResult,
 } from "@tanstack/react-query"
 import { toast } from "sonner"
 
@@ -12,17 +14,83 @@ import type { PageQuery } from "@/lib/types/pagination"
 import { GradebookService } from "../services/gradebookService"
 import type { SavePedagogicalReportPayload } from "../types"
 
+/**
+ * Varias consultas leídas como una: los datos en el orden pedido, pendiente mientras alguna lo
+ * esté y fallida si alguna falló. Una lista con un hueco no es una que un gráfico dibuje con verdad.
+ */
+export interface CombinedQueries<T> {
+  data: (T | undefined)[]
+  isPending: boolean
+  isError: boolean
+}
+
+/**
+ * Fuera del componente a propósito: `useQueries` vuelve a correr `combine` cada vez que cambia su
+ * identidad, y una flecha en línea entregaría un arreglo nuevo en cada render.
+ */
+function combineQueries<T>(results: UseQueryResult<T>[]): CombinedQueries<T> {
+  return {
+    data: results.map((r) => r.data),
+    isPending: results.some((r) => r.isPending),
+    isError: results.some((r) => r.isError),
+  }
+}
+
+const centralizerKey = (
+  courseId: string,
+  trimester: number,
+  query: PageQuery
+) => ["gradebook", "centralizer", courseId, trimester, query]
+
+const annualCentralizerKey = (courseId: string, query: PageQuery) => [
+  "gradebook",
+  "annual-centralizer",
+  courseId,
+  query,
+]
+
+const classGroupAttendanceByStudentKey = (
+  classGroupId: string,
+  trimester: number | null,
+  query: PageQuery
+) => [
+  "gradebook",
+  "class-group-attendance-by-student",
+  classGroupId,
+  trimester ?? "annual",
+  query,
+]
+
 export function useCentralizer(
   courseId: string | null | undefined,
   trimester: number,
   query: PageQuery
 ) {
   return useQuery({
-    queryKey: ["gradebook", "centralizer", courseId ?? "", trimester, query],
+    queryKey: centralizerKey(courseId ?? "", trimester, query),
     queryFn: courseId
       ? () => GradebookService.centralizer(courseId, trimester, query)
       : skipToken,
     placeholderData: keepPreviousData,
+  })
+}
+
+/**
+ * El centralizador de varios cursos en un trimestre, una consulta por curso. Es el tablero del
+ * docente técnico: la API recorta cada fila a sus materias, así que un curso es una petición.
+ */
+export function useCentralizers(
+  courseIds: string[],
+  trimester: number,
+  query: PageQuery
+) {
+  return useQueries({
+    queries: courseIds.map((courseId) => ({
+      queryKey: centralizerKey(courseId, trimester, query),
+      queryFn: () => GradebookService.centralizer(courseId, trimester, query),
+      placeholderData: keepPreviousData,
+    })),
+    combine: combineQueries,
   })
 }
 
@@ -32,11 +100,22 @@ export function useAnnualCentralizer(
   query: PageQuery
 ) {
   return useQuery({
-    queryKey: ["gradebook", "annual-centralizer", courseId ?? "", query],
+    queryKey: annualCentralizerKey(courseId ?? "", query),
     queryFn: courseId
       ? () => GradebookService.annualCentralizer(courseId, query)
       : skipToken,
     placeholderData: keepPreviousData,
+  })
+}
+
+/** El año completo de varios cursos, una consulta por curso: los tres trimestres en una respuesta. */
+export function useAnnualCentralizers(courseIds: string[], query: PageQuery) {
+  return useQueries({
+    queries: courseIds.map((courseId) => ({
+      queryKey: annualCentralizerKey(courseId, query),
+      queryFn: () => GradebookService.annualCentralizer(courseId, query),
+    })),
+    combine: combineQueries,
   })
 }
 
@@ -112,13 +191,11 @@ export function useClassGroupAttendanceByStudent(
   query: PageQuery
 ) {
   return useQuery({
-    queryKey: [
-      "gradebook",
-      "class-group-attendance-by-student",
+    queryKey: classGroupAttendanceByStudentKey(
       classGroupId ?? "",
-      trimester ?? "annual",
-      query,
-    ],
+      trimester,
+      query
+    ),
     placeholderData: keepPreviousData,
     queryFn: classGroupId
       ? () =>
@@ -128,6 +205,31 @@ export function useClassGroupAttendanceByStudent(
             query
           )
       : skipToken,
+  })
+}
+
+/** La asistencia de sesión de varios class groups, una consulta cada uno, con las claves del hook singular. */
+export function useClassGroupsAttendanceByStudent(
+  classGroupIds: string[],
+  trimester: number | null,
+  query: PageQuery
+) {
+  return useQueries({
+    queries: classGroupIds.map((classGroupId) => ({
+      queryKey: classGroupAttendanceByStudentKey(
+        classGroupId,
+        trimester,
+        query
+      ),
+      queryFn: () =>
+        GradebookService.classGroupAttendanceByStudent(
+          classGroupId,
+          trimester,
+          query
+        ),
+      placeholderData: keepPreviousData,
+    })),
+    combine: combineQueries,
   })
 }
 

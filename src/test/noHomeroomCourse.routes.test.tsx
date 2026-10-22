@@ -51,6 +51,9 @@ vi.mock("@/features/attendance/hooks/useAttendance", () => ({
 vi.mock("@/features/gradebook/components/DashboardCharts", () => ({
   DashboardCharts: ({ courseId }: { courseId: string }) => `charts:${courseId}`,
 }))
+vi.mock("@/features/gradebook/components/TechnicalDashboardCharts", () => ({
+  TechnicalDashboardCharts: () => "technical-charts",
+}))
 vi.mock("@/features/gradebook/components/DirectorDashboardCharts", () => ({
   DirectorDashboardCharts: () => "director-charts",
 }))
@@ -162,12 +165,10 @@ describe("A technical teacher keeps the technical screens", () => {
     context.current = teacher({ isTechnical: true })
   })
 
-  it("keeps the technical notice on the dashboard", () => {
+  it("sees the subject charts on the dashboard", () => {
     renderPage(Dashboard)
 
-    expect(
-      screen.getByText(/docente técnico: sin curso de aula/i)
-    ).toBeVisible()
+    expect(screen.getByText("technical-charts")).toBeInTheDocument()
     expect(screen.queryByText(NO_COURSE)).not.toBeInTheDocument()
   })
 

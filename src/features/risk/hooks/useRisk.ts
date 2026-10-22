@@ -1,12 +1,15 @@
 import {
   skipToken,
   useMutation,
+  useQueries,
   useQuery,
   useQueryClient,
+  type UseQueryResult,
 } from "@tanstack/react-query"
 import { toast } from "sonner"
 
 import { RiskService } from "../services/riskService"
+import type { StudentRisk } from "../types/risk"
 import { describeRun } from "../utils/runSummary"
 
 /**
@@ -25,15 +28,45 @@ function useInvalidateRisk() {
   }
 }
 
+const classGroupRiskKey = (classGroupId: string, trimester: number) => [
+  RISK_KEY,
+  "class-group",
+  classGroupId,
+  trimester,
+]
+
 export function useClassGroupRisk(
   classGroupId: string | null | undefined,
   trimester: number
 ) {
   return useQuery({
-    queryKey: [RISK_KEY, "class-group", classGroupId ?? "", trimester],
+    queryKey: classGroupRiskKey(classGroupId ?? "", trimester),
     queryFn: classGroupId
       ? () => RiskService.byClassGroup(classGroupId, trimester)
       : skipToken,
+  })
+}
+
+/** Several queries read as one; module-level so `combine` keeps its identity across renders. */
+function combineRiskQueries(results: UseQueryResult<StudentRisk[]>[]) {
+  return {
+    data: results.map((r) => r.data),
+    isPending: results.some((r) => r.isPending),
+    isError: results.some((r) => r.isError),
+  }
+}
+
+/**
+ * The predictions of several class groups in one trimester, one query each, under the single
+ * hook's keys so the risk panel and the dashboard share their cache.
+ */
+export function useClassGroupsRisk(classGroupIds: string[], trimester: number) {
+  return useQueries({
+    queries: classGroupIds.map((classGroupId) => ({
+      queryKey: classGroupRiskKey(classGroupId, trimester),
+      queryFn: () => RiskService.byClassGroup(classGroupId, trimester),
+    })),
+    combine: combineRiskQueries,
   })
 }
 

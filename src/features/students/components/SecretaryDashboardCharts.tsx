@@ -1,6 +1,12 @@
 import { useMemo } from "react"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { BarChart } from "@/components/charts/bar-chart"
 import { Bar } from "@/components/charts/bar"
 import { BarXAxis } from "@/components/charts/bar-x-axis"
@@ -76,6 +82,10 @@ export function SecretaryDashboardCharts({
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Altas y bajas por mes</CardTitle>
+          <CardDescription>
+            Inscripciones y retiros de cada mes de la gestión, uno junto al
+            otro.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <QueryState
@@ -100,6 +110,10 @@ export function SecretaryDashboardCharts({
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Matrícula acumulada</CardTitle>
+          <CardDescription>
+            El total de estudiantes inscritos mes a mes; los meses sin
+            movimiento no aparecen.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <QueryState
@@ -118,6 +132,10 @@ export function SecretaryDashboardCharts({
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Bajas por motivo</CardTitle>
+          <CardDescription>
+            Los retiros de la gestión, agrupados según el motivo que se anotó al
+            darlos de baja.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <QueryState
@@ -134,6 +152,9 @@ export function SecretaryDashboardCharts({
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Paralelos por grado</CardTitle>
+          <CardDescription>
+            Cuántos paralelos tiene abiertos cada grado en esta gestión.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <QueryState

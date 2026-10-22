@@ -151,4 +151,23 @@ describe("DashboardCharts", () => {
       series("Licencias")?.getAttribute("data-fill")
     )
   })
+
+  /** Cada tarjeta dice qué dibuja y cómo se lee, incluida la regla del atraso. */
+  it("explica cada tarjeta en una línea", () => {
+    const { container } = render(<DashboardCharts courseId="c-1" />)
+
+    expect(
+      container.querySelectorAll("[data-slot=card-description]")
+    ).toHaveLength(6)
+    for (const hint of [
+      /nombres de las materias van abreviados/i,
+      /qué parte del curso aprueba/i,
+      /cada tramo de nota/i,
+      /si mejora o empeora/i,
+      /el atraso cuenta como asistencia/i,
+      /cuenta predicciones, no estudiantes/i,
+    ]) {
+      expect(screen.getByText(hint)).toBeInTheDocument()
+    }
+  })
 })

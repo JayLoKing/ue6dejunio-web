@@ -128,4 +128,23 @@ describe("SecretaryDashboardCharts", () => {
 
     expect(screen.getByText(/ninguna baja en la gestión/i)).toBeInTheDocument()
   })
+
+  /** Cada tarjeta dice qué dibuja y cómo se lee. */
+  it("explica cada tarjeta en una línea", () => {
+    const { container } = render(
+      <SecretaryDashboardCharts academicYearId={YEAR_ID} />
+    )
+
+    expect(
+      container.querySelectorAll("[data-slot=card-description]")
+    ).toHaveLength(4)
+    for (const hint of [
+      /inscripciones y retiros de cada mes/i,
+      /total de estudiantes inscritos/i,
+      /motivo que se anotó/i,
+      /cuántos paralelos tiene abiertos/i,
+    ]) {
+      expect(screen.getByText(hint)).toBeInTheDocument()
+    }
+  })
 })

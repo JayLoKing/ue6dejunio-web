@@ -1,6 +1,12 @@
 import { useMemo, useState } from "react"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BarChart } from "@/components/charts/bar-chart"
 import { Bar } from "@/components/charts/bar"
@@ -130,6 +136,10 @@ export function DirectorDashboardCharts({
             <CardTitle className="text-base">
               Promedio por curso ({ord} trimestre)
             </CardTitle>
+            <CardDescription>
+              La nota media de cada curso en el trimestre elegido, de 0 a 100;
+              se aprueba con 51.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <QueryState
@@ -153,6 +163,10 @@ export function DirectorDashboardCharts({
             <CardTitle className="text-base">
               Aprobados y reprobados por curso ({ord} trimestre)
             </CardTitle>
+            <CardDescription>
+              Cuántos estudiantes de cada curso aprueban y cuántos reprueban
+              según su promedio general.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <QueryState
@@ -184,6 +198,10 @@ export function DirectorDashboardCharts({
             <CardTitle className="text-base">
               Riesgo por curso ({ord} trimestre)
             </CardTitle>
+            <CardDescription>
+              Estudiantes por nivel de riesgo según el modelo, contados una vez
+              por su peor materia; «Sin predecir» aún no tiene predicción.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <QueryState
@@ -219,6 +237,10 @@ export function DirectorDashboardCharts({
             <CardTitle className="text-base">
               Evolución del promedio institucional
             </CardTitle>
+            <CardDescription>
+              La nota media de toda la escuela en cada trimestre, ponderada por
+              matrícula; un trimestre sin notas deja un hueco.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {/* Ponderado por matrícula, no promedio de promedios: un paralelo de ocho no pesa lo
@@ -235,6 +257,9 @@ export function DirectorDashboardCharts({
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Matrícula por grado</CardTitle>
+            <CardDescription>
+              Estudiantes inscritos en cada grado, sumando sus paralelos.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <QueryState

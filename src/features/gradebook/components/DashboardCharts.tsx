@@ -1,6 +1,12 @@
 import { useMemo, useState } from "react"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BarChart } from "@/components/charts/bar-chart"
 import { Bar } from "@/components/charts/bar"
@@ -200,6 +206,10 @@ export function DashboardCharts({ courseId }: DashboardChartsProps) {
             <CardTitle className="text-base">
               Promedio por materia ({ord} trimestre)
             </CardTitle>
+            <CardDescription>
+              La nota media del curso en cada materia del trimestre elegido; los
+              nombres de las materias van abreviados.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {avgBySubject.length === 0 ? (
@@ -228,6 +238,10 @@ export function DashboardCharts({ courseId }: DashboardChartsProps) {
             <CardTitle className="text-base">
               Aprobados y reprobados ({ord} trimestre)
             </CardTitle>
+            <CardDescription>
+              Qué parte del curso aprueba y qué parte reprueba según el promedio
+              general de cada estudiante.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {/* Anillo y no dos barras: la pregunta acá es qué parte del curso, no cuántos. */}
@@ -243,6 +257,10 @@ export function DashboardCharts({ courseId }: DashboardChartsProps) {
             <CardTitle className="text-base">
               Distribución de notas ({ord} trimestre)
             </CardTitle>
+            <CardDescription>
+              Cuántos estudiantes caen en cada tramo de nota: 0–50 reprueba y
+              desde 51 se aprueba.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {/* El promedio dice dónde está el centro; esto dice si el curso es parejo o está
@@ -261,6 +279,10 @@ export function DashboardCharts({ courseId }: DashboardChartsProps) {
             <CardTitle className="text-base">
               Evolución del promedio del curso
             </CardTitle>
+            <CardDescription>
+              La nota media del curso en los tres trimestres, para ver si mejora
+              o empeora.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {/* Los tres trimestres, sin depender del que esté elegido arriba: la pregunta es si el
@@ -272,6 +294,10 @@ export function DashboardCharts({ courseId }: DashboardChartsProps) {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Asistencia por mes</CardTitle>
+            <CardDescription>
+              Marcas diarias de cada mes por tipo; el atraso cuenta como
+              asistencia. No cambia con el trimestre elegido.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {attendanceByMonth.length === 0 ? (
@@ -302,6 +328,10 @@ export function DashboardCharts({ courseId }: DashboardChartsProps) {
             <CardTitle className="text-base">
               Riesgo académico ({ord} trimestre)
             </CardTitle>
+            <CardDescription>
+              Predicciones por nivel de riesgo, una por estudiante y materia:
+              cuenta predicciones, no estudiantes.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {/* Cuenta predicciones, no estudiantes: un estudiante aparece una vez por materia

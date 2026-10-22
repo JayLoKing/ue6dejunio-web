@@ -151,4 +151,24 @@ describe("DirectorDashboardCharts", () => {
       screen.getByText(/promedio por curso \(3er trimestre\)/i)
     ).toBeInTheDocument()
   })
+
+  /** Cada tarjeta dice qué dibuja y cómo se lee: el Director no tiene que adivinar qué cuenta. */
+  it("explica cada tarjeta en una línea", () => {
+    const { container } = render(
+      <DirectorDashboardCharts academicYearId={YEAR_ID} />
+    )
+
+    expect(
+      container.querySelectorAll("[data-slot=card-description]")
+    ).toHaveLength(5)
+    for (const hint of [
+      /se aprueba con 51/i,
+      /según su promedio general/i,
+      /por su peor materia/i,
+      /ponderada por matrícula/i,
+      /sumando sus paralelos/i,
+    ]) {
+      expect(screen.getByText(hint)).toBeInTheDocument()
+    }
+  })
 })

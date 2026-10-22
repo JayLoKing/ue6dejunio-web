@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react"
 import { createFileRoute, redirect } from "@tanstack/react-router"
 import {
+  CopyIcon,
   FileSearchIcon,
   PencilIcon,
   PlusIcon,
@@ -37,12 +38,17 @@ import { PdcWizard } from "@/features/pdc/components/PdcWizard"
 import { planLabel } from "@/features/pdc/utils/planLabel"
 import {
   acceptsProgress,
+  isCopyable,
   isEditable,
   STATUS_BADGE,
   STATUS_LABEL,
 } from "@/features/pdc/utils/status"
 import { PdcProgressDialog } from "@/features/pdc/components/PdcProgressDialog"
-import { usePdcAction, usePdcList } from "@/features/pdc/hooks/usePdc"
+import {
+  useCopyPdcToParallels,
+  usePdcAction,
+  usePdcList,
+} from "@/features/pdc/hooks/usePdc"
 import type { Pdc } from "@/features/pdc/types"
 
 export const Route = createFileRoute("/_app/pdc")({
@@ -78,6 +84,7 @@ function PdcPage() {
     limit,
   })
   const { publish, remove } = usePdcAction()
+  const copyToParallels = useCopyPdcToParallels()
   // The plan's own state change is what notifies its author now, on the server, after the write
   // commits. Sending it from here as well would put two rows in the teacher's inbox for one
   // approval — and a plan approved from anywhere but this screen used to notify nobody at all.
@@ -99,6 +106,13 @@ function PdcPage() {
     }
     return [...byId].map(([id, name]) => ({ id, name }))
   }, [classGroupsQuery.data])
+
+  // Handing a plan to the other parallels is its author's call: whoever opened it, or the homeroom
+  // teacher of its course. A specialist sees the plans of courses they teach in, and the API would
+  // refuse them the copy.
+  const authors = (p: Pdc) =>
+    userId != null &&
+    (p.createdById === userId || p.homeroomTeacherId === userId)
 
   const openCreate = () => setCreating(true)
   const openEdit = (p: Pdc) => setEditingId(p.id)
@@ -230,6 +244,18 @@ function PdcPage() {
                           onClick={() => publish.mutate(p.id)}
                         >
                           <SendIcon className="size-4" />
+                        </Button>
+                      ) : null}
+                      {isTeacher && isCopyable(p.status) && authors(p) ? (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-8"
+                          title="Copiar a paralelos"
+                          disabled={copyToParallels.isPending}
+                          onClick={() => copyToParallels.mutate(p.id)}
+                        >
+                          <CopyIcon className="size-4" />
                         </Button>
                       ) : null}
                       {isTeacher && p.status === "Draft" ? (

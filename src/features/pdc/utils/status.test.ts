@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import type { PdcStatus } from "../types"
 import {
   acceptsProgress,
+  isCopyable,
   isEditable,
   STATUS_BADGE,
   STATUS_LABEL,
@@ -39,6 +40,21 @@ describe("acceptsProgress", () => {
     for (const status of EVERY_STATUS.filter((s) => s !== "Approved")) {
       expect(acceptsProgress(status)).toBe(false)
     }
+  })
+})
+
+describe("isCopyable", () => {
+  // The API copies only a plan that has left the draft: a half-written month handed to the other
+  // parallels would spread the gaps, and it answers 409 to anything else.
+  it("copies a published, reviewed or approved plan", () => {
+    expect(isCopyable("Published")).toBe(true)
+    expect(isCopyable("Under Review")).toBe(true)
+    expect(isCopyable("Approved")).toBe(true)
+  })
+
+  it("refuses a draft and a plan sent back with observations", () => {
+    expect(isCopyable("Draft")).toBe(false)
+    expect(isCopyable("With Observations")).toBe(false)
   })
 })
 

@@ -25,6 +25,17 @@ export function acceptsProgress(status: PdcStatus): boolean {
   return status === "Approved"
 }
 
+/**
+ * Whether a plan can be handed to the other parallels of its grade. A draft is still being written
+ * and one sent back with observations is being corrected; copying either spreads what is wrong
+ * with it, so the API answers 409 to both.
+ */
+export function isCopyable(status: PdcStatus): boolean {
+  return (
+    status === "Published" || status === "Under Review" || status === "Approved"
+  )
+}
+
 /** How a status is shaded in the listing: draft muted, review amber, observations alarming. */
 export const STATUS_BADGE: Record<PdcStatus, string> = {
   Draft: "bg-muted text-muted-foreground",

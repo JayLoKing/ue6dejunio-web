@@ -13,6 +13,7 @@ import { useAuthStore } from "@/features/auth/store/authStore"
 import type { Pdc, PdcStatus } from "@/features/pdc/types"
 
 const rows = vi.hoisted(() => ({ current: [] as unknown[] }))
+const copy = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }))
 
 vi.mock("@/features/pdc/hooks/usePdc", () => ({
   usePdcList: () => ({
@@ -45,6 +46,7 @@ vi.mock("@/features/pdc/hooks/usePdc", () => ({
     ],
   }),
   useAddProgress: () => ({ mutate: vi.fn(), isPending: false }),
+  useCopyPdcToParallels: () => copy,
 }))
 
 vi.mock("@/features/courses/hooks/useCourses", () => ({
@@ -66,9 +68,15 @@ import { Route as PdcRoute } from "@/routes/_app/pdc"
 
 const Page = PdcRoute.options.component as ComponentType
 
-const plan = (id: string, status: PdcStatus): Pdc =>
+const plan = (
+  id: string,
+  status: PdcStatus,
+  createdById: string | null = "u-1"
+): Pdc =>
   ({
     id,
+    createdById,
+    homeroomTeacherId: null,
     planNumber: id === "p-1" ? 1 : 2,
     courseName: "1ro A",
     homeroomTeacherName: "Docente",
@@ -143,5 +151,62 @@ describe("PDC listing — progress", () => {
     expect(
       within(dialog).getByRole("button", { name: "Registrar avance" })
     ).toBeInTheDocument()
+  })
+})
+
+describe("PDC listing — copy to parallels", () => {
+  afterEach(() => {
+    useAuthStore.setState({ role: null, userId: null })
+    copy.mutate.mockReset()
+  })
+
+  const copyButton = (label: string) =>
+    within(rowOf(label)).queryByRole("button", { name: "Copiar a paralelos" })
+
+  it.each<PdcStatus>(["Published", "Under Review", "Approved"])(
+    "offers the author the copy of a %s plan and sends its id",
+    async (status) => {
+      rows.current = [plan("p-1", status)]
+      renderAs("TEACHER")
+
+      await userEvent.click(copyButton("Plan Nº 1 · 1ro A") as HTMLElement)
+
+      expect(copy.mutate).toHaveBeenCalledWith("p-1")
+    }
+  )
+
+  it.each<PdcStatus>(["Draft", "With Observations"])(
+    "hides the copy of a %s plan",
+    (status) => {
+      rows.current = [plan("p-1", status)]
+      renderAs("TEACHER")
+
+      expect(copyButton("Plan Nº 1 · 1ro A")).not.toBeInTheDocument()
+    }
+  )
+
+  it("hides the copy from the Director", () => {
+    rows.current = [plan("p-1", "Approved")]
+    renderAs("DIRECTOR")
+
+    expect(copyButton("Plan Nº 1 · 1ro A")).not.toBeInTheDocument()
+  })
+
+  it("hides the copy of a plan the teacher only takes part in", () => {
+    rows.current = [plan("p-1", "Approved", "u-2")]
+    renderAs("TEACHER")
+
+    expect(copyButton("Plan Nº 1 · 1ro A")).not.toBeInTheDocument()
+  })
+
+  it("offers the copy to the homeroom teacher of the plan's course", async () => {
+    rows.current = [
+      { ...plan("p-1", "Approved", "u-2"), homeroomTeacherId: "u-1" },
+    ]
+    renderAs("TEACHER")
+
+    await userEvent.click(copyButton("Plan Nº 1 · 1ro A") as HTMLElement)
+
+    expect(copy.mutate).toHaveBeenCalledWith("p-1")
   })
 })

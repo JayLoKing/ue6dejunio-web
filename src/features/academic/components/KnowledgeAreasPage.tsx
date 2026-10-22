@@ -53,6 +53,7 @@ export function KnowledgeAreasPage() {
   const remove = useDeleteKnowledgeArea()
 
   const form = useForm<FormValues>({
+    mode: "onTouched",
     resolver: zodResolver(schema),
     defaultValues: { name: "", displayOrder: "" },
   })

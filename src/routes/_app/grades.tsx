@@ -72,6 +72,7 @@ function GradesPage() {
   const remove = useDeleteGrade()
 
   const form = useForm<FormValues>({
+    mode: "onTouched",
     resolver: zodResolver(schema) as Resolver<FormValues>,
     defaultValues: { name: "", levelId: 0 },
   })

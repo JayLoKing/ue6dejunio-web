@@ -80,6 +80,7 @@ export function SubjectsPage() {
   const remove = useDeleteSubject()
 
   const form = useForm<FormValues>({
+    mode: "onTouched",
     resolver: zodResolver(schema),
     defaultValues: { name: "", areaId: undefined, technical: false },
   })

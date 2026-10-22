@@ -82,10 +82,12 @@ export function NameCrudPage<T extends NameEntity>({
   const rows = data?.content ?? []
 
   const createForm = useForm<FormValues>({
+    mode: "onTouched",
     resolver: zodResolver(schema),
     defaultValues: { name: "" },
   })
   const editForm = useForm<FormValues>({
+    mode: "onTouched",
     resolver: zodResolver(schema),
     defaultValues: { name: "" },
   })
@@ -123,7 +125,15 @@ export function NameCrudPage<T extends NameEntity>({
           <p className="text-sm text-muted-foreground">{description}</p>
         </div>
 
-        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <Dialog
+          open={createOpen}
+          onOpenChange={(next) => {
+            setCreateOpen(next)
+            // Leaving the field already raises its error, so a dismissed dialog must not
+            // reopen still showing it.
+            if (!next) createForm.reset()
+          }}
+        >
           <DialogTrigger asChild>
             <Button className="bg-brand text-brand-foreground hover:bg-brand/90">
               <PlusIcon data-icon="inline-start" />

@@ -4,6 +4,8 @@ import react from "@vitejs/plugin-react"
 import { tanstackRouter } from "@tanstack/router-plugin/vite"
 import { defineConfig } from "vitest/config"
 
+import { colorMixFallback } from "./plugins/color-mix-fallback"
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
@@ -15,6 +17,8 @@ export default defineConfig({
     }),
     react(),
     tailwindcss(),
+    // Same browser as below: it has no color-mix(), so opacity modifiers need an rgb() fallback.
+    colorMixFallback(),
   ],
   resolve: {
     alias: {
@@ -26,7 +30,7 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
     css: true,
-    include: ["src/**/*.{test,spec}.{ts,tsx}"],
+    include: ["src/**/*.{test,spec}.{ts,tsx}", "plugins/**/*.test.ts"],
     exclude: [
       "node_modules",
       "dist",

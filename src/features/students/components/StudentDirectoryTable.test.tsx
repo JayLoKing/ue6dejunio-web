@@ -33,6 +33,7 @@ const row = (
   academicYear: 2026,
   courseId: "c-1",
   parallelId: 3,
+  incomplete: false,
   ...over,
 })
 
@@ -188,5 +189,39 @@ describe("StudentDirectoryTable", () => {
 
       expect(screen.queryByRole("link")).not.toBeInTheDocument()
     })
+  })
+
+  it("flags a student whose data is still incomplete", () => {
+    render(
+      <StudentDirectoryTable
+        {...props}
+        rows={[row({ incomplete: true, rudeCode: null, identityCard: null })]}
+      />
+    )
+
+    expect(screen.getByText("Datos incompletos")).toBeInTheDocument()
+  })
+
+  it("offers editing only when the caller allows it", async () => {
+    const onEdit = vi.fn()
+    const { rerender } = render(
+      <StudentDirectoryTable {...props} rows={[row()]} />
+    )
+    expect(
+      screen.queryByRole("button", { name: /Editar datos de/ })
+    ).not.toBeInTheDocument()
+
+    rerender(
+      <StudentDirectoryTable
+        {...props}
+        rows={[row()]}
+        onEdit={onEdit}
+        canEdit={() => true}
+      />
+    )
+    await userEvent.click(
+      screen.getByRole("button", { name: "Editar datos de Ana Quispe" })
+    )
+    expect(onEdit).toHaveBeenCalledWith("st-1")
   })
 })

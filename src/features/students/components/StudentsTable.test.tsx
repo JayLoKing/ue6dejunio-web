@@ -12,6 +12,7 @@ const row = (over: Partial<StudentRow> = {}): StudentRow => ({
   identityCard: "9876543",
   fullName: "Ana Quispe",
   status: "Effective",
+  incomplete: false,
   ...over,
 })
 
@@ -72,5 +73,53 @@ describe("StudentsTable", () => {
     expect(
       screen.queryByRole("button", { name: /motivo de la baja/i })
     ).not.toBeInTheDocument()
+  })
+
+  it("flags a student whose data is still incomplete", () => {
+    render(
+      <StudentsTable
+        data={[
+          row({ incomplete: true }),
+          row({ courseEnrollmentId: "ce-2", fullName: "Luis Mamani" }),
+        ]}
+      />
+    )
+
+    expect(screen.getAllByText("Datos incompletos")).toHaveLength(1)
+  })
+
+  it("shows a dash where a name-only student has no RUDE or carnet", () => {
+    render(
+      <StudentsTable data={[row({ rudeCode: null, identityCard: null })]} />
+    )
+
+    expect(screen.getAllByText("—")).toHaveLength(2)
+  })
+
+  it("offers editing only on the rows the caller allows", async () => {
+    const onEdit = vi.fn()
+    render(
+      <StudentsTable
+        data={[
+          row({}),
+          row({
+            courseEnrollmentId: "ce-2",
+            studentId: "st-2",
+            fullName: "Luis Mamani",
+            status: "Withdrawn",
+          }),
+        ]}
+        onEdit={onEdit}
+        canEdit={(s) => s.status === "Effective"}
+      />
+    )
+
+    expect(
+      screen.queryByRole("button", { name: "Editar datos de Luis Mamani" })
+    ).not.toBeInTheDocument()
+    await userEvent.click(
+      screen.getByRole("button", { name: "Editar datos de Ana Quispe" })
+    )
+    expect(onEdit).toHaveBeenCalledWith("st-1")
   })
 })

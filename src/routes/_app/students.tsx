@@ -7,10 +7,12 @@ import { isRole } from "@/features/auth/types"
 import { NoHomeroomCourseNotice } from "@/components/shared/NoHomeroomCourseNotice"
 import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
 import { useCourseStudents } from "@/features/courses/hooks/useCourses"
+import { EditStudentDialog } from "@/features/students/components/EditStudentDialog"
 import { EnrollStudentDialog } from "@/features/students/components/EnrollStudentDialog"
 import { StudentsTable } from "@/features/students/components/StudentsTable"
 import { StudentWithdrawalDialog } from "@/features/students/components/StudentWithdrawalDialog"
 import type { StudentRow } from "@/features/students/types"
+import { canEditStudent } from "@/features/students/utils/studentEditPermission"
 
 export const Route = createFileRoute("/_app/students")({
   beforeLoad: () => {
@@ -31,7 +33,7 @@ export const Route = createFileRoute("/_app/students")({
 const WHOLE_COURSE = { offset: 1, limit: 200, sort: "asc" as const }
 
 function StudentsPage() {
-  const { homeroomCourseId, isTechnical, isLoading } = useCurrentContext()
+  const { role, homeroomCourseId, isTechnical, isLoading } = useCurrentContext()
   const studentsQuery = useCourseStudents(homeroomCourseId, WHOLE_COURSE)
 
   const rows = useMemo<StudentRow[]>(
@@ -43,12 +45,17 @@ function StudentsPage() {
         identityCard: s.identityCard,
         fullName: s.fullName,
         status: s.status,
+        incomplete: s.incomplete,
       })),
     [studentsQuery.data]
   )
 
   // El estudiante cuya baja se está consultando. Null cierra el diálogo.
   const [withdrawnId, setWithdrawnId] = useState<string | null>(null)
+  // El estudiante cuyos datos se están editando. Null cierra el diálogo.
+  const [editingId, setEditingId] = useState<string | null>(null)
+  // Todas las filas son del curso de aula: puede editar a quien sigue inscrito en él.
+  const session = { role, courseId: homeroomCourseId, isTechnical }
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -81,12 +88,18 @@ function StudentsPage() {
           isFetching={studentsQuery.isFetching}
           onRefresh={() => void studentsQuery.refetch()}
           onOpenWithdrawal={setWithdrawnId}
+          onEdit={setEditingId}
+          canEdit={(s) => canEditStudent(session, homeroomCourseId, s.status)}
         />
       )}
 
       <StudentWithdrawalDialog
         studentId={withdrawnId}
         onClose={() => setWithdrawnId(null)}
+      />
+      <EditStudentDialog
+        studentId={editingId}
+        onClose={() => setEditingId(null)}
       />
     </div>
   )

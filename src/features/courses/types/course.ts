@@ -34,12 +34,15 @@ export interface CourseRemovalResult {
 export interface CourseStudent {
   courseEnrollmentId: string
   studentId: string
-  rudeCode: string
-  identityCard: string
+  /** Null en quien se inscribió sólo con el nombre (la planilla de la escuela). */
+  rudeCode: string | null
+  identityCard: string | null
   fullName: string
   status: string
-  /** "M" | "F". El backend aún no lo expone en este listado (pendiente). */
-  gender?: string | null
+  /** "M" | "F", o null si todavía no se cargó. */
+  gender: "M" | "F" | null
+  /** Le falta RUDE, carnet, fecha de nacimiento o género. */
+  incomplete: boolean
 }
 
 export interface SubjectAssignment {

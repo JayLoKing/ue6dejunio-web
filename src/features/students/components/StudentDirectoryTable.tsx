@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router"
 import {
   BookOpenIcon,
   InfoIcon,
+  PencilIcon,
   UserCheckIcon,
   UserMinusIcon,
 } from "lucide-react"
@@ -22,7 +23,12 @@ import type { StudentDirectoryResponse } from "../models/response/student-direct
 import { enrollmentStatusLabel } from "@/lib/labels"
 import { EFFECTIVE, WITHDRAWN } from "@/lib/enrollment"
 
-/** Lo que se muestra donde el estudiante todavía no tiene curso en la gestión consultada. */
+import { IncompleteDataBadge } from "./IncompleteDataBadge"
+
+/**
+ * Lo que se muestra donde la fila no trae el dato: el curso de quien no está inscrito en la gestión
+ * consultada, o el RUDE y el carnet de quien se inscribió sólo con el nombre.
+ */
 const EMPTY_CELL = "—"
 
 export interface StudentDirectoryTableProps {
@@ -46,6 +52,13 @@ export interface StudentDirectoryTableProps {
   onReinstate?: (student: StudentDirectoryResponse) => void
   /** Ofrece abrir el cuaderno del curso de la fila. Ausente, no hay enlace. */
   canOpenCourse?: boolean
+  /** Abre la edición de los datos del estudiante. Ausente, la tabla no la ofrece. */
+  onEdit?: (studentId: string) => void
+  /**
+   * Qué filas puede editar quien mira. Sin esto, ninguna: la regla depende del rol y del curso de
+   * la fila, y la tabla no sabe quién mira.
+   */
+  canEdit?: (student: StudentDirectoryResponse) => boolean
 }
 
 /** El enlace al cuaderno: sólo con permiso y con un curso al que ir (el sin inscribir no lo tiene). */
@@ -84,7 +97,23 @@ export function StudentDirectoryTable({
   onWithdraw,
   onReinstate,
   canOpenCourse,
+  onEdit,
+  canEdit,
 }: StudentDirectoryTableProps) {
+  const editButton = (s: StudentDirectoryResponse) =>
+    onEdit && canEdit?.(s) ? (
+      <Button
+        size="icon"
+        variant="ghost"
+        className="size-8"
+        title="Editar datos"
+        onClick={() => onEdit(s.id)}
+      >
+        <PencilIcon className="size-4" />
+        <span className="sr-only">Editar datos de {s.fullName}</span>
+      </Button>
+    ) : null
+
   return (
     <div className="flex flex-col gap-4">
       <div className="rounded-md border">
@@ -115,12 +144,17 @@ export function StudentDirectoryTable({
               rows.map((s) => (
                 <TableRow key={s.id}>
                   <TableCell className="font-mono text-xs">
-                    {s.rudeCode}
+                    {s.rudeCode ?? EMPTY_CELL}
                   </TableCell>
                   <TableCell className="font-mono text-xs">
-                    {s.identityCard}
+                    {s.identityCard ?? EMPTY_CELL}
                   </TableCell>
-                  <TableCell>{s.fullName}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {s.fullName}
+                      {s.incomplete ? <IncompleteDataBadge /> : null}
+                    </div>
+                  </TableCell>
                   <TableCell>{s.grade ?? EMPTY_CELL}</TableCell>
                   <TableCell>{s.parallel ?? EMPTY_CELL}</TableCell>
                   <TableCell>{s.academicYear ?? EMPTY_CELL}</TableCell>
@@ -134,6 +168,7 @@ export function StudentDirectoryTable({
                   <TableCell className="text-right">
                     {s.status === WITHDRAWN ? (
                       <div className="flex justify-end gap-1">
+                        {editButton(s)}
                         {courseLink(s, canOpenCourse)}
                         <Button
                           size="icon"
@@ -164,6 +199,7 @@ export function StudentDirectoryTable({
                       </div>
                     ) : s.status === EFFECTIVE ? (
                       <div className="flex justify-end gap-1">
+                        {editButton(s)}
                         {courseLink(s, canOpenCourse)}
                         {onWithdraw ? (
                           <Button
@@ -180,7 +216,11 @@ export function StudentDirectoryTable({
                           </Button>
                         ) : null}
                       </div>
-                    ) : null}
+                    ) : (
+                      <div className="flex justify-end gap-1">
+                        {editButton(s)}
+                      </div>
+                    )}
                   </TableCell>
                 </TableRow>
               ))

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { InfoIcon, SearchIcon } from "lucide-react"
+import { InfoIcon, PencilIcon, SearchIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -19,6 +19,11 @@ import type { StudentRow } from "../types"
 import { enrollmentStatusLabel } from "@/lib/labels"
 import { WITHDRAWN } from "@/lib/enrollment"
 
+import { IncompleteDataBadge } from "./IncompleteDataBadge"
+
+/** Lo que se muestra donde el estudiante todavía no tiene el dato. */
+const EMPTY_CELL = "—"
+
 export interface StudentsTableProps {
   data: StudentRow[]
   pageSize?: number
@@ -29,6 +34,13 @@ export interface StudentsTableProps {
    * pantalla, y no todas tienen dónde abrirlo.
    */
   onOpenWithdrawal?: (studentId: string) => void
+  /** Abre la edición de los datos del estudiante. Ausente, la tabla no la ofrece. */
+  onEdit?: (studentId: string) => void
+  /**
+   * Qué filas puede editar quien mira. Sin esto, todas las que muestran `onEdit`: la regla es de
+   * quien arma la pantalla, que sabe quién mira.
+   */
+  canEdit?: (student: StudentRow) => boolean
 }
 
 export function StudentsTable({
@@ -37,6 +49,8 @@ export function StudentsTable({
   isFetching,
   onRefresh,
   onOpenWithdrawal,
+  onEdit,
+  canEdit = () => true,
 }: StudentsTableProps) {
   const [search, setSearch] = useState("")
   const [page, setPage] = useState(0)
@@ -48,8 +62,8 @@ export function StudentsTable({
     return data.filter(
       (s) =>
         s.fullName.toLowerCase().includes(q) ||
-        s.rudeCode.toLowerCase().includes(q) ||
-        s.identityCard.toLowerCase().includes(q)
+        (s.rudeCode ?? "").toLowerCase().includes(q) ||
+        (s.identityCard ?? "").toLowerCase().includes(q)
     )
   }, [data, q])
 
@@ -80,7 +94,7 @@ export function StudentsTable({
               <TableHead>Carnet</TableHead>
               <TableHead>Nombre completo</TableHead>
               <TableHead>Estado</TableHead>
-              <TableHead className="w-10" />
+              <TableHead className="w-20" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -97,18 +111,37 @@ export function StudentsTable({
               pageData.map((s) => (
                 <TableRow key={s.courseEnrollmentId}>
                   <TableCell className="font-mono text-xs">
-                    {s.rudeCode}
+                    {s.rudeCode ?? EMPTY_CELL}
                   </TableCell>
                   <TableCell className="font-mono text-xs">
-                    {s.identityCard}
+                    {s.identityCard ?? EMPTY_CELL}
                   </TableCell>
-                  <TableCell>{s.fullName}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {s.fullName}
+                      {s.incomplete ? <IncompleteDataBadge /> : null}
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <Badge variant="secondary">
                       {enrollmentStatusLabel(s.status)}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
+                    {onEdit && canEdit(s) ? (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-8"
+                        title="Editar datos"
+                        onClick={() => onEdit(s.studentId)}
+                      >
+                        <PencilIcon className="size-4" />
+                        <span className="sr-only">
+                          Editar datos de {s.fullName}
+                        </span>
+                      </Button>
+                    ) : null}
                     {/* Sólo la fila que despierta la pregunta puede contestarla. */}
                     {s.status === WITHDRAWN && onOpenWithdrawal ? (
                       <Button

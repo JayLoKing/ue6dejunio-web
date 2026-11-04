@@ -4,6 +4,7 @@ import type {
   EnrollSingleRequest,
 } from "../models/requests/enroll-request"
 import type { ReinstateStudentRequest } from "../models/requests/reinstate-request"
+import type { UpdateStudentRequest } from "../models/requests/update-student-request"
 import type { WithdrawStudentRequest } from "../models/requests/withdraw-request"
 import type { EnrollResponse } from "../models/response/enroll-response"
 import type { NotReenrolledResponse } from "../models/response/not-reenrolled-response"
@@ -17,6 +18,14 @@ export class StudentService {
   static async getById(id: string): Promise<StudentDetail> {
     const { call } = helper.getByIdAsync(id)
     return (await call).data
+  }
+
+  /** Reemplaza los datos de la ficha. Devuelve la ficha como quedó. */
+  static async update(
+    id: string,
+    payload: UpdateStudentRequest
+  ): Promise<StudentDetail> {
+    return (await helper.updateAsync(id, payload).call).data
   }
 
   /** Baja lógica: el estudiante deja de estar en el padrón, su ficha y su historia quedan. */

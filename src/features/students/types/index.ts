@@ -66,10 +66,13 @@ export interface StudentRow {
   courseEnrollmentId: string
   /** El estudiante, no su inscripción: es por quien se pregunta al abrir el motivo de la baja. */
   studentId: string
-  rudeCode: string
-  identityCard: string
+  /** Null en quien se inscribió sólo con el nombre (la planilla de la escuela). */
+  rudeCode: string | null
+  identityCard: string | null
   fullName: string
   status: string
+  /** Le falta RUDE, carnet, fecha de nacimiento o género. */
+  incomplete: boolean
 }
 
 /**
@@ -80,10 +83,15 @@ export interface StudentRow {
  */
 export interface StudentDetail {
   id: string
-  rudeCode: string
-  identityCard: string
+  rudeCode: string | null
+  identityCard: string | null
   names: string
   lastNames: string
+  /** yyyy-MM-dd, tal como lo manda la API: se muestra y se edita como texto, nunca como `Date`. */
+  birthDate: string | null
+  gender: Gender | null
+  /** Le falta RUDE, carnet, fecha de nacimiento o género. */
+  incomplete: boolean
   status: string
   /** La categoría: "Retiro Voluntario", "Transferencia" u "Otro". */
   statusReason: string | null

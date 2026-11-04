@@ -5,6 +5,7 @@ import { useAuthStore } from "@/features/auth/store/authStore"
 import { isRole } from "@/features/auth/types"
 import { DEFAULT_PAGE_QUERY } from "@/lib/types/pagination"
 
+import { EditStudentDialog } from "./EditStudentDialog"
 import { StudentDirectoryTable } from "./StudentDirectoryTable"
 import { StudentWithdrawalDialog } from "./StudentWithdrawalDialog"
 import {
@@ -13,13 +14,15 @@ import {
 } from "./WithdrawStudentDialog"
 import { useStudentDirectory } from "../hooks/useStudentDirectory"
 import { EMPTY_DIRECTORY_FILTERS } from "../types"
+import { canEditStudent } from "../utils/studentEditPermission"
 
 export interface CourseStudentsPanelProps {
   courseId: string
 }
 
 /**
- * El padrón de un curso, con la baja al alcance de quien la decide.
+ * El padrón de un curso, con la baja al alcance de quien la decide y la edición de los datos al de
+ * quien puede corregirlos (el Director, o el docente de aula de este curso).
  *
  * Alcance `ALL` y no `ACTIVE`: quien deja el curso sigue apareciendo con su motivo a mano, igual
  * que en el padrón del docente. Una fila que desaparece sin dejar rastro deja al curso explicando
@@ -29,12 +32,16 @@ export interface CourseStudentsPanelProps {
  */
 export function CourseStudentsPanel({ courseId }: CourseStudentsPanelProps) {
   const role = useAuthStore((s) => s.role)
+  const homeroomCourseId = useAuthStore((s) => s.courseId)
+  const isTechnical = useAuthStore((s) => s.isTechnical)
   const canWithdraw = isRole(role, "DIRECTOR")
+  const session = { role, courseId: homeroomCourseId, isTechnical }
 
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_QUERY.limit)
   const [withdrawing, setWithdrawing] = useState<WithdrawalTarget | null>(null)
   const [readingReason, setReadingReason] = useState<string | null>(null)
+  const [editing, setEditing] = useState<string | null>(null)
 
   const filters = useMemo(
     () => ({ ...EMPTY_DIRECTORY_FILTERS, courseId, scope: "ALL" as const }),
@@ -72,6 +79,8 @@ export function CourseStudentsPanel({ courseId }: CourseStudentsPanelProps) {
           setPage(1)
         }}
         onOpenWithdrawal={setReadingReason}
+        onEdit={setEditing}
+        canEdit={(s) => canEditStudent(session, s.courseId, s.status)}
         onWithdraw={
           canWithdraw
             ? (s) => setWithdrawing({ id: s.id, fullName: s.fullName })
@@ -87,6 +96,7 @@ export function CourseStudentsPanel({ courseId }: CourseStudentsPanelProps) {
         studentId={readingReason}
         onClose={() => setReadingReason(null)}
       />
+      <EditStudentDialog studentId={editing} onClose={() => setEditing(null)} />
     </div>
   )
 }

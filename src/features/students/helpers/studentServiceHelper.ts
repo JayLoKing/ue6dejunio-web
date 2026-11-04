@@ -8,6 +8,7 @@ import type {
   EnrollSingleRequest,
 } from "../models/requests/enroll-request"
 import type { ReinstateStudentRequest } from "../models/requests/reinstate-request"
+import type { UpdateStudentRequest } from "../models/requests/update-student-request"
 import type { WithdrawStudentRequest } from "../models/requests/withdraw-request"
 import type { EnrollResponse } from "../models/response/enroll-response"
 import type { NotReenrolledResponse } from "../models/response/not-reenrolled-response"
@@ -19,6 +20,23 @@ export default class StudentServiceHelper {
     const controller = loadAbort()
     return {
       call: httpClient.get<StudentDetail>(StudentUrl.ById(id), {
+        signal: controller.signal,
+      }),
+      controller,
+    }
+  }
+
+  /**
+   * Reemplaza la ficha entera (PUT): el mismo recurso que se lee por id. Director, o el docente de
+   * aula del curso del estudiante.
+   */
+  updateAsync(
+    id: string,
+    payload: UpdateStudentRequest
+  ): UseApiCall<StudentDetail> {
+    const controller = loadAbort()
+    return {
+      call: httpClient.put<StudentDetail>(StudentUrl.ById(id), payload, {
         signal: controller.signal,
       }),
       controller,

@@ -6,8 +6,9 @@
  */
 export interface StudentDirectoryResponse {
   id: string
-  rudeCode: string
-  identityCard: string
+  /** Null en quien se inscribió sólo con el nombre (la planilla de la escuela). */
+  rudeCode: string | null
+  identityCard: string | null
   fullName: string
   grade: string | null
   parallel: string | null
@@ -20,4 +21,6 @@ export interface StudentDirectoryResponse {
   courseId: string | null
   /** El paralelo de ese curso, que la ruta del cuaderno lleva en la URL. */
   parallelId: number | null
+  /** Le falta RUDE, carnet, fecha de nacimiento o género. */
+  incomplete: boolean
 }

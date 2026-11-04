@@ -1,5 +1,14 @@
-import { skipToken, useQuery } from "@tanstack/react-query"
+import {
+  skipToken,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
+import { toast } from "sonner"
 
+import { invalidateCourses } from "@/features/courses/hooks/useCourses"
+
+import type { UpdateStudentRequest } from "../models/requests/update-student-request"
 import { StudentService } from "../services/studentService"
 
 /**
@@ -43,5 +52,29 @@ export function useNotReenrolled(academicYearId?: number) {
   return useQuery({
     queryKey: ["students", "not-reenrolled", academicYearId ?? "current"],
     queryFn: () => StudentService.notReenrolled(academicYearId),
+  })
+}
+
+/**
+ * Corregir o completar los datos de un estudiante.
+ *
+ * El nombre, el RUDE, el carnet y la marca de datos incompletos se leen desde varios listados: la
+ * ficha y el directorio (`["students"]`), el padrón del docente (`["teachers"]`) y el padrón y el
+ * cuaderno del curso (`invalidateCourses`). Invalidar uno solo deja a los otros mostrando el dato
+ * viejo.
+ *
+ * Sin toast de error: el interceptor ya muestra el mensaje de la API.
+ */
+export function useUpdateStudent() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (v: { id: string; payload: UpdateStudentRequest }) =>
+      StudentService.update(v.id, v.payload),
+    onSuccess: () => {
+      toast.success("Datos del estudiante actualizados.")
+      void qc.invalidateQueries({ queryKey: ["students"] })
+      void qc.invalidateQueries({ queryKey: ["teachers"] })
+      invalidateCourses(qc)
+    },
   })
 }

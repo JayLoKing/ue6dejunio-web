@@ -5,6 +5,7 @@ import {
   clampScore,
   draftText,
   mean,
+  normalizeTyped,
   parseScore,
   scoreFromText,
 } from "./scoreDraft"
@@ -127,5 +128,22 @@ describe("clampNotice", () => {
 
   it("explains a negative value raised to zero", () => {
     expect(clampNotice("-3", 0, 45)).toBe("-3 es menor que 0; se registró 0.")
+  })
+})
+
+describe("normalizeTyped", () => {
+  it("drops the zero a teacher types after when the cell held 0", () => {
+    expect(normalizeTyped("05")).toBe("5")
+    expect(normalizeTyped("0012")).toBe("12")
+  })
+
+  it("keeps a lone zero, an empty cell and a decimal below one", () => {
+    expect(normalizeTyped("0")).toBe("0")
+    expect(normalizeTyped("")).toBe("")
+    expect(normalizeTyped("0.5")).toBe("0.5")
+  })
+
+  it("leaves an ordinary value untouched", () => {
+    expect(normalizeTyped("40")).toBe("40")
   })
 })

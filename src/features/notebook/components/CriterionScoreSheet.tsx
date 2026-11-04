@@ -26,6 +26,7 @@ import {
   clampNotice,
   draftText,
   mean,
+  normalizeTyped,
   parseScore,
   scoreFromText,
 } from "@/features/assessment/utils/scoreDraft"
@@ -299,10 +300,10 @@ export function CriterionScoreSheet({
                             >
                               <Input
                                 type="number"
-                                inputMode="decimal"
+                                inputMode="numeric"
                                 min={0}
                                 max={cap}
-                                step={0.5}
+                                step={1}
                                 title={
                                   withdrawn
                                     ? "Dado de baja: no se registran notas nuevas"
@@ -314,7 +315,7 @@ export function CriterionScoreSheet({
                                 onChange={(ev) =>
                                   setDraft((d) => ({
                                     ...d,
-                                    [k]: ev.target.value,
+                                    [k]: normalizeTyped(ev.target.value),
                                   }))
                                 }
                                 onBlur={(ev) =>

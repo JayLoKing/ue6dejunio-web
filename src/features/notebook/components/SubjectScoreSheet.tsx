@@ -41,6 +41,7 @@ import {
   clampNotice,
   draftText,
   mean,
+  normalizeTyped,
   parseScore,
   scoreFromText,
 } from "@/features/assessment/utils/scoreDraft"
@@ -544,10 +545,10 @@ export function SubjectScoreSheet({
                                           ) : (
                                             <Input
                                               type="number"
-                                              inputMode="decimal"
+                                              inputMode="numeric"
                                               min={0}
                                               max={dim.weight}
-                                              step={0.5}
+                                              step={1}
                                               title={
                                                 withdrawn
                                                   ? "Dado de baja: no se registran notas nuevas"
@@ -563,7 +564,9 @@ export function SubjectScoreSheet({
                                               onChange={(e) =>
                                                 setDraft((d) => ({
                                                   ...d,
-                                                  [k]: e.target.value,
+                                                  [k]: normalizeTyped(
+                                                    e.target.value
+                                                  ),
                                                 }))
                                               }
                                               onBlur={(e) =>

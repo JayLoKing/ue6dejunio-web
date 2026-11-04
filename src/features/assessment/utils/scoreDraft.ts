@@ -18,6 +18,15 @@ export function draftText(
   return saved === undefined ? "" : String(saved)
 }
 
+/**
+ * Quita los ceros a la izquierda de lo tecleado. Una casilla con nota 0 muestra "0", y al
+ * escribir 5 el campo numérico entrega "05": el valor guardado es el mismo, pero el
+ * docente ve un cero que no puso. Se conservan "0" solo y los decimales como "0.5".
+ */
+export function normalizeTyped(raw: string): string {
+  return raw.replace(/^0+(?=\d)/, "")
+}
+
 /** Acota la nota al rango de su dimensión. */
 export function clampScore(value: number, max: number): number {
   if (value < 0) return 0

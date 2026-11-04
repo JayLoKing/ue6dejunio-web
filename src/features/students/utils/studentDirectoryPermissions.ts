@@ -12,6 +12,8 @@ export interface DirectoryPermissions {
   canReinstate: boolean
   /** Abrir el cuaderno del curso de la fila: lo leen Dirección y secretaría. */
   canOpenCourse: boolean
+  /** Corregir los datos de la ficha: en esta ruta la API sólo se lo permite a la Dirección. */
+  canEdit: boolean
 }
 
 export function directoryPermissions(
@@ -22,5 +24,6 @@ export function directoryPermissions(
     canWithdraw: isDirector,
     canReinstate: isDirector,
     canOpenCourse: isDirector || isRole(role, "SECRETARY"),
+    canEdit: isDirector,
   }
 }

@@ -12,6 +12,7 @@ import {
   ReinstateStudentDialog,
   type ReinstateTarget,
 } from "@/features/students/components/ReinstateStudentDialog"
+import { EditStudentDialog } from "@/features/students/components/EditStudentDialog"
 import { StudentWithdrawalDialog } from "@/features/students/components/StudentWithdrawalDialog"
 import {
   WithdrawStudentDialog,
@@ -39,7 +40,7 @@ export const Route = createFileRoute("/_app/estudiantes")({
 
 function StudentDirectoryPage() {
   const role = useAuthStore((s) => s.role)
-  const { canWithdraw, canReinstate, canOpenCourse } =
+  const { canWithdraw, canReinstate, canOpenCourse, canEdit } =
     directoryPermissions(role)
 
   const [filters, setFilters] = useState<StudentDirectoryFilters>(
@@ -71,6 +72,7 @@ function StudentDirectoryPage() {
   // La baja que se está por hacer, y la baja ya hecha que se está leyendo. Son dos preguntas
   // distintas sobre la misma fila, y cada una tiene su diálogo.
   const [withdrawing, setWithdrawing] = useState<WithdrawalTarget | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [readingReason, setReadingReason] = useState<string | null>(null)
   const [reinstating, setReinstating] = useState<ReinstateTarget | null>(null)
 
@@ -131,6 +133,8 @@ function StudentDirectoryPage() {
                   : undefined
               }
               canOpenCourse={canOpenCourse}
+              onEdit={canEdit ? setEditingId : undefined}
+              canEdit={() => canEdit}
               onReinstate={
                 canReinstate
                   ? (s) => setReinstating({ id: s.id, fullName: s.fullName })
@@ -156,6 +160,10 @@ function StudentDirectoryPage() {
       <StudentWithdrawalDialog
         studentId={readingReason}
         onClose={() => setReadingReason(null)}
+      />
+      <EditStudentDialog
+        studentId={editingId}
+        onClose={() => setEditingId(null)}
       />
     </div>
   )

@@ -8,6 +8,7 @@ describe("directoryPermissions", () => {
       canWithdraw: true,
       canReinstate: true,
       canOpenCourse: true,
+      canEdit: true,
     })
   })
 
@@ -17,11 +18,13 @@ describe("directoryPermissions", () => {
       canWithdraw: false,
       canReinstate: false,
       canOpenCourse: true,
+      canEdit: false,
     })
   })
 
   it("grants nothing without a role", () => {
     expect(directoryPermissions(null).canReinstate).toBe(false)
     expect(directoryPermissions(null).canOpenCourse).toBe(false)
+    expect(directoryPermissions(null).canEdit).toBe(false)
   })
 })

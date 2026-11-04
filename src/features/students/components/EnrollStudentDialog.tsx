@@ -40,7 +40,8 @@ export function EnrollStudentDialog({ courseId }: EnrollStudentDialogProps) {
         <DialogHeader>
           <DialogTitle>Inscribir estudiantes</DialogTitle>
           <DialogDescription>
-            Elige el modo: manual (1 estudiante) o automatizado (nómina PDF).
+            Elige el modo: manual (1 estudiante) o automatizado (nómina PDF del
+            SIE o planilla Excel de la escuela).
           </DialogDescription>
         </DialogHeader>
 
@@ -54,7 +55,9 @@ export function EnrollStudentDialog({ courseId }: EnrollStudentDialogProps) {
         >
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="manual">Manual</TabsTrigger>
-            <TabsTrigger value="automated">Automatizado (PDF)</TabsTrigger>
+            <TabsTrigger value="automated">
+              Automatizado (PDF o Excel)
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="manual" className="pt-4">
             <ManualEnrollForm courseId={courseId} onSuccess={close} />

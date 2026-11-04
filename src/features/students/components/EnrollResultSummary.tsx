@@ -2,7 +2,10 @@ import { useId, type ReactNode } from "react"
 
 import { cn } from "@/lib/utils"
 
-import type { EnrollResponse } from "../models/response/enroll-response"
+import type {
+  EnrollConflict,
+  EnrollResponse,
+} from "../models/response/enroll-response"
 
 export interface EnrollResultSummaryProps {
   result: EnrollResponse
@@ -47,6 +50,15 @@ function StudentGroup({
   )
 }
 
+/** Los números que trae la fila en conflicto, o nada si no trae ninguno. */
+const identityOf = (c: EnrollConflict): string => {
+  const parts = [
+    c.rudeCode ? `RUDE ${c.rudeCode}` : null,
+    c.identityCard ? `CI ${c.identityCard}` : null,
+  ].filter(Boolean)
+  return parts.length > 0 ? ` (${parts.join(", ")})` : ""
+}
+
 /**
  * Lo que dejó una carga: de dónde vino cada estudiante y a quién se omitió.
  *
@@ -68,6 +80,11 @@ export function EnrollResultSummary({ result }: EnrollResultSummaryProps) {
       <p className="text-sm text-muted-foreground">
         {result.enrollmentsCreated} inscripciones generadas.
       </p>
+      {result.completed > 0 ? (
+        <p className="text-sm text-muted-foreground">
+          Datos completados: {result.completed}
+        </p>
+      ) : null}
 
       {result.reinstated.length > 0 ? (
         <StudentGroup
@@ -106,12 +123,14 @@ export function EnrollResultSummary({ result }: EnrollResultSummaryProps) {
 
       {result.conflicts.length > 0 ? (
         <StudentGroup
-          title="Datos en conflicto (RUDE y CI de estudiantes distintos)"
+          title="Datos en conflicto — estas filas no se inscribieron"
           omitted
         >
-          {result.conflicts.map((c) => (
-            <li key={`${c.rudeCode}-${c.identityCard}`}>
-              {c.fullName} (RUDE {c.rudeCode}, CI {c.identityCard}): {c.reason}
+          {result.conflicts.map((c, i) => (
+            // Por posición: una fila sin RUDE ni CI no tiene otra clave, y dos pueden llamarse igual.
+            <li key={i}>
+              {c.fullName}
+              {identityOf(c)}: {c.reason}
             </li>
           ))}
         </StudentGroup>

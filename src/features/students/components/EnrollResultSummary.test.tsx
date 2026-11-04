@@ -12,6 +12,7 @@ const result = (over: Partial<EnrollResponse> = {}): EnrollResponse => ({
   studentsReentering: 2,
   enrollmentsCreated: 9,
   enrollmentsSkipped: 0,
+  completed: 0,
   reinstated: [],
   skippedWithdrawn: [],
   skippedOtherCourse: [],
@@ -125,7 +126,7 @@ describe("EnrollResultSummary", () => {
     )
 
     const group = screen.getByRole("region", {
-      name: "Datos en conflicto (RUDE y CI de estudiantes distintos)",
+      name: "Datos en conflicto — estas filas no se inscribieron",
     })
     const item = within(group).getByRole("listitem")
     expect(item).toHaveTextContent("Ana Quispe")
@@ -134,5 +135,42 @@ describe("EnrollResultSummary", () => {
     expect(item).toHaveTextContent(
       "El RUDE corresponde a Ana Quispe y el CI a Luis Mamani."
     )
+  })
+
+  it("reports how many students already on record got their missing data", () => {
+    render(<EnrollResultSummary result={result({ completed: 3 })} />)
+
+    expect(screen.getByText("Datos completados: 3")).toBeInTheDocument()
+  })
+
+  it("does not mention completed data when nothing was filled", () => {
+    render(<EnrollResultSummary result={result()} />)
+
+    expect(screen.queryByText(/Datos completados/)).not.toBeInTheDocument()
+  })
+
+  /** A name-only row has no RUDE or CI to quote: only its reason explains it. */
+  it("lists a name conflict without inventing identity numbers", () => {
+    render(
+      <EnrollResultSummary
+        result={result({
+          conflicts: [
+            {
+              rudeCode: null,
+              identityCard: null,
+              fullName: "Ana Quispe",
+              reason: "Hay dos estudiantes con ese nombre en el curso.",
+            },
+          ],
+        })}
+      />
+    )
+
+    const item = screen.getByRole("listitem")
+    expect(item).toHaveTextContent(
+      "Ana Quispe: Hay dos estudiantes con ese nombre en el curso."
+    )
+    expect(item).not.toHaveTextContent("RUDE")
+    expect(item).not.toHaveTextContent("null")
   })
 })

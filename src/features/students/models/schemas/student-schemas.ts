@@ -8,3 +8,10 @@ export const studentPayloadSchema = z.object({
   birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato yyyy-MM-dd"),
   gender: z.enum(["M", "F"]),
 })
+
+/**
+ * Lo que pide el formulario de inscripción manual: los seis datos, aunque la API acepte menos. La
+ * planilla de la escuela es la vía para inscribir sólo con el nombre; quien carga uno a mano lo
+ * hace con la ficha completa en la mano.
+ */
+export type StudentFormValues = z.infer<typeof studentPayloadSchema>

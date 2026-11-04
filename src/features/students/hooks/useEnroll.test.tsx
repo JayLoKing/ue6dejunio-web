@@ -25,6 +25,7 @@ const result = (over: Partial<EnrollResponse> = {}): EnrollResponse => ({
   studentsReentering: 0,
   enrollmentsCreated: 1,
   enrollmentsSkipped: 0,
+  completed: 0,
   reinstated: [],
   skippedWithdrawn: [],
   skippedOtherCourse: [],

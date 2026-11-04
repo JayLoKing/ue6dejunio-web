@@ -1,12 +1,19 @@
 export type Gender = "M" | "F"
 
+/**
+ * Un estudiante como lo recibe la API al inscribirlo.
+ *
+ * Sólo los nombres son obligatorios: la nómina de la escuela (.xlsx) trae el nombre y nada más, y el
+ * RUDE, el carnet, la fecha y el género se completan después con la nómina del SIE o a mano. Un
+ * campo ausente viaja omitido, que la API toma como vacío.
+ */
 export interface StudentPayload {
-  rudeCode: string
-  identityCard: string
+  rudeCode?: string
+  identityCard?: string
   names: string
   lastNames: string
-  birthDate: string
-  gender: Gender
+  birthDate?: string
+  gender?: Gender
 }
 
 export interface ParsedStudentRow extends StudentPayload {
@@ -27,6 +34,32 @@ export interface ParsedRoster {
   header: RosterHeader | null
   rows: ParsedStudentRow[]
 }
+
+/** Una fila de la planilla que no se pudo importar, con su número de fila en la hoja. */
+export interface RejectedNominaRow {
+  rowNumber: number
+  rawFullName: string
+  reason: string
+}
+
+/**
+ * Un curso de la nómina de la escuela (.xlsx): la planilla apila todos los cursos en una hoja, uno
+ * debajo del otro, cada uno abierto por su línea "CURSO: PRIMERO A".
+ *
+ * `grade` va con los nombres del catálogo ("Inicial", "Primero"…), igual que `RosterHeader`. No
+ * hay año: el título de la planilla dice una gestión que no es la suya.
+ */
+export interface NominaBlock {
+  grade: string
+  parallel: string
+  rows: ParsedStudentRow[]
+  rejected: RejectedNominaRow[]
+}
+
+/** Lo que salió de leer el archivo elegido, según su formato. */
+export type ParsedEnrollFile =
+  | { kind: "pdf"; roster: ParsedRoster }
+  | { kind: "xlsx"; blocks: NominaBlock[] }
 
 /** Un estudiante como lo muestra el padrón: lo justo para una fila de la tabla. */
 export interface StudentRow {

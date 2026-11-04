@@ -4,11 +4,13 @@ import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const parseStudentsPdf = vi.hoisted(() => vi.fn())
+const parseNominaXlsx = vi.hoisted(() => vi.fn())
 const mutateAsync = vi.hoisted(() => vi.fn())
 const useCourseOverview = vi.hoisted(() => vi.fn())
 
 // Reading the file is pdfjs's job; these tests are about what the form does with what it read.
 vi.mock("../services/studentPdfService", () => ({ parseStudentsPdf }))
+vi.mock("../services/studentXlsxService", () => ({ parseNominaXlsx }))
 vi.mock("../hooks/useEnroll", () => ({
   useEnrollBatch: () => ({ mutateAsync, isPending: false }),
 }))
@@ -111,5 +113,132 @@ describe("AutomatedEnrollForm", () => {
       name: /inscribir 1 estudiantes/i,
     })
     expect(submit).toBeDisabled()
+  })
+})
+
+const XLSX_TYPE =
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+const uploadXlsx = async (file = new File(["PK"], "nomina.xlsx")) => {
+  render(
+    <QueryClientProvider client={new QueryClient()}>
+      <AutomatedEnrollForm courseId="c-1" onSuccess={vi.fn()} />
+    </QueryClientProvider>
+  )
+  await userEvent.upload(screen.getByLabelText(/subir nómina pdf/i), file)
+}
+
+const nameOnly = {
+  rowIndex: 1,
+  rawFullName: "PEREZ ROJAS ANA",
+  fullName: "PEREZ ROJAS ANA",
+  lastNames: "PEREZ ROJAS",
+  names: "ANA",
+}
+
+describe("AutomatedEnrollForm with the school's xlsx", () => {
+  it("accepts both a PDF and an xlsx", () => {
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <AutomatedEnrollForm courseId="c-1" onSuccess={vi.fn()} />
+      </QueryClientProvider>
+    )
+
+    const accept = screen
+      .getByLabelText(/subir nómina pdf/i)
+      .getAttribute("accept")
+    expect(accept).toContain("application/pdf")
+    expect(accept).toContain(".xlsx")
+    expect(accept).toContain(XLSX_TYPE)
+  })
+
+  it("reads an xlsx with the workbook parser, not pdfjs", async () => {
+    parseNominaXlsx.mockResolvedValueOnce([
+      { grade: "Segundo", parallel: "A", rows: [nameOnly], rejected: [] },
+    ])
+
+    await uploadXlsx(new File(["PK"], "NOMINA.XLSX", { type: XLSX_TYPE }))
+
+    expect(await screen.findByText("PEREZ ROJAS")).toBeInTheDocument()
+    expect(parseNominaXlsx).toHaveBeenCalledOnce()
+    expect(parseStudentsPdf).not.toHaveBeenCalled()
+  })
+
+  it("enrols only the block of the selected course, with names only", async () => {
+    parseNominaXlsx.mockResolvedValueOnce([
+      {
+        grade: "Primero",
+        parallel: "A",
+        rows: [{ ...nameOnly, fullName: "OTRO CURSO LUIS" }],
+        rejected: [],
+      },
+      { grade: "Segundo", parallel: "A", rows: [nameOnly], rejected: [] },
+    ])
+
+    await uploadXlsx()
+    expect(
+      await screen.findByText(/puedes completarlos después/i)
+    ).toBeInTheDocument()
+    await userEvent.click(
+      screen.getByRole("button", { name: /inscribir 1 estudiantes/i })
+    )
+
+    expect(mutateAsync).toHaveBeenCalledWith({
+      id_course: "c-1",
+      students: [{ names: "ANA", lastNames: "PEREZ ROJAS" }],
+    })
+  })
+
+  it("names the courses it found when the selected one is missing", async () => {
+    parseNominaXlsx.mockResolvedValueOnce([
+      { grade: "Inicial", parallel: "A", rows: [nameOnly], rejected: [] },
+    ])
+
+    await uploadXlsx()
+
+    expect(
+      await screen.findByText(
+        "La planilla no tiene el curso Segundo A. Cursos encontrados: Inicial A."
+      )
+    ).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /inscribir/i })).toBeDisabled()
+  })
+
+  it("shows the rows it could not split", async () => {
+    parseNominaXlsx.mockResolvedValueOnce([
+      {
+        grade: "Segundo",
+        parallel: "A",
+        rows: [nameOnly],
+        rejected: [
+          { rowNumber: 9, rawFullName: "SOLO", reason: "Una palabra." },
+        ],
+      },
+    ])
+
+    await uploadXlsx()
+
+    expect(
+      await screen.findByText("Fila 9 omitida (SOLO): Una palabra.")
+    ).toBeInTheDocument()
+  })
+
+  it("refuses a file that is neither a PDF nor an xlsx", async () => {
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <AutomatedEnrollForm courseId="c-1" onSuccess={vi.fn()} />
+      </QueryClientProvider>
+    )
+    await userEvent.upload(
+      screen.getByLabelText(/subir nómina pdf/i),
+      new File(["x"], "nomina.docx"),
+      { applyAccept: false }
+    )
+
+    expect(
+      await screen.findByText(
+        "Formato no soportado. Sube la nómina en PDF o Excel (.xlsx)."
+      )
+    ).toBeInTheDocument()
   })
 })

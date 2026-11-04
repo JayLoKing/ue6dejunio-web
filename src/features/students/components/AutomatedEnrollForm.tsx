@@ -15,11 +15,23 @@ import {
 
 import { useCourseOverview } from "@/features/courses/hooks/useCourses"
 
-import { useParseStudentsPdf } from "../hooks/useParseStudentsPdf"
+import {
+  ENROLL_FILE_ACCEPT,
+  useParseEnrollFile,
+} from "../hooks/useParseEnrollFile"
 import { useEnrollBatch } from "../hooks/useEnroll"
 import type { EnrollResponse } from "../models/response/enroll-response"
-import type { ParsedRoster } from "../types"
-import { rosterHeaderMismatch } from "../utils/rosterHeader"
+import type {
+  ParsedEnrollFile,
+  ParsedStudentRow,
+  RejectedNominaRow,
+  StudentPayload,
+} from "../types"
+import { nominaBlockFor } from "../utils/nominaXlsx"
+import {
+  rosterHeaderMismatch,
+  type RosterTargetCourse,
+} from "../utils/rosterHeader"
 import { EnrollResultSummary } from "./EnrollResultSummary"
 
 export interface AutomatedEnrollFormProps {
@@ -27,70 +39,113 @@ export interface AutomatedEnrollFormProps {
   onSuccess: () => void
 }
 
+/** Lo que se muestra donde la planilla no trae el dato. */
+const EMPTY_CELL = "—"
+
+/** Lo que el archivo deja inscribir en el curso destino, o por qué no deja. */
+interface EnrollableRows {
+  rows: ParsedStudentRow[]
+  rejected: RejectedNominaRow[]
+  error: string | null
+}
+
+const NOTHING: EnrollableRows = { rows: [], rejected: [], error: null }
+
+/**
+ * Las filas del archivo que corresponden al curso destino.
+ *
+ * El PDF del SIE es de un solo curso y su cabecera tiene que nombrar el destino. La planilla de la
+ * escuela trae todos los cursos, y se toma sólo el bloque del destino. Sin el curso cargado el PDF
+ * se muestra (el botón sigue deshabilitado), pero de la planilla no hay bloque que elegir todavía.
+ */
+const enrollableRows = (
+  parsed: ParsedEnrollFile | null,
+  course: RosterTargetCourse | undefined
+): EnrollableRows => {
+  if (!parsed) return NOTHING
+  if (parsed.kind === "pdf") {
+    if (!course) return { rows: parsed.roster.rows, rejected: [], error: null }
+    const error = rosterHeaderMismatch(parsed.roster.header, course)
+    return error
+      ? { ...NOTHING, error }
+      : { rows: parsed.roster.rows, rejected: [], error: null }
+  }
+  if (!course) return NOTHING
+  const picked = nominaBlockFor(parsed.blocks, course)
+  if ("error" in picked) return { ...NOTHING, error: picked.error }
+  const { rows, rejected, grade, parallel } = picked.block
+  return {
+    rows,
+    rejected,
+    error:
+      rows.length === 0
+        ? `El curso ${grade} ${parallel} de la planilla no trae estudiantes.`
+        : null,
+  }
+}
+
+/** La fila como la recibe la API: un dato que no trae se omite, y la API lo toma como vacío. */
+const toPayload = ({
+  rudeCode,
+  identityCard,
+  names,
+  lastNames,
+  birthDate,
+  gender,
+}: ParsedStudentRow): StudentPayload => ({
+  names,
+  lastNames,
+  ...(rudeCode ? { rudeCode } : {}),
+  ...(identityCard ? { identityCard } : {}),
+  ...(birthDate ? { birthDate } : {}),
+  ...(gender ? { gender } : {}),
+})
+
 export function AutomatedEnrollForm({
   courseId,
   onSuccess,
 }: AutomatedEnrollFormProps) {
   const [file, setFile] = useState<File | null>(null)
-  const [roster, setRoster] = useState<ParsedRoster | null>(null)
+  const [parsed, setParsed] = useState<ParsedEnrollFile | null>(null)
   const [parseError, setParseError] = useState<string | null>(null)
   const [result, setResult] = useState<EnrollResponse | null>(null)
 
-  const parse = useParseStudentsPdf()
+  const parse = useParseEnrollFile()
   const parsing = parse.isPending
   const enroll = useEnrollBatch()
   // El mismo overview que ya pide el menú lateral: comparte su caché y no agrega un endpoint.
   const course = useCourseOverview(courseId, 1).data?.course
 
-  // La nómina sólo se importa en el curso que nombra su cabecera. Sin el curso cargado no hay con
-  // qué comparar, y el botón queda deshabilitado hasta tenerlo.
-  const headerError =
-    roster && course ? rosterHeaderMismatch(roster.header, course) : null
-  const rows = headerError ? [] : (roster?.rows ?? [])
-  const errorMessage = parseError ?? headerError
+  const { rows, rejected, error: courseError } = enrollableRows(parsed, course)
+  const errorMessage = parseError ?? courseError
+  const fromXlsx = parsed?.kind === "xlsx"
 
   const handleFile = async (selected: File | null) => {
     setFile(selected)
-    setRoster(null)
+    setParsed(null)
     setParseError(null)
     if (!selected) return
     try {
-      const parsed = await parse.mutateAsync(selected)
-      if (parsed.rows.length === 0) {
+      const read = await parse.mutateAsync(selected)
+      if (read.kind === "pdf" && read.roster.rows.length === 0) {
         setParseError(
           "No se detectaron filas válidas. Verifica el formato del PDF."
         )
       }
-      setRoster(parsed)
+      setParsed(read)
     } catch (e) {
       setParseError(
-        e instanceof Error ? e.message : "Error al procesar el PDF."
+        e instanceof Error ? e.message : "Error al procesar el archivo."
       )
     }
   }
 
   const handleSubmit = async () => {
-    if (!courseId || !course || headerError || rows.length === 0) return
+    if (!courseId || !course || courseError || rows.length === 0) return
     try {
       const response = await enroll.mutateAsync({
         id_course: courseId,
-        students: rows.map(
-          ({
-            rudeCode,
-            identityCard,
-            names,
-            lastNames,
-            birthDate,
-            gender,
-          }) => ({
-            rudeCode,
-            identityCard,
-            names,
-            lastNames,
-            birthDate,
-            gender,
-          })
-        ),
+        students: rows.map(toPayload),
       })
       // No se cierra solo: el resumen dice a quién se omitió, y cerrar lo taparía.
       setResult(response)
@@ -100,7 +155,7 @@ export function AutomatedEnrollForm({
   }
 
   const maleCount = rows.filter((r) => r.gender === "M").length
-  const femaleCount = rows.length - maleCount
+  const femaleCount = rows.filter((r) => r.gender === "F").length
 
   if (result) {
     return (
@@ -123,15 +178,16 @@ export function AutomatedEnrollForm({
       >
         <UploadCloudIcon className="size-8 text-brand" />
         <span className="font-medium">
-          {file ? file.name : "Subir nómina PDF"}
+          {file ? file.name : "Subir nómina PDF o Excel"}
         </span>
         <span className="text-xs text-muted-foreground">
-          Formato SIE — Estudiantes inscritos por curso
+          PDF del SIE (estudiantes inscritos por curso) o la planilla de la
+          escuela (.xlsx)
         </span>
         <input
           id="pdf-upload"
           type="file"
-          accept="application/pdf"
+          accept={ENROLL_FILE_ACCEPT}
           className="hidden"
           onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
           disabled={parsing || enroll.isPending}
@@ -141,7 +197,7 @@ export function AutomatedEnrollForm({
       {parsing ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2Icon className="size-4 animate-spin" />
-          Procesando PDF...
+          Procesando archivo...
         </div>
       ) : null}
 
@@ -156,9 +212,31 @@ export function AutomatedEnrollForm({
           <div className="flex items-center gap-3 text-sm">
             <FileTextIcon className="size-4 text-brand" />
             <span className="font-medium">{rows.length} estudiantes</span>
-            <Badge variant="secondary">{maleCount} niños</Badge>
-            <Badge variant="secondary">{femaleCount} niñas</Badge>
+            {fromXlsx ? null : (
+              <>
+                <Badge variant="secondary">{maleCount} niños</Badge>
+                <Badge variant="secondary">{femaleCount} niñas</Badge>
+              </>
+            )}
           </div>
+
+          {fromXlsx ? (
+            <p className="text-sm text-muted-foreground">
+              La planilla trae sólo los nombres. RUDE, carnet, fecha de
+              nacimiento y género quedan vacíos: puedes completarlos después
+              importando la nómina PDF del SIE o editando al estudiante.
+            </p>
+          ) : null}
+
+          {rejected.length > 0 ? (
+            <ul className="flex flex-col gap-1 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+              {rejected.map((r) => (
+                <li key={r.rowNumber}>
+                  Fila {r.rowNumber} omitida ({r.rawFullName}): {r.reason}
+                </li>
+              ))}
+            </ul>
+          ) : null}
 
           <div className="min-w-0 overflow-hidden rounded-md border">
             <ScrollArea className="h-72 w-full">
@@ -179,20 +257,24 @@ export function AutomatedEnrollForm({
                     <TableRow key={r.rowIndex}>
                       <TableCell>{r.rowIndex}</TableCell>
                       <TableCell className="font-mono text-xs">
-                        {r.rudeCode}
+                        {r.rudeCode ?? EMPTY_CELL}
                       </TableCell>
                       <TableCell className="font-mono text-xs">
-                        {r.identityCard}
+                        {r.identityCard ?? EMPTY_CELL}
                       </TableCell>
                       <TableCell>{r.lastNames}</TableCell>
                       <TableCell>{r.names}</TableCell>
-                      <TableCell>{r.birthDate}</TableCell>
+                      <TableCell>{r.birthDate ?? EMPTY_CELL}</TableCell>
                       <TableCell>
-                        <Badge
-                          variant={r.gender === "M" ? "default" : "outline"}
-                        >
-                          {r.gender}
-                        </Badge>
+                        {r.gender ? (
+                          <Badge
+                            variant={r.gender === "M" ? "default" : "outline"}
+                          >
+                            {r.gender}
+                          </Badge>
+                        ) : (
+                          EMPTY_CELL
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}

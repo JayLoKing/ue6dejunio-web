@@ -19,10 +19,13 @@ export interface EnrolledElsewhere {
   courseLabel: string
 }
 
-/** Una fila omitida porque su RUDE y su CI son de dos estudiantes distintos. */
+/**
+ * Una fila omitida: su RUDE y su CI son de dos estudiantes distintos, o su nombre coincide con más
+ * de un estudiante del curso. Una fila de la planilla de la escuela no trae RUDE ni CI.
+ */
 export interface EnrollConflict {
-  rudeCode: string
-  identityCard: string
+  rudeCode: string | null
+  identityCard: string | null
   /** El nombre tal como venía en la fila. */
   fullName: string
   /** De quién es cada dato, dicho por la API. */
@@ -45,12 +48,17 @@ export interface EnrollResponse {
   studentsReentering: number
   enrollmentsCreated: number
   enrollmentsSkipped: number
+  /**
+   * Estudiantes que ya estaban registrados con datos incompletos y a los que la carga les llenó lo
+   * que faltaba (RUDE, carnet, fecha, género). Nunca se pisa un dato que ya tenían.
+   */
+  completed: number
   /** Retirados de una gestión anterior: la nómina de este año los trae de vuelta. */
   reinstated: ReinstatedStudent[]
   /** Retirados en esta gestión: se omiten para todo el que carga; sólo el Director los reincorpora. */
   skippedWithdrawn: SkippedStudent[]
   /** Ya inscritos en otro curso de esta gestión: no se les da un segundo lugar. */
   skippedOtherCourse: EnrolledElsewhere[]
-  /** Filas cuyo RUDE y CI son de estudiantes distintos. */
+  /** Filas que no se inscribieron: RUDE y CI de estudiantes distintos, o un nombre ambiguo. */
   conflicts: EnrollConflict[]
 }

@@ -18,10 +18,12 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-import { studentPayloadSchema } from "../models/schemas/student-schemas"
+import {
+  studentPayloadSchema,
+  type StudentFormValues,
+} from "../models/schemas/student-schemas"
 import { useEnrollSingle } from "../hooks/useEnroll"
 import type { EnrollResponse } from "../models/response/enroll-response"
-import type { StudentPayload } from "../types"
 import { EnrollResultSummary } from "./EnrollResultSummary"
 
 export interface ManualEnrollFormProps {
@@ -38,7 +40,7 @@ export function ManualEnrollForm({
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<StudentPayload>({
+  } = useForm<StudentFormValues>({
     mode: "onTouched",
     resolver: zodResolver(studentPayloadSchema),
     defaultValues: {

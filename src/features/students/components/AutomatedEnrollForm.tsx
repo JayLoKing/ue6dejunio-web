@@ -32,6 +32,7 @@ import {
   rosterHeaderMismatch,
   type RosterTargetCourse,
 } from "../utils/rosterHeader"
+import { schoolRosterBlockFor } from "../utils/sieSchoolRoster"
 import { EnrollResultSummary } from "./EnrollResultSummary"
 
 export interface AutomatedEnrollFormProps {
@@ -54,9 +55,10 @@ const NOTHING: EnrollableRows = { rows: [], rejected: [], error: null }
 /**
  * Las filas del archivo que corresponden al curso destino.
  *
- * El PDF del SIE es de un solo curso y su cabecera tiene que nombrar el destino. La planilla de la
- * escuela trae todos los cursos, y se toma sólo el bloque del destino. Sin el curso cargado el PDF
- * se muestra (el botón sigue deshabilitado), pero de la planilla no hay bloque que elegir todavía.
+ * El PDF del SIE de un curso tiene que nombrar el destino en su cabecera. El PDF del SIE de toda la
+ * unidad y la planilla de la escuela traen todos los cursos, y se toma sólo el bloque del destino.
+ * Sin el curso cargado el PDF de un curso se muestra (el botón sigue deshabilitado), pero de los
+ * otros dos no hay bloque que elegir todavía.
  */
 const enrollableRows = (
   parsed: ParsedEnrollFile | null,
@@ -69,6 +71,13 @@ const enrollableRows = (
     return error
       ? { ...NOTHING, error }
       : { rows: parsed.roster.rows, rejected: [], error: null }
+  }
+  if (parsed.kind === "pdf-school") {
+    if (!course) return NOTHING
+    const picked = schoolRosterBlockFor(parsed.roster, course)
+    return "error" in picked
+      ? { ...NOTHING, error: picked.error }
+      : { rows: picked.block.rows, rejected: [], error: null }
   }
   if (!course) return NOTHING
   const picked = nominaBlockFor(parsed.blocks, course)
@@ -181,7 +190,7 @@ export function AutomatedEnrollForm({
           {file ? file.name : "Subir nómina PDF o Excel"}
         </span>
         <span className="text-xs text-muted-foreground">
-          PDF del SIE (estudiantes inscritos por curso) o la planilla de la
+          PDF del SIE (de tu curso o de toda la unidad) o la planilla de la
           escuela (.xlsx)
         </span>
         <input

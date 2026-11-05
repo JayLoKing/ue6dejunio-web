@@ -116,6 +116,75 @@ describe("AutomatedEnrollForm", () => {
   })
 })
 
+describe("AutomatedEnrollForm with the SIE list of the whole school", () => {
+  const schoolRoster = (year = 2026) => ({
+    year,
+    blocks: [
+      {
+        grade: "Primero",
+        parallel: "A",
+        rows: [{ ...student, fullName: "OTRO CURSO LUIS" }],
+      },
+      { grade: "Segundo", parallel: "A", rows: [student] },
+    ],
+  })
+
+  it("enrols only the block of the teacher's course, with every field", async () => {
+    parseStudentsPdf.mockResolvedValueOnce(schoolRoster())
+
+    await upload()
+    await userEvent.click(
+      await screen.findByRole("button", { name: /inscribir 1 estudiantes/i })
+    )
+
+    expect(mutateAsync).toHaveBeenCalledWith({
+      id_course: "c-1",
+      students: [
+        {
+          names: "ANA",
+          lastNames: "PEREZ ROJAS",
+          rudeCode: "1234567890123",
+          identityCard: "9876543",
+          birthDate: "2018-03-05",
+          gender: "F",
+        },
+      ],
+    })
+  })
+
+  it("names the courses it found when the teacher's is missing", async () => {
+    parseStudentsPdf.mockResolvedValueOnce({
+      year: 2026,
+      blocks: [{ grade: "Inicial", parallel: "A", rows: [student] }],
+    })
+
+    await upload()
+
+    expect(
+      await screen.findByText(
+        "La nómina del SIE no tiene el curso Segundo A. Cursos encontrados: Inicial A."
+      )
+    ).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /inscribir/i })).toBeDisabled()
+  })
+
+  it("refuses a list of another gestion and calls nothing", async () => {
+    parseStudentsPdf.mockResolvedValueOnce(schoolRoster(2025))
+
+    await upload()
+
+    expect(
+      await screen.findByText(
+        "Esta nómina no corresponde a tu curso (Segundo A 2025 ≠ Segundo A 2026)."
+      )
+    ).toBeInTheDocument()
+    const submit = screen.getByRole("button", { name: /inscribir/i })
+    expect(submit).toBeDisabled()
+    await userEvent.click(submit)
+    expect(mutateAsync).not.toHaveBeenCalled()
+  })
+})
+
 const XLSX_TYPE =
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 

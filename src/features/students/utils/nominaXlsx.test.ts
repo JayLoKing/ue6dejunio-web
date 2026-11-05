@@ -171,3 +171,47 @@ describe("nominaBlockFor", () => {
     })
   })
 })
+
+// A teacher may export only their own course: the sheet then holds a single "CURSO:" line.
+describe("a sheet with only one course", () => {
+  const strings = shared([
+    "NOMINA DE ESTUDIANTES  GESTION -2026", // 0
+    "CURSO:  SEGUNDO    B", // 1
+    "No", // 2
+    "APELLIDOS Y NOMBRES", // 3
+    "PEREZ ROJAS ANA", // 4
+    "QUISPE MAMANI LUIS", // 5
+  ])
+  const xml = sheet([
+    row(1, s("B1", 0)),
+    row(2, s("B2", 1)),
+    row(3, s("A3", 2) + s("B3", 3)),
+    row(4, num("A4", 1) + s("B4", 4)),
+    row(5, num("A5", 2) + s("B5", 5)),
+  ])
+  const blocks = nominaBlocksFromSheet(xml, sharedStringsFromXml(strings))
+
+  it("reads its one course and its students", () => {
+    expect(blocks).toHaveLength(1)
+    expect(blocks[0]).toMatchObject({ grade: "Segundo", parallel: "B" })
+    expect(blocks[0].rows.map((r) => r.fullName)).toEqual([
+      "PEREZ ROJAS ANA",
+      "QUISPE MAMANI LUIS",
+    ])
+  })
+
+  it("is picked for that course", () => {
+    expect(
+      nominaBlockFor(blocks, { gradeName: "Segundo", parallelName: "B" })
+    ).toEqual({ block: blocks[0] })
+  })
+
+  it("is refused for another course, naming the one it holds", () => {
+    expect(
+      nominaBlockFor(blocks, { gradeName: "Segundo", parallelName: "A" })
+    ).toEqual({
+      error:
+        "La planilla no tiene el curso Segundo A. Cursos encontrados: Segundo B.",
+    })
+  })
+})

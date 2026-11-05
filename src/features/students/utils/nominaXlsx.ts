@@ -23,7 +23,7 @@ const INICIAL = "Inicial"
  * El grado con el nombre del catálogo, incluido Inicial, que la nómina del SIE no trae y la planilla
  * de la escuela sí. Null si la palabra no es un grado.
  */
-const nominaGrade = (raw: string): string | null => {
+export const nominaGrade = (raw: string): string | null => {
   const first = fold(raw).split(" ")[0] ?? ""
   if (first === "inicial") return INICIAL
   return normalizeGradeName(first)

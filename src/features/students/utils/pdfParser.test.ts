@@ -198,6 +198,24 @@ describe("studentRowsFromItems", () => {
     expect(rows).toEqual([])
   })
 
+  // pdfjs sometimes sets the carnet a fraction of a point above the RUDE on the same line; read in
+  // top-down order the carnet then comes first, and the row must not be lost for it.
+  it("reads a row whose carnet sits slightly above its RUDE", () => {
+    const items = row(
+      "1",
+      700,
+      "1234567890123",
+      "9876543",
+      "QUISPE MAMANI ANA",
+      "F",
+      "5 de marzo de 2014"
+    ).map((it) => (it.str === "9876543" ? { ...it, y: 700.4 } : it))
+
+    expect(studentRowsFromItems(items, 0)).toMatchObject([
+      { rudeCode: "1234567890123", identityCard: "9876543" },
+    ])
+  })
+
   it("returns nothing for a page with no numbered rows", () => {
     expect(studentRowsFromItems([item("Cabecera", 300, 780)], 0)).toEqual([])
   })

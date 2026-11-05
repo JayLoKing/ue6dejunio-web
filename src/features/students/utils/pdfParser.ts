@@ -90,6 +90,7 @@ interface PageRowResult {
 const RUDE_TOKEN_RE = /^\d{10,16}[A-Z]?$/i
 const CARNET_TOKEN_RE = /^\d{4,9}[A-Z]?$/i
 const GENDER_TOKEN_RE = /^[MF]$/
+const SAME_LINE = 2 // pt: dos fragmentos del mismo renglón
 
 const parseRowBag = (bag: TextItem[]): PageRowResult | null => {
   if (bag.length === 0) return null
@@ -115,6 +116,20 @@ const parseRowBag = (bag: TextItem[]): PageRowResult | null => {
       carnetItem = it
       break
     }
+  }
+  // pdfjs a veces deja el carnet una fracción de punto más arriba que el RUDE del mismo renglón, y
+  // en orden de lectura queda antes: se lo busca entonces en el renglón del RUDE, el más a la izquierda.
+  if (rudeItem && !carnetItem) {
+    const rude = rudeItem
+    carnetItem =
+      sorted
+        .filter(
+          (it) =>
+            Math.abs(it.y - rude.y) <= SAME_LINE &&
+            it.x > rude.x + 10 &&
+            CARNET_TOKEN_RE.test(it.str.trim())
+        )
+        .sort((a, b) => a.x - b.x)[0] ?? null
   }
   if (!rudeItem || !carnetItem) return null
 

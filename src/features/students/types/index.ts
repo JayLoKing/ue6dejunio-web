@@ -56,9 +56,26 @@ export interface NominaBlock {
   rejected: RejectedNominaRow[]
 }
 
+/** Un curso de la lista del SIE de toda la unidad, con sus estudiantes numerados desde 1. */
+export interface SchoolRosterBlock {
+  grade: string
+  parallel: string
+  rows: ParsedStudentRow[]
+}
+
+/**
+ * La lista del SIE de toda la unidad ("Estudiantes inscritos - Gestión"): todos los cursos en un
+ * solo PDF. La gestión es la del documento (null si no se pudo leer); cada bloque es un curso.
+ */
+export interface SchoolRoster {
+  year: number | null
+  blocks: SchoolRosterBlock[]
+}
+
 /** Lo que salió de leer el archivo elegido, según su formato. */
 export type ParsedEnrollFile =
   | { kind: "pdf"; roster: ParsedRoster }
+  | { kind: "pdf-school"; roster: SchoolRoster }
   | { kind: "xlsx"; blocks: NominaBlock[] }
 
 /** Un estudiante como lo muestra el padrón: lo justo para una fila de la tabla. */

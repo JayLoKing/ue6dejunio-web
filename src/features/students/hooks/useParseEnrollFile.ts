@@ -32,7 +32,10 @@ export const parseEnrollFile = async (
     return { kind: "xlsx", blocks: await parseNominaXlsx(file) }
   }
   if (format === "pdf") {
-    return { kind: "pdf", roster: await parseStudentsPdf(file) }
+    const roster = await parseStudentsPdf(file)
+    return "blocks" in roster
+      ? { kind: "pdf-school", roster }
+      : { kind: "pdf", roster }
   }
   throw new Error(UNSUPPORTED)
 }

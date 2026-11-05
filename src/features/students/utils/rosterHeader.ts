@@ -90,6 +90,14 @@ const labelValue = (items: TextItem[], label: string): string | null => {
 
 const YEAR_RE = /gestion\s*:?\s*-?\s*(\d{4})/
 
+/** La gestión que dice el título de la página ("… - GESTIÓN 2026"), o null si no la trae. */
+export const rosterYearFromItems = (items: TextItem[]): number | null => {
+  const match = items
+    .map((it) => fold(it.str).match(YEAR_RE))
+    .find((m) => m !== null)
+  return match ? Number(match[1]) : null
+}
+
 /**
  * El curso al que pertenece la nómina, leído de la cabecera de su primera página.
  *
@@ -102,15 +110,13 @@ export const rosterHeaderFromItems = (
 ): RosterHeader | null => {
   const rawGrade = labelValue(items, "grado")
   const rawParallel = labelValue(items, "paralelo")
-  const yearMatch = items
-    .map((it) => fold(it.str).match(YEAR_RE))
-    .find((m) => m !== null)
+  const year = rosterYearFromItems(items)
 
   const grade = rawGrade ? normalizeGradeName(rawGrade) : null
   const parallel = rawParallel ? normalizeParallel(rawParallel) : null
-  if (!grade || !parallel || !yearMatch) return null
+  if (!grade || !parallel || year === null) return null
 
-  return { grade, parallel, year: Number(yearMatch[1]) }
+  return { grade, parallel, year }
 }
 
 const describeCourse = (grade: string, parallel: string, year: number) =>

@@ -2,11 +2,14 @@ import { createFileRoute } from "@tanstack/react-router"
 import { Loader2Icon } from "lucide-react"
 
 import { useCurrentContext } from "@/features/auth/hooks/useCurrentContext"
+import { useTrimesters } from "@/features/catalog/hooks/useCatalog"
+import { currentTrimester } from "@/features/catalog/utils/currentTrimester"
 import {
   useCourseOverview,
   useTeacherClassGroups,
 } from "@/features/courses/hooks/useCourses"
 import { SubjectScoreSheet } from "@/features/notebook/components/SubjectScoreSheet"
+import type { Trimester } from "@/features/notebook/types"
 
 export const Route = createFileRoute("/_app/scores/$classGroupId/")({
   component: ClassGroupScorePage,
@@ -17,13 +20,23 @@ function ClassGroupScorePage() {
   const { userId, homeroomCourseId, isTechnical } = useCurrentContext()
 
   const ownQuery = useTeacherClassGroups(userId)
+  // La hoja abre en el trimestre en curso, el mismo que usa la barra lateral; por eso la hoja se
+  // monta recién con el calendario cargado: montada antes, se quedaría en el 1.
+  const trimestersQuery = useTrimesters()
+  const inProgress = currentTrimester(trimestersQuery.data)
+  const trimester: Trimester =
+    inProgress === 2 || inProgress === 3 ? inProgress : 1
   // Docente de aula: además de sus materias, puede ver las técnicas del curso (solo lectura).
   const overviewQuery = useCourseOverview(
     isTechnical ? null : homeroomCourseId,
-    1
+    trimester
   )
 
-  if (ownQuery.isLoading || overviewQuery.isLoading) {
+  if (
+    ownQuery.isLoading ||
+    overviewQuery.isLoading ||
+    trimestersQuery.isLoading
+  ) {
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Loader2Icon className="size-4 animate-spin" /> Cargando materia…
@@ -53,6 +66,7 @@ function ClassGroupScorePage() {
       classGroup={classGroup}
       readOnly={readOnly}
       studentSummaryLink={homeroomCourseId !== classGroup.courseId}
+      initialTrimester={trimester}
     />
   )
 }

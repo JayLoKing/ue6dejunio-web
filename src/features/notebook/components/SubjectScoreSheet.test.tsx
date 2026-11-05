@@ -86,8 +86,14 @@ vi.mock("@/features/risk/hooks/useRisk", () => ({
   usePredictClassGroupRisk: () => ({ mutate: vi.fn(), isPending: false }),
 }))
 
+// El trimestre que la hoja pidió, el último primero.
+const askedTrimester = vi.hoisted(() => ({ calls: [] as number[] }))
+
 vi.mock("@/features/assessment/hooks/useAssessment", () => ({
-  useCriteria: () => ({ data: [criterion], isLoading: false }),
+  useCriteria: (_classGroupId: string, trimester: number) => {
+    askedTrimester.calls.push(trimester)
+    return { data: [criterion], isLoading: false }
+  },
   useCriteriaEvents: () => ({ byCriterion: {}, isLoading: false }),
   useCriteriaScores: () => ({ matrix: {}, isLoading: false }),
   useEventScores: () => ({ matrix: {}, isLoading: false }),
@@ -201,5 +207,23 @@ describe("SubjectScoreSheet, nota fuera del rango", () => {
     expect(setScoreMutate).toHaveBeenCalledWith(
       expect.objectContaining({ score: 30 })
     )
+  })
+})
+
+describe("SubjectScoreSheet, trimestre inicial", () => {
+  beforeEach(() => {
+    askedTrimester.calls = []
+  })
+
+  it("abre en el trimestre que recibe", () => {
+    render(<SubjectScoreSheet classGroup={classGroup} initialTrimester={2} />)
+
+    expect(askedTrimester.calls.at(-1)).toBe(2)
+  })
+
+  it("sin trimestre recibido abre en el 1", () => {
+    render(<SubjectScoreSheet classGroup={classGroup} />)
+
+    expect(askedTrimester.calls.at(-1)).toBe(1)
   })
 })

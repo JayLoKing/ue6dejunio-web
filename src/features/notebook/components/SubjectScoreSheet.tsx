@@ -54,6 +54,11 @@ export interface SubjectScoreSheetProps {
   readOnly?: boolean
   /** true = el nombre del estudiante lleva a su resumen (docente que no es de aula del curso). */
   studentSummaryLink?: boolean
+  /**
+   * El trimestre con el que abre la hoja; después manda el selector. Quien la monta pasa el que
+   * está en curso. Sin él, el 1.
+   */
+  initialTrimester?: Trimester
 }
 
 /**
@@ -79,8 +84,9 @@ export function SubjectScoreSheet({
   classGroup,
   readOnly = false,
   studentSummaryLink = false,
+  initialTrimester = 1,
 }: SubjectScoreSheetProps) {
-  const [trimester, setTrimester] = useState<Trimester>(1)
+  const [trimester, setTrimester] = useState<Trimester>(initialTrimester)
   // Solo lo TECLEADO, no un espejo del servidor: una casilla sin tocar no tiene entrada
   // acá y se dibuja leyendo directamente la nota. Así un refetch no puede pisar lo que
   // el docente está escribiendo, y no hace falta sincronizar nada en un efecto.

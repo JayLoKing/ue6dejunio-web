@@ -14,19 +14,24 @@ import type { Pdc, PdcStatus } from "@/features/pdc/types"
 
 const rows = vi.hoisted(() => ({ current: [] as unknown[] }))
 const copy = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }))
+// Every set of params the listing asked for, newest last.
+const listParams = vi.hoisted(() => ({ calls: [] as unknown[] }))
 
 vi.mock("@/features/pdc/hooks/usePdc", () => ({
-  usePdcList: () => ({
-    data: {
-      content: rows.current,
-      page: 0,
-      total: rows.current.length,
-      totalPages: 1,
-    },
-    isLoading: false,
-    isFetching: false,
-    refetch: vi.fn(),
-  }),
+  usePdcList: (params: unknown) => {
+    listParams.calls.push(params)
+    return {
+      data: {
+        content: rows.current,
+        page: 0,
+        total: rows.current.length,
+        totalPages: 1,
+      },
+      isLoading: false,
+      isFetching: false,
+      refetch: vi.fn(),
+    }
+  },
   usePdcAction: () => ({
     publish: { mutate: vi.fn(), isPending: false },
     remove: { mutate: vi.fn(), isPending: false },
@@ -53,10 +58,28 @@ vi.mock("@/features/courses/hooks/useCourses", () => ({
   useTeacherClassGroups: () => ({ data: [] }),
 }))
 
-// The document, the wizard and the create dialog are other tests' business.
-vi.mock("@/features/pdc/components/PdcReviewDialog", () => ({
-  PdcReviewDialog: () => null,
+// The year list: 2025 is closed, 2026 is the one the Director declared active.
+vi.mock("@/features/catalog/hooks/useCatalog", async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  useAcademicYears: () => ({
+    isLoading: false,
+    isError: false,
+    data: [
+      { id: 5, year: 2025, active: false, closed: true },
+      { id: 6, year: 2026, active: true, closed: false },
+    ],
+  }),
 }))
+
+// The document, the wizard and the create dialog are other tests' business. The review dialog
+// only says whether it was allowed to approve or observe.
+vi.mock("@/features/pdc/components/PdcReviewDialog", async () => {
+  const { createElement } = await import("react")
+  return {
+    PdcReviewDialog: (props: { canDecide: boolean }) =>
+      createElement("p", null, `canDecide=${String(props.canDecide)}`),
+  }
+})
 vi.mock("@/features/pdc/components/PdcWizard", () => ({
   PdcWizard: () => null,
 }))
@@ -208,5 +231,62 @@ describe("PDC listing — copy to parallels", () => {
     await userEvent.click(copyButton("Plan Nº 1 · 1ro A") as HTMLElement)
 
     expect(copy.mutate).toHaveBeenCalledWith("p-1")
+  })
+})
+
+describe("PDC listing — gestión", () => {
+  afterEach(() => {
+    useAuthStore.setState({ role: null, userId: null })
+    listParams.calls = []
+  })
+
+  const lastParams = () =>
+    listParams.calls[listParams.calls.length - 1] as Record<string, unknown>
+
+  it("lists the active gestión for the Director until another is chosen", () => {
+    rows.current = [plan("p-1", "Published")]
+    renderAs("DIRECTOR")
+
+    expect(screen.getByRole("combobox", { name: "Gestión" })).toHaveTextContent(
+      "Gestión 2026"
+    )
+    expect(lastParams().academicYearId).toBe(6)
+    expect(screen.getByText("canDecide=true")).toBeInTheDocument()
+    expect(screen.queryByText(/solo lectura/)).not.toBeInTheDocument()
+  })
+
+  it("lets the Director read a past gestión without deciding on its plans", async () => {
+    rows.current = [plan("p-1", "Published")]
+    renderAs("DIRECTOR")
+
+    await userEvent.click(screen.getByRole("combobox", { name: "Gestión" }))
+    await userEvent.click(
+      await screen.findByRole("option", { name: "Gestión 2025 (cerrada)" })
+    )
+
+    expect(lastParams()).toMatchObject({ academicYearId: 5, offset: 1 })
+    expect(
+      screen.getByText("Gestión 2025 cerrada: solo lectura.")
+    ).toBeInTheDocument()
+    expect(screen.getByText("canDecide=false")).toBeInTheDocument()
+    // Reading the plan stays.
+    expect(
+      within(rowOf("Plan Nº 1 · 1ro A")).getByRole("button", {
+        name: "Ver el plan",
+      })
+    ).toBeInTheDocument()
+  })
+
+  it("shows a teacher no gestión selector and sends no academicYearId", () => {
+    rows.current = [plan("p-1", "Draft")]
+    renderAs("TEACHER")
+
+    expect(
+      screen.queryByRole("combobox", { name: "Gestión" })
+    ).not.toBeInTheDocument()
+    expect(lastParams()).not.toHaveProperty("academicYearId")
+    expect(
+      screen.getByRole("button", { name: "Nuevo PDC" })
+    ).toBeInTheDocument()
   })
 })

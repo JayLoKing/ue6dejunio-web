@@ -17,6 +17,11 @@ export interface PdcListParams {
   courseId?: string
   trimester?: number
   status?: string
+  /**
+   * The academic year's row id, not the calendar year. Only the Director's choice reaches the
+   * server: a teacher is held to the active gestión there, whatever is sent.
+   */
+  academicYearId?: number
   offset?: number
   limit?: number
 }
@@ -31,6 +36,7 @@ export default class PdcServiceHelper {
           id_course: params.courseId,
           trimester: params.trimester,
           status: params.status,
+          academicYearId: params.academicYearId,
           offset: params.offset ?? 1,
           limit: params.limit ?? 20,
         },

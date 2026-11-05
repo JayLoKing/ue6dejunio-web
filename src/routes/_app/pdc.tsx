@@ -31,6 +31,9 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTablePagination } from "@/components/shared/DataTablePagination"
 import { useAuthStore } from "@/features/auth/store/authStore"
 import { isRole } from "@/features/auth/types"
+import { AcademicYearSelect } from "@/features/catalog/components/AcademicYearSelect"
+import { useAcademicYears } from "@/features/catalog/hooks/useCatalog"
+import { useSelectedAcademicYear } from "@/features/catalog/hooks/useSelectedAcademicYear"
 import { useTeacherClassGroups } from "@/features/courses/hooks/useCourses"
 import { PdcCreateDialog } from "@/features/pdc/components/PdcCreateDialog"
 import { PdcReviewDialog } from "@/features/pdc/components/PdcReviewDialog"
@@ -78,11 +81,31 @@ function PdcPage() {
   const [reviewingId, setReviewingId] = useState<string | null>(null)
   const [progress, setProgress] = useState<Pdc | null>(null)
 
+  // Each gestión keeps its own plans. A teacher works in the active one only, and the server holds
+  // them to it, so only the Director picks a gestión — and reads the past ones without touching
+  // them. Until the Director picks, it is the active one.
+  const yearsQuery = useAcademicYears()
+  const { academicYearId, selectedYear, choose } = useSelectedAcademicYear(
+    yearsQuery.data
+  )
+  const chooseYear = (id: number) => {
+    choose(id)
+    setPage(1)
+  }
+  const pastYear = isDirector && selectedYear != null && !selectedYear.active
+  // Without a gestión to ask for (none active), the server answers with the active one: the
+  // Director still sees the list and picks from the selector.
+  const yearParam =
+    isDirector && academicYearId != null ? { academicYearId } : {}
+  // The Director's list waits for the years, or it would fetch once without the gestión and once
+  // with it.
+  const waitingForYears = isDirector && yearsQuery.isLoading
+
   const classGroupsQuery = useTeacherClassGroups(isTeacher ? userId : null)
-  const { data, isLoading, isFetching, refetch } = usePdcList({
-    offset: page,
-    limit,
-  })
+  const { data, isLoading, isError, isFetching, refetch } = usePdcList(
+    { offset: page, limit, ...yearParam },
+    !waitingForYears
+  )
   const { publish, remove } = usePdcAction()
   const copyToParallels = useCopyPdcToParallels()
   // The plan's own state change is what notifies its author now, on the server, after the write
@@ -130,6 +153,13 @@ function PdcPage() {
               : "Crea y publica tu PDC por materia y trimestre."}
           </p>
         </div>
+        {isDirector && yearsQuery.data ? (
+          <AcademicYearSelect
+            years={yearsQuery.data}
+            value={academicYearId}
+            onChange={chooseYear}
+          />
+        ) : null}
         {isTeacher ? (
           <Button
             className="bg-brand text-brand-foreground hover:bg-brand/90"
@@ -140,6 +170,15 @@ function PdcPage() {
           </Button>
         ) : null}
       </div>
+
+      {pastYear ? (
+        <p
+          role="status"
+          className="rounded-md border border-dashed px-4 py-2 text-sm text-muted-foreground"
+        >
+          {`Gestión ${selectedYear.year}${selectedYear.closed ? " cerrada" : " no activa"}: solo lectura.`}
+        </p>
+      ) : null}
 
       <div className="rounded-md border">
         <Table>
@@ -158,13 +197,22 @@ function PdcPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? (
+            {isLoading || waitingForYears ? (
               <TableRow>
                 <TableCell
                   colSpan={isDirector ? 7 : 6}
                   className="text-center text-muted-foreground"
                 >
                   Cargando…
+                </TableCell>
+              </TableRow>
+            ) : isError ? (
+              <TableRow>
+                <TableCell
+                  colSpan={isDirector ? 7 : 6}
+                  className="text-center text-destructive"
+                >
+                  No se pudieron cargar los PDC. Intenta de nuevo.
                 </TableCell>
               </TableRow>
             ) : rows.length === 0 ? (
@@ -278,7 +326,11 @@ function PdcPage() {
                         size="icon"
                         variant="ghost"
                         className="size-8"
-                        title={isDirector ? "Ver y revisar" : "Ver el plan"}
+                        title={
+                          isDirector && !pastYear
+                            ? "Ver y revisar"
+                            : "Ver el plan"
+                        }
                         onClick={() => setReviewingId(p.id)}
                       >
                         <FileSearchIcon className="size-4" />
@@ -357,7 +409,7 @@ function PdcPage() {
 
       <PdcReviewDialog
         planId={reviewingId}
-        canDecide={isDirector}
+        canDecide={isDirector && !pastYear}
         onClose={() => setReviewingId(null)}
       />
     </div>

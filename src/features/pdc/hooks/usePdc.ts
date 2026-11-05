@@ -29,11 +29,16 @@ export function usePdcDetail(id: string | null) {
   })
 }
 
-export function usePdcList(params: PdcListParams) {
+/**
+ * `academicYearId` is part of `params`, so it is part of the key: each gestión is its own list.
+ * `enabled` lets the page hold the request until it knows which gestión it is asking for.
+ */
+export function usePdcList(params: PdcListParams, enabled = true) {
   return useQuery({
     queryKey: [...KEY, params],
     queryFn: () => PdcService.list(params),
     placeholderData: keepPreviousData,
+    enabled,
   })
 }
 

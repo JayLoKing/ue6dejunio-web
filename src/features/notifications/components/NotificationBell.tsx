@@ -1,15 +1,18 @@
 import { useState } from "react"
+import { useNavigate } from "@tanstack/react-router"
 import { BellIcon, CheckCheckIcon, Loader2Icon, XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { headingOf } from "../utils/heading"
+import { targetOf } from "../utils/target"
+import type { NotificationItem } from "../types"
 import { Button } from "@/components/ui/button"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { useAuthStore } from "@/features/auth/store/authStore"
 
 import {
   useDeleteNotification,
@@ -44,8 +47,23 @@ export function NotificationBell() {
   const markRead = useMarkNotificationRead()
   const markAll = useMarkAllRead()
   const removeOne = useDeleteNotification()
+  const navigate = useNavigate()
+  const role = useAuthStore((s) => s.role)
+  const isTechnical = useAuthStore((s) => s.isTechnical)
 
   const items = inbox.data?.content ?? []
+
+  // Opening a notice is reading it: mark it, close the peek, and go to what it is about.
+  const openNotice = (n: NotificationItem) => {
+    if (!n.read) markRead.mutate(n.id)
+    setOpen(false)
+    void navigate({ to: targetOf(n, { role, isTechnical }) })
+  }
+
+  const seeAll = () => {
+    setOpen(false)
+    void navigate({ to: "/notifications" })
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -74,8 +92,12 @@ export function NotificationBell() {
           </span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 p-0">
-        <div className="flex items-center justify-between border-b px-3 py-2">
+      <PopoverContent
+        align="end"
+        // Never taller than the room under the bell: the list below is the part that gives way.
+        className="max-h-(--radix-popover-content-available-height) w-80 gap-0 p-0"
+      >
+        <div className="flex shrink-0 items-center justify-between border-b px-3 py-2">
           <span className="text-sm font-medium">Notificaciones</span>
           <Button
             variant="ghost"
@@ -89,11 +111,22 @@ export function NotificationBell() {
           </Button>
         </div>
 
-        <ScrollArea className="max-h-96">
+        {/* A plain overflow box and not ScrollArea: its viewport is `h-full`, which resolves to
+            auto under a max-height, so the list grew past the card instead of scrolling. About
+            three notices fit; the rest scroll here while the header and footer stay put. */}
+        <div
+          data-testid="notification-list"
+          className="max-h-80 min-h-0 flex-1 overflow-y-auto overscroll-contain"
+        >
           {inbox.isLoading ? (
             <div className="flex items-center justify-center gap-2 p-6 text-sm text-muted-foreground">
               <Loader2Icon className="size-4 animate-spin" />
               Cargando…
+            </div>
+          ) : inbox.isError ? (
+            // Not "Sin notificaciones": a fetch that failed must not read as an empty inbox.
+            <div className="p-6 text-center text-sm text-muted-foreground">
+              No se pudieron cargar las notificaciones.
             </div>
           ) : items.length === 0 ? (
             <div className="p-6 text-center text-sm text-muted-foreground">
@@ -119,9 +152,7 @@ export function NotificationBell() {
                   <button
                     type="button"
                     className="flex min-w-0 flex-1 cursor-pointer flex-col items-start text-left"
-                    onClick={() => {
-                      if (!n.read) markRead.mutate(n.id)
-                    }}
+                    onClick={() => openNotice(n)}
                   >
                     {/* What it is about, not who sent it: the system's own notices have no
                         sender, and "Sistema" three times over says nothing. */}
@@ -160,7 +191,18 @@ export function NotificationBell() {
               ))}
             </ul>
           )}
-        </ScrollArea>
+        </div>
+
+        <div className="shrink-0 border-t p-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-full text-xs"
+            onClick={seeAll}
+          >
+            Ver todas
+          </Button>
+        </div>
       </PopoverContent>
     </Popover>
   )
